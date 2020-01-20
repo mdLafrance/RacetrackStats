@@ -1,0 +1,12 @@
+Scene file has list of files
+
+start renderer, 
+renderer goes through all files,
+for mtllib files, create and register all materials listed in the mtllib
+for obj files, create OBJMesh and register for all objs listed in the obj
+then, for each registered OBJMesh, build an object based on the parametes listed as the defaults in the OBJMesh
+
+bulding an object,
+make object with name corresponding to the objmesh, 
+link obj mesh, material.
+after all are built, link all default parents. 

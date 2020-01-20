@@ -20,7 +20,7 @@ public:
 
 	void setParent(Transform* parent);
 
-	glm::mat4x4 getMatrix();
+	glm::mat4x4 getViewProjectionMatrix();
 
 	Transform();
 	~Transform();

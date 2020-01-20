@@ -296,89 +296,43 @@ void Renderer::loadScene(const std::string& target) {
 		return;
 	}
 
-	std::cout << std::endl << "Loading Scene " << target << std::endl;
-
-	Utils::FileInfo fi = Utils::getFileInfo(target);
+	std::cout << std::endl << "Loading Scene " << target << "..." << std::endl;
 
 	this->scene.name = fi.file;
 	this->scene.path = target;
 	this->scene.files = std::vector<std::string>();
-	this->scene.directories = std::vector<std::string>();
 
 	std::string line;
 
 	while (std::getline(f, line)) {
-		if (line == "") {
-			continue;
-		}
+		if (line == "" || line[0] == "#") continue;
 
 		std::vector<std::string> tokens = Utils::split(line, ' ');
 		std::string lineType = tokens[0];
 
-		if (lineType == "#") {
-			continue;
-		}
+		// Other line specs deprecated
+		// Leaving this functionality in for later
 
-		if (lineType == "name") {
+		if (lineType == "name"){
 			int nameLength = line.size() - 5; // "name " is 5 chars
-			this->scene.name = line.substr(5, nameLength);
-		}
+	 		this->scene.name = line.substr(5, nameLength);		
+		// Line is just path to some file to be included in the scene
+		} else { 
+			Utils::FileInfo fi = Utils::getFileInfo(line);
 
-		if (lineType == "root") {
-			int nameLength = line.size() - 5; // "name " is 5 chars
-			this->scene.root = line.substr(5, nameLength);
-		}
-
-		/*
-		if (lineType == "d") {
-			this->scene.directories.push_back(line.substr(2, line.size() - 1));
-		}
-		*/
-
-		if (lineType == "f") {
-			this->scene.files.push_back(line.substr(2, line.size() - 1));
+			if (fi.extension == "mtl"){
+				this->loadMaterialLibrary(line);
+			} else if (fi.extension == "obj"){
+				this->loadOBJ(line);
+			} else {
+				std::cerr << "Unsupported file type " << fi.extension << " for file " << line << std::endl;
+			}
 		}
 	}
+}
 
-	f.close();
-
-	std::string fpath;
-
-	std::map<std::string, OBJMesh*> objMeshes;
-	std::map<std::string, Object*> objects;
-
-	std::string meshName;
-	OBJMesh* mesh;
-	Material* mat;
-	Object* object;
-
-	for (std::string file : this->scene.files) {
-		fpath = this->scene.root + '/' + file;
-
-		OBJ::OBJData fileMeshes = OBJ::load(fpath);
-
-		// load fileMeshes.mtllib
-
-		for (OBJMesh* m : fileMeshes.meshes) {
-
-			this->registerMesh(m->getMeshName(), m);
-
-			/*
-			// If material used by OBJ not yet created and registered with renderer
-			if (this->materials.count(p.second->getMaterialName()) == 0) {
-				mat = new Material()
-				mat = this->newMaterial(mesh->getMaterialName(), this->scene.root + '/' + mesh->getMaterialName());
-			}
-			else {
-				mat = this->materials.at(mesh->getMaterialName());
-			}
-			*/
-		}
-
-		//objects.insert(fileMeshes.begin(), fileMeshes.end());
-	}
-
-	std::cout << std::endl;
+void Renderer::loadMaterialLibrary(const std::string& target) {
+	Utils::FileInfo fi = Utils::getFileInfo(target);
 }
 
 Object* Renderer::newObject(const std::string& name) {

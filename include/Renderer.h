@@ -21,7 +21,6 @@ struct Scene {
 	std::string path;
 	std::string root;
 	std::vector<std::string> files;
-	std::vector<std::string> directories;
 };
 
 class Renderer {
@@ -44,6 +43,8 @@ class Renderer {
 
 public:
 	void loadScene(const std::string& target);
+	void loadMaterialLibrary(const std::string& target);
+	void loadOBJ(const std::string& target);
 
 	inline void getWindowDimensions(int* width, int* height);
 	inline void updateWindowDimensions(int width, int height);

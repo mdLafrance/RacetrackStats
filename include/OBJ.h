@@ -40,8 +40,8 @@ namespace OBJ
 		std::vector<OBJMesh*> meshes;
 	};
 
-	//std::map<std::string, OBJMesh*> load(const std::string& target);
-	OBJData load(const std::string& target);
+	std::map<std::string, OBJMesh*> load(const std::string& target);
+	//OBJData load(const std::string& target);
 }
 
 class OBJMesh {
