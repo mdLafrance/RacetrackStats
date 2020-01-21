@@ -329,10 +329,44 @@ void Renderer::loadScene(const std::string& target) {
 			}
 		}
 	}
+
+	// All necessary files loaded, now link all resources into Objects to be rendered.
+
+	for (auto p : this->meshes){
+		Object* o = this->newObject(p.first);
+
+		o->mesh = p.second;
+		// o->material = this->materials.at(p.second->getDefaultMaterialName);
+	}
+
+	// Now that all necessary Objects have been generated, link parents
+
+	Object* o;
+	for (auto p : this->objects){
+		o = p.second;
+		std::string targetParent = o->mesh->getDefaultParentName();
+
+		try {
+			o->transform->setParent(this->objects.at(targetParent).transform);
+		} catch (const std::out_of_range& oor){
+			std::cerr << "Can't find parent " << targetParent << " for object " << p.first << std::endl;
+		}
+	}
 }
 
 void Renderer::loadMaterialLibrary(const std::string& target) {
+	std::cout << "Loading material library " << target << std::endl;
 	Utils::FileInfo fi = Utils::getFileInfo(target);
+}
+
+void Renderer::loadOBJ(const std::string& target){
+	std::cout << "Loading OBJ file " << target << std::endl;
+
+	std::map<std::string, OBJMest*> meshes = OBJ::load(target);
+
+	for (auto p : meshes){
+		this->registerMesh(p.first, p.second);
+	}
 }
 
 Object* Renderer::newObject(const std::string& name) {

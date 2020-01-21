@@ -71,9 +71,7 @@ faceIndeces.clear();
 */
 namespace OBJ
 {
-	OBJData load(const std::string& target) {
-		OBJData data;
-
+	std::map<std::string, OBJMesh*> load(const std::string& target) {
 		ifstream f;
 
 		f.open(target);
@@ -86,8 +84,6 @@ namespace OBJ
 		std::cout << std::endl << "Loading file " << target << std::endl;
 
 		Utils::FileInfo fi = Utils::getFileInfo(target);
-
-		data.name = fi.file;
 
 		Utils::StopWatch stopWatch;
 
@@ -123,6 +119,8 @@ namespace OBJ
 		int currentNormalIndex;
 		int currentTexCoordIndex;
 
+		std::map<std::string, OBJMesh*> meshes;
+
 		auto closeObject = [&]() {
 			collectingFaces = false;
 
@@ -132,7 +130,7 @@ namespace OBJ
 
 			std::cout << "Writing vertex data for " << groupName << " (" << numOfFaces << " tris, ";
 
-			currentObject = new OBJMesh(fullName, materialName, numOfFaces, numOfPositions, numOfNormals, numOfTexCoords);
+			currentObject = new OBJMesh(fullName, materialName, groupParent, target, numOfFaces, numOfPositions, numOfNormals, numOfTexCoords);
 
 			float* va = currentObject->vertexAttributes;
 
@@ -156,7 +154,7 @@ namespace OBJ
 			}
 
 			// Add generated object to map
-			data.meshes.push_back(currentObject);
+			meshes.push_back(currentObject);
 
 			// Cleanup for next mesh
 
@@ -192,7 +190,7 @@ namespace OBJ
 			// New Material
 			if (lineType == "mtllib") {
 				std::cout << "File using material library " << tokens[1] << std::endl;
-				data.mtllib = tokens[1];
+				materialLibrary = tokens[1];
 				continue;
 			}
 
@@ -260,17 +258,18 @@ namespace OBJ
 
 		f.close();
 		
-		for (OBJMesh* m : data.meshes) {
+		for (auto p : meshes) {
+			OBJMesh* m = p.second;
 			std::cout << "Generating VBO for " << m->getMeshName() << std::endl;
 			m->generateBuffers();
 		}
 
 		std::cout << "Finished loading file " << target << " (" << stopWatch.total_s() << ")" << std::endl;
 
-		long int bytes = 0;
-		int objBytes = 0;
+		// long int bytes = 0;
+		// int objBytes = 0;
 
-		return data;
+		return meshes;
 	}
 }
 
@@ -280,6 +279,10 @@ std::string OBJMesh::getMeshName() {
 
 std::string OBJMesh::getDefaultMaterialName() {
 	return this->defaultMaterialName;
+}
+
+std::string OBJMesh::getDefaultParentName(){
+	return this->defaultParent;
 }
 
 unsigned int OBJMesh::getNumberOfFaces() {
@@ -329,9 +332,11 @@ void OBJMesh::draw() {
 	glDrawArrays(GL_TRIANGLES, 0, 3 * this->numberOfFaces);
 }
 
-OBJMesh::OBJMesh(std::string meshName, std::string materialName, const int& numberOfFaces, const int& numberOfPositions, const int& numberOfNormals, const int& numberOfTexCoords) {
+OBJMesh::OBJMesh(std::string& meshName, std::string& materialName, std::string& parent, std::string& origin, const int& numberOfFaces, const int& numberOfPositions, const int& numberOfNormals, const int& numberOfTexCoords) {
 	this->meshName = meshName;
 	this->materialName = materialName;
+	this->defaultParent = parent;
+	this->origin = origin;
 
 	this->numberOfFaces = numberOfFaces;
 

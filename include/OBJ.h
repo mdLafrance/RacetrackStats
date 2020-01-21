@@ -45,9 +45,10 @@ namespace OBJ
 }
 
 class OBJMesh {
-	std::string meshName;
-	std::string defaultMaterialName;
-	std::string defaultParent;
+	std::string meshName; // Name of the mesh
+	std::string defaultMaterialName; // Name of the default material to be associated with the mesh
+	std::string defaultParent; // Name of parent specified for mesh
+	std::string origin; // Path to origin file of the mesh
 
 public:
 	int numberOfFaces;
@@ -67,6 +68,8 @@ public:
 
 	std::string getMeshName();
 	std::string getDefaultMaterialName();
+	std::string getDefaultParentName();
+
 	unsigned int getNumberOfFaces();
 
 	void bind();
@@ -77,6 +80,6 @@ public:
 
 	void draw();
 
-	OBJMesh(std::string meshName, std::string materialName, const int& numberOfFaces, const int& numberOfPositions, const int& numberOfNormals, const int& numberOfTexCoords);
+	OBJMesh(std::string& meshName, std::string& materialName, std::string& parent, std::string& origin, const int& numberOfFaces, const int& numberOfPositions, const int& numberOfNormals, const int& numberOfTexCoords);
 	~OBJMesh();
 };
