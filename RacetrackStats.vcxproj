@@ -64,13 +64,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)include;$(IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\include;$(ProjectDir)include;$(IncludePath);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)include;C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\include;$(IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\include;$(ProjectDir)include;C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\include;$(IncludePath);$(IncludePath)</IncludePath>
     <SourcePath>C:\Users\maxto\OneDrive\Documents\Hacking\RacetrackStats\src;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
