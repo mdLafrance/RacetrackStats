@@ -64,13 +64,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\include;$(ProjectDir)include;$(IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\include;$(ProjectDir)include;D:\Hacking\c++\3rdParty\glfw\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\include;$(ProjectDir)include;C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\include;$(IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\include;$(ProjectDir)include;D:\Hacking\c++\3rdParty\glfw\include;$(IncludePath)</IncludePath>
     <SourcePath>C:\Users\maxto\OneDrive\Documents\Hacking\RacetrackStats\src;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -85,6 +85,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>opengl32.lib;C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\lib\glfw3.lib;D:\Hacking\c++\3rdParty\glfw\lib\glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -107,7 +108,7 @@
       <AdditionalIncludeDirectories>C:\Users\maxto\OneDrive\Documents\Hacking\RacetrackStats\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\lib\glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\lib\glfw3.lib;D:\Hacking\c++\3rdParty\glfw\lib\glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
