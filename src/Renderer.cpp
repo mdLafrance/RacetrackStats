@@ -36,7 +36,7 @@ void Renderer::registerShader(const std::string& id, Shader* shader){
 void Renderer::registerMesh(const std::string& id, OBJMesh* mesh){
     if (this->meshes.count(id) == 0){
         this->meshes[id] = mesh;
-		std::cout << "Registered Mesh " << id << " (Material " << mesh->getMaterialName() << ")" << std::endl;
+		std::cout << "Registered Mesh " << id << " (Material " << mesh->getDefaultMaterialName() << ")" << std::endl;
     } else {
         std::cerr << "Mesh " << id << " already registered." << std::endl;
     }
@@ -179,7 +179,7 @@ void Renderer::start() {
 
 		for (auto m : this->meshes) {
 			mesh = m.second;
-			materialName = mesh->getMaterialName();
+			materialName = mesh->getDefaultMaterialName();
 
 			std::string target = "default";
 			if (this->materials.count(materialName) == 1) {
@@ -264,7 +264,7 @@ void Renderer::tick(const double& dTime) {
 
 	// For now, only use default material/shaders
 
-	Shader* shader = shaders.at("default")->bind();
+	Shader* shader = this->shaders.at("default");
 	shader->bind();
 
 	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
@@ -318,14 +318,14 @@ void Renderer::loadScene(const std::string& target) {
 
 	std::cout << std::endl << "Loading Scene " << target << "..." << std::endl;
 
-	this->scene.name = fi.file;
+	this->scene.name = Utils::getFileInfo(target).file;
 	this->scene.path = target;
 	this->scene.files = std::vector<std::string>();
 
 	std::string line;
 
 	while (std::getline(f, line)) {
-		if (line == "" || line[0] == "#") continue;
+		if (line == "" || line[0] == '#') continue;
 
 		std::vector<std::string> tokens = Utils::split(line, ' ');
 		std::string lineType = tokens[0];
@@ -374,7 +374,7 @@ void Renderer::loadScene(const std::string& target) {
 		std::string targetParent = o->mesh->getDefaultParentName();
 
 		try {
-			o->transform->setParent(this->objects.at(targetParent).transform);
+			o->transform->setParent(this->objects.at(targetParent)->transform);
 		} catch (const std::out_of_range& oor){
 			std::cerr << "Can't find parent " << targetParent << " for object " << p.first << std::endl;
 		}
@@ -389,7 +389,7 @@ void Renderer::loadMaterialLibrary(const std::string& target) {
 void Renderer::loadOBJ(const std::string& target){
 	std::cout << "Loading OBJ file " << target << std::endl;
 
-	std::map<std::string, OBJMest*> meshes = OBJ::load(target);
+	std::map<std::string, OBJMesh*> meshes = OBJ::load(target);
 
 	for (auto p : meshes){
 		this->registerMesh(p.first, p.second);

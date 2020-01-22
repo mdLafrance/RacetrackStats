@@ -42,7 +42,10 @@ int main() {
 
 	Renderer* renderer = new Renderer(window);
 
-	renderer->loadScene("D:/projects/repos/GLTest/scenes/mosport_low.scene");
+	// renderer->loadScene("D:/projects/repos/GLTest/scenes/mosport_low.scene");
+	renderer->loadScene("C:/user/maxto/OneDrive/Documents/Hacking/RacetrackStats/scenes/testingScene_laptop.scene");
+
+	return 0;
 
 	std::chrono::time_point<std::chrono::steady_clock> t1, t2;
 

@@ -80,6 +80,6 @@ public:
 
 	void draw();
 
-	OBJMesh(std::string& meshName, std::string& materialName, std::string& parent, std::string& origin, const int& numberOfFaces, const int& numberOfPositions, const int& numberOfNormals, const int& numberOfTexCoords);
+	OBJMesh(const std::string& meshName, const std::string& materialName, const std::string& parent, const std::string& origin, const int& numberOfFaces, const int& numberOfPositions, const int& numberOfNormals, const int& numberOfTexCoords);
 	~OBJMesh();
 };

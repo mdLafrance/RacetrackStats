@@ -78,7 +78,7 @@ namespace OBJ
 
 		if (!f.is_open()) {
 			std::cerr << "Couldn't Open File " << target << " For OBJ Loading" << std::endl;
-			return data;
+			return std::map<std::string, OBJMesh*>();
 		}
 
 		std::cout << std::endl << "Loading file " << target << std::endl;
@@ -154,7 +154,7 @@ namespace OBJ
 			}
 
 			// Add generated object to map
-			meshes.push_back(currentObject);
+			meshes[groupName] = currentObject;
 
 			// Cleanup for next mesh
 
@@ -332,9 +332,9 @@ void OBJMesh::draw() {
 	glDrawArrays(GL_TRIANGLES, 0, 3 * this->numberOfFaces);
 }
 
-OBJMesh::OBJMesh(std::string& meshName, std::string& materialName, std::string& parent, std::string& origin, const int& numberOfFaces, const int& numberOfPositions, const int& numberOfNormals, const int& numberOfTexCoords) {
+OBJMesh::OBJMesh(const std::string& meshName, const std::string& materialName, const std::string& parent, const std::string& origin, const int& numberOfFaces, const int& numberOfPositions, const int& numberOfNormals, const int& numberOfTexCoords) {
 	this->meshName = meshName;
-	this->materialName = materialName;
+	this->defaultMaterialName = materialName;
 	this->defaultParent = parent;
 	this->origin = origin;
 

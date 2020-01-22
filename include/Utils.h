@@ -11,9 +11,9 @@
 
 namespace Utils 
 {
-	float PI = 3.14159265359;
-	float DEG2RAD = 0.0174533;
-	float RAD2DEG = 57.2958;
+	//float PI = 3.14159265359;
+	//float DEG2RAD = 0.0174533;
+	//float RAD2DEG = 57.2958;
 
 	typedef struct { // D:/foo/bar/baz.py
 		std::string directory; // D:/foo/bar
