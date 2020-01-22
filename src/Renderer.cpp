@@ -262,24 +262,44 @@ void Renderer::tick(const double& dTime) {
 
 	this->mainCamera->translate(translation[0], translation[1], 0);
 
-	// Draw registered objects
-	for (auto p : this->meshes) {
-		OBJMesh* mesh = p.second;
-		Material* mat = this->materials.at("default");
-		Shader* shader = this->shaders.at(mat->shader);
-		Texture* tex = this->textures.at(mat->texture);
-		shader->bind();
-		tex->bind();
+	// For now, only use default material/shaders
 
-		// TODO: Move this to transform component for objects
-		glm::mat4 transform = glm::rotate(0.8f * (float)(glfwGetTime()), glm::vec3(0.f, 1.0f, 0.f));
+	Shader* shader = shaders.at("default")->bind();
+	shader->bind();
 
-		glm::mat4 proj = this->mainCamera->projectionViewMatrix();
+	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
 
-		shader->setUniform4x4f("MVP", proj * transform);
+	glm::mat4 transform = glm::rotate(0.8f * (float)(glfwGetTime()), glm::vec3(0.f, 1.0f, 0.f));
 
-		mesh->draw();
+	shader->setUniform4x4f("MVP", VP * transform);
+
+	std::string objectName;
+	Object* object;
+	for (auto p : this->objects) {
+		objectName = p.first;
+		object = p.second;
+
+		object->mesh->draw();
 	}
+
+	// Draw registered objects
+	// for (auto p : this->meshes) {
+	// 	OBJMesh* mesh = p.second;
+	// 	Material* mat = this->materials.at("default");
+	// 	Shader* shader = this->shaders.at(mat->shader);
+	// 	Texture* tex = this->textures.at(mat->texture);
+	// 	shader->bind();
+	// 	tex->bind();
+
+	// 	// TODO: Move this to transform component for objects
+	// 	glm::mat4 transform = glm::rotate(0.8f * (float)(glfwGetTime()), glm::vec3(0.f, 1.0f, 0.f));
+
+	// 	glm::mat4 proj = this->mainCamera->projectionViewMatrix();
+
+	// 	shader->setUniform4x4f("MVP", proj * transform);
+
+	// 	mesh->draw();
+	// }
 
 	glfwSwapBuffers(this->window);
 	glfwPollEvents();
@@ -337,6 +357,7 @@ void Renderer::loadScene(const std::string& target) {
 
 		o->mesh = p.second;
 		// o->material = this->materials.at(p.second->getDefaultMaterialName);
+		o->material = this->materials.at("default");
 	}
 
 	// Now that all necessary Objects have been generated, link parents

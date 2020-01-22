@@ -13,6 +13,8 @@ struct Material {
 
 	static std::map<std::string, Material*> load(const std::string& target);
 
+	void bind();
+
 	Material(const std::string& name, const std::string& texture, const std::string& shader);
 	~Material();
 }; 
