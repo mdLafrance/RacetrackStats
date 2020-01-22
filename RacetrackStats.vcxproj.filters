@@ -21,9 +21,6 @@
     <ClCompile Include="include\glm\out\build\x64-debug\cmakefiles\3.15.19101501-msvc_2\compileridc\CMakeCCompilerId.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="include\glm\out\build\x64-debug\cmakefiles\3.15.19101501-msvc_2\compileridcxx\CMakeCXXCompilerId.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="include\glm\out\build\x64-debug\cmakefiles\showincludes\main.c">
       <Filter>Source Files</Filter>
     </ClCompile>

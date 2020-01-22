@@ -113,7 +113,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="include\glm\detail\glm.cpp" />
-    <ClCompile Include="include\glm\out\build\x64-debug\cmakefiles\3.15.19101501-msvc_2\compileridcxx\CMakeCXXCompilerId.cpp" />
     <ClCompile Include="include\glm\out\build\x64-debug\cmakefiles\3.15.19101501-msvc_2\compileridc\CMakeCCompilerId.c" />
     <ClCompile Include="include\glm\out\build\x64-debug\cmakefiles\showincludes\main.c" />
     <ClCompile Include="src\Camera.cpp" />
