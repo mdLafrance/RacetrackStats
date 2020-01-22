@@ -340,10 +340,16 @@ void Renderer::loadScene(const std::string& target) {
 		} else { 
 			Utils::FileInfo fi = Utils::getFileInfo(line);
 
-			if (fi.extension == "mtl"){
+			if (fi.extension == "mtl"){ // Load mtl library file
+				this->scene.files.push_back(line);
 				this->loadMaterialLibrary(line);
-			} else if (fi.extension == "obj"){
+			} else if (fi.extension == "obj") { // Load obj file
+				this->scene.files.push_back(line);
 				this->loadOBJ(line);
+			} else if (fi.extension == "vert") { // Load vertex shader
+				std::cout << "Loading vertex shader...";
+			} else if (fi.extension == "frag") { // Load fragment shader
+				std::cout << "Loading fragment shader...";
 			} else {
 				std::cerr << "Unsupported file type " << fi.extension << " for file " << line << std::endl;
 			}

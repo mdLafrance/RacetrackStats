@@ -19,7 +19,6 @@
 struct Scene {
 	std::string name;
 	std::string path;
-	std::string root;
 	std::vector<std::string> files;
 };
 
