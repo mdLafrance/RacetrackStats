@@ -84,8 +84,10 @@
     <Link>
       <TargetMachine>MachineX86</TargetMachine>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>opengl32.lib;C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\lib\glfw3.lib;D:\Hacking\c++\3rdParty\glfw\lib\glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>opengl32.lib;$(ExternalLibraries)glfw\lib\glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -108,14 +110,16 @@
       <AdditionalIncludeDirectories>C:\Users\maxto\OneDrive\Documents\Hacking\RacetrackStats\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\lib\glfw3.lib;D:\Hacking\c++\3rdParty\glfw\lib\glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;$(ExternalLibraries)glfw\lib\glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+      <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="include\glm\detail\glm.cpp" />
-    <ClCompile Include="include\glm\out\build\x64-debug\cmakefiles\3.15.19101501-msvc_2\compileridc\CMakeCCompilerId.c" />
-    <ClCompile Include="include\glm\out\build\x64-debug\cmakefiles\showincludes\main.c" />
     <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\OBJ.cpp" />
@@ -356,7 +360,6 @@
     <ClInclude Include="include\glm\mat4x3.hpp" />
     <ClInclude Include="include\glm\mat4x4.hpp" />
     <ClInclude Include="include\glm\matrix.hpp" />
-    <ClInclude Include="include\glm\out\build\x64-debug\cmakefiles\showincludes\foo.h" />
     <ClInclude Include="include\glm\packing.hpp" />
     <ClInclude Include="include\glm\simd\common.h" />
     <ClInclude Include="include\glm\simd\exponential.h" />
@@ -517,8 +520,6 @@
     <None Include="include\glm\gtx\vector_angle.inl" />
     <None Include="include\glm\gtx\vector_query.inl" />
     <None Include="include\glm\gtx\wrap.inl" />
-    <None Include="include\glm\out\build\x64-debug\cmakefiles\3.15.19101501-msvc_2\CMakeDetermineCompilerABI_C.bin" />
-    <None Include="include\glm\out\build\x64-debug\cmakefiles\3.15.19101501-msvc_2\CMakeDetermineCompilerABI_CXX.bin" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

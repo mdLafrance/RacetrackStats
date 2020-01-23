@@ -18,12 +18,6 @@
     <ClCompile Include="include\glm\detail\glm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="include\glm\out\build\x64-debug\cmakefiles\3.15.19101501-msvc_2\compileridc\CMakeCCompilerId.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="include\glm\out\build\x64-debug\cmakefiles\showincludes\main.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -52,6 +46,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -785,9 +782,6 @@
     <ClInclude Include="include\glm\gtx\wrap.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\glm\out\build\x64-debug\cmakefiles\showincludes\foo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\glm\simd\common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1221,12 +1215,6 @@
     </None>
     <None Include="include\glm\gtx\wrap.inl">
       <Filter>Header Files</Filter>
-    </None>
-    <None Include="include\glm\out\build\x64-debug\cmakefiles\3.15.19101501-msvc_2\CMakeDetermineCompilerABI_C.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="include\glm\out\build\x64-debug\cmakefiles\3.15.19101501-msvc_2\CMakeDetermineCompilerABI_CXX.bin">
-      <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
 </Project>
