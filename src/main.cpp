@@ -53,10 +53,10 @@ int main() {
 	std::string projectRoot;
 
 	if (std::getenv("MSI") != nullptr) { // Env variable defined on machine where this file exists
-		renderer->loadScene("D:/Hacking/RacetrackStats/scenes/testing.scene");
+		renderer->loadScene("D:/Hacking/RacetrackStats/scenes/testingScene.scene");
 	}
 	else { // My other machine lol
-		renderer->loadScene("C:/Users/maxto/OneDrive/Documents/Hacking/RacetrackStats/scenes/testingScene.scene");
+		renderer->loadScene("C:/Users/maxto/OneDrive/Documents/Hacking/RacetrackStats/scenes/testingScene_laptop.scene");
 	}
 
 	std::chrono::time_point<std::chrono::steady_clock> t1, t2;
