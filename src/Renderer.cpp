@@ -226,7 +226,7 @@ Renderer::Renderer(GLFWwindow* window) {
 	this->registerCamera("default", defaultCam);
 	this->setMainCamera("default");
 
-	Shader* defaultShader = new Shader("default");
+	Shader* defaultShader = new Shader("default", "default");
 	Texture* defaultTexture = new Texture("default");
 	Material* defaultMaterial = new Material("default", "default", "default");
 

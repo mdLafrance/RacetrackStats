@@ -2,10 +2,13 @@
 
 #include <string>
 #include <iostream>
+#include <fstream>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+
+#include <Utils.h>
 
 class Shader {
 	std::string target;

@@ -40,16 +40,24 @@ int main() {
 		return -1;
 	}
 
-	auto test = [](GLFWwindow* window, int x, int y) {
+	auto windowResizeCallbackFunction = [](GLFWwindow* window, int x, int y) {
 		printf("Window resized to %d by %d\n", x, y); 
 		::WorldState.windowX = x;
 		::WorldState.windowY = y;
 	};
 
-	glfwSetWindowSizeCallback(window, test);
+	glfwSetWindowSizeCallback(window, windowResizeCallbackFunction);
 	glfwSetErrorCallback(Utils::glfwErrorCallbackFunction);
 
 	Renderer* renderer = new Renderer(window);
+
+	std::cout << "Loading shader" << std::endl;
+
+	Shader* test = new Shader("D:/Hacking/RacetrackStats/resources/shaders/test.vertex", "D:/Hacking/RacetrackStats/resources/shaders/test.vertex");
+
+	std::cout << "Done!" << std::endl;
+
+	return 0;
 
 	std::string projectRoot;
 
