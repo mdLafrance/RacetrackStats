@@ -1,0 +1,14 @@
+#version 330 core
+
+layout(location = 0) in vec3 vPos;
+layout(location = 1) in vec3 vNorm;
+layout(location = 2) in vec2 vTex;
+
+uniform mat4 u_MVP;
+
+out vec2 texCoord;
+
+void main() {
+    texCoord = vTex;
+    gl_Position = u_MVP * vec4(vPos.x, vPos.y, vPos.z, 1.0);
+};
