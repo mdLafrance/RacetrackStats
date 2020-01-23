@@ -17,6 +17,6 @@ public:
 
 	void setUniform4x4f(const std::string& name, const glm::mat4& target) const;
 
-	Shader(const std::string& target);
+	Shader(const std::string& vertexTarget, const std::string& fragmentTarget);
 	~Shader();
 };

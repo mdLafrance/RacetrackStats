@@ -47,12 +47,13 @@ int main() {
 	};
 
 	glfwSetWindowSizeCallback(window, test);
+	glfwSetErrorCallback(Utils::glfwErrorCallbackFunction);
 
 	Renderer* renderer = new Renderer(window);
 
 	std::string projectRoot;
 
-	if (std::getenv("MSI") != nullptr) { // Env variable defined on machine where this file exists
+	if (std::getenv("MSI") != nullptr) { // Env variable defined on main workstation
 		renderer->loadScene("D:/Hacking/RacetrackStats/scenes/testingScene.scene");
 	}
 	else { // My other machine lol

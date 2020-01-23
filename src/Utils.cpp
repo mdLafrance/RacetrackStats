@@ -64,6 +64,13 @@ namespace Utils
 
 		return f.tellg();
 	}
+
+	void Utils::glfwErrorCallbackFunction(int ecode, const char* info) {
+		std::cerr << "--------------------------------------------------------" << std::endl;
+		std::cerr << "ERROR CODE " << ecode << std::endl;
+		std::cerr << info << std::endl;
+		std::cerr << "--------------------------------------------------------" << std::endl;
+	}
 	
 	void StopWatch::start() {
 		this->origin = std::chrono::steady_clock::now();
