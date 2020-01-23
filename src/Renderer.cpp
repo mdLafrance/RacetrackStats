@@ -312,7 +312,7 @@ void Renderer::loadScene(const std::string& target) {
 	f.open(target);
 
 	if (!f.is_open()) {
-		std::cerr << "Could not load scene " << target << std::endl;
+		std::cerr << "Could not open target scene for loading: " << target << std::endl;
 		return;
 	}
 
@@ -373,10 +373,13 @@ void Renderer::loadScene(const std::string& target) {
 		o = p.second;
 		std::string targetParent = o->mesh->getDefaultParentName();
 
-		try {
-			o->transform->setParent(this->objects.at(targetParent)->transform);
-		} catch (const std::out_of_range& oor){
-			std::cerr << "Can't find parent " << targetParent << " for object " << p.first << std::endl;
+		if (targetParent != "") {
+			try {
+				o->transform->setParent(this->objects.at(targetParent)->transform);
+			}
+			catch (const std::out_of_range & oor) {
+				std::cerr << "Can't find parent " << "<" << targetParent << ">" << " for object " << p.first << std::endl;
+			}
 		}
 	}
 }

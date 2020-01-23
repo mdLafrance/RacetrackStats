@@ -81,8 +81,6 @@ namespace OBJ
 			return std::map<std::string, OBJMesh*>();
 		}
 
-		std::cout << std::endl << "Loading file " << target << std::endl;
-
 		Utils::FileInfo fi = Utils::getFileInfo(target);
 
 		Utils::StopWatch stopWatch;
