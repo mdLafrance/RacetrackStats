@@ -1,9 +1,19 @@
 #define STB_IMAGE_IMPLEMENTATION
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#define WINDOW_DEFAULT_X 800
+#define WINDOW_DEFAULT_Y 600
+#define WINDOW_TITLE "Racetrack Stats"
 
+#include <cstdlib>
+
+#include <vector>
+#include <fstream>
+#include <chrono>
 #include <iostream>
+
+#include <glad/glad.h>
+
+#include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -13,14 +23,7 @@
 #include <Material.h>
 #include <Utils.h>
 
-#include <vector>
-#include <fstream>
-
-#include <chrono>
-
-void windowResizeCallback(GLFWwindow* window, int x, int y) {
-	printf("Window resized to %d by %d\n", x, y);
-}
+_WorldState WorldState = { WINDOW_DEFAULT_X, WINDOW_DEFAULT_Y };
 
 int main() {
 	// Init Context
@@ -29,7 +32,7 @@ int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(800, 600, "GLTest", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(WINDOW_DEFAULT_X, WINDOW_DEFAULT_Y, WINDOW_TITLE, NULL, NULL);
 
 	if (window == NULL) {
 		std::cout << "Failed to create window...\n";
@@ -37,14 +40,24 @@ int main() {
 		return -1;
 	}
 
-	//auto test = [](GLFWwindow* window, int x, int y) {printf("Window resized to %d by %d\n", x, y); };
-	//glfwSetWindowSizeCallback(window, test);
+	auto test = [](GLFWwindow* window, int x, int y) {
+		printf("Window resized to %d by %d\n", x, y); 
+		::WorldState.windowX = x;
+		::WorldState.windowY = y;
+	};
+
+	glfwSetWindowSizeCallback(window, test);
 
 	Renderer* renderer = new Renderer(window);
 
-	// renderer->loadScene("D:/projects/repos/GLTest/scenes/mosport_low.scene");
-	renderer->loadScene("C:/Users/maxto/OneDrive/Documents/Hacking/RacetrackStats/scenes/testingScene_laptop.scene");
-	return 0;
+	std::string projectRoot;
+
+	if (std::getenv("MSI") != nullptr) { // Env variable defined on machine where this file exists
+		renderer->loadScene("D:/Hacking/RacetrackStats/scenes/testing.scene");
+	}
+	else { // My other machine lol
+		renderer->loadScene("C:/Users/maxto/OneDrive/Documents/Hacking/RacetrackStats/scenes/testingScene.scene");
+	}
 
 	std::chrono::time_point<std::chrono::steady_clock> t1, t2;
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdio.h>
+
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -21,8 +22,11 @@ namespace Utils
 		std::string extension; // py
 	} FileInfo;
 
+	// String manipulation utility
 	std::vector<std::string> split(const std::string& s, char delimiter);
 	std::string getFileNameNoExtension(const std::string& target);
+
+	// File utility
 	Utils::FileInfo getFileInfo(const std::string& target);
 	long getFileSize(const std::string& target);
 

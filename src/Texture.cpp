@@ -10,7 +10,7 @@ std::string Texture::getName()
 }
 
 Texture::Texture(const std::string& target) {
-	if (true){//target == "default") {
+	if (target == "default") {
 		this->width = 0;
 		this->height = 0;
 		this->nrChannels = 0;
@@ -20,10 +20,9 @@ Texture::Texture(const std::string& target) {
 		return;
 	}
 
-	//stbi_set_flip_vertically_on_load(true);
+	stbi_set_flip_vertically_on_load(true);
 
-	this->data = nullptr;
-	//this->data = stbi_load(target.c_str(), &this->width, &this->height, &this->nrChannels, 0);
+	this->data = stbi_load(target.c_str(), &this->width, &this->height, &this->nrChannels, 0);
 
 	this->name = Utils::getFileNameNoExtension(target);
 
@@ -44,7 +43,7 @@ Texture::Texture(const std::string& target) {
 		std::cout << "ERROR: Couldn't load texture " << target << std::endl;
 	}
 
-	//stbi_image_free(this->data);
+	stbi_image_free(this->data);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 

@@ -16,6 +16,14 @@
 #include <Camera.h>
 #include <Object.h>
 
+struct _WorldState {
+	int windowX;
+	int windowY;
+};
+
+// Global world state instantiated in main.cpp
+extern _WorldState WorldState;
+
 struct Scene {
 	std::string name;
 	std::string path;
