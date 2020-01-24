@@ -1,20 +1,5 @@
 #include <Renderer.h>
 
-void Renderer::getWindowDimensions(int* width, int* height){
-    *(width) = this->windowX;
-    *(height) = this->windowY;
-}
-
-void Renderer::updateWindowDimensions(int width, int height){
-    this->windowX = width;
-    this->windowY = height;
-}
-
-void Renderer::updateWindowDimensions(GLFWwindow* window, int width, int height){
-    this->windowX = width;
-    this->windowY = height;
-}
-
 void Renderer::registerTexture(const std::string& id, Texture* texture){
     if (this->textures.count(id) == 0){
         this->textures[id] = texture;
@@ -88,122 +73,126 @@ void Renderer::deleteObjects() {
 
 	for (auto k : this->cameras) {
 		delete k.second;
+	} 
+
+	for (auto k : this->objects){
+		delete k.second;
 	}
 }
 
-void Renderer::start() {
-	/*
-		Main Render loop.
-		Renders available meshes, handles input.
-	*/
-	glEnable(GL_CULL_FACE);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+// void Renderer::start() {
+// 	/*
+// 		Main Render loop.
+// 		Renders available meshes, handles input.
+// 	*/
+// 	glEnable(GL_CULL_FACE);
+// 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	std::cout << "Renderer starting..." << std::endl;
+// 	std::cout << "Renderer starting..." << std::endl;
 
-	this->meshes = OBJ::load("D:/projects/repos/GLTest/models/alien.obj");
-	//this->meshes = OBJ::load("D:/projects/repos/GLTest/test/mosport_vehicles.obj");
+// 	this->meshes = OBJ::load("D:/projects/repos/GLTest/models/alien.obj");
+// 	//this->meshes = OBJ::load("D:/projects/repos/GLTest/test/mosport_vehicles.obj");
 
-	//auto spaceship = OBJ::load("D:/projects/repos/GLTest/models/spaceship.obj");
+// 	//auto spaceship = OBJ::load("D:/projects/repos/GLTest/models/spaceship.obj");
 
-	for (auto m : meshes) {
-		this->registerMesh(m.first, m.second);
-	}
+// 	for (auto m : meshes) {
+// 		this->registerMesh(m.first, m.second);
+// 	}
 
-	OBJMesh* mesh;
-	std::string materialName;
-	Material* material;
+// 	OBJMesh* mesh;
+// 	std::string materialName;
+// 	Material* material;
 
-	bool isWireframe = false;
+// 	bool isWireframe = false;
 
-	float rotation[2] = { 0.0f, 0.0f };
+// 	float rotation[2] = { 0.0f, 0.0f };
 
-	float scale = 1.0f;
+// 	float scale = 1.0f;
 
-	float speed = 2.0f;
-	float rspeed = 0.05f;
-	float scaleSpeed = 1.1f;
+// 	float speed = 2.0f;
+// 	float rspeed = 0.05f;
+// 	float scaleSpeed = 1.1f;
 
-	while (!glfwWindowShouldClose(this->window)) {
-		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-			glfwSetWindowShouldClose(this->window, true);
-		}
+// 	while (!glfwWindowShouldClose(this->window)) {
+// 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+// 			glfwSetWindowShouldClose(this->window, true);
+// 		}
 
-		float inputs[2] = { 0.0f, 0.0f };
+// 		float inputs[2] = { 0.0f, 0.0f };
 
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			inputs[1] += speed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-			inputs[0] -= speed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-			inputs[1] -= speed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-			inputs[0] += speed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-			rotation[1] -= rspeed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-			rotation[0] -= rspeed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-			rotation[1] += rspeed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-			rotation[0] += rspeed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS) {
-			scale /= scaleSpeed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS) {
-			scale *= scaleSpeed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
-			if (isWireframe) {
-				isWireframe = false;
-				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			}
-			else {
-				isWireframe = true;
-				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			}
-		}
+// 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+// 			inputs[1] += speed;
+// 		}
+// 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+// 			inputs[0] -= speed;
+// 		}
+// 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+// 			inputs[1] -= speed;
+// 		}
+// 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+// 			inputs[0] += speed;
+// 		}
+// 		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+// 			rotation[1] -= rspeed;
+// 		}
+// 		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+// 			rotation[0] -= rspeed;
+// 		}
+// 		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+// 			rotation[1] += rspeed;
+// 		}
+// 		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+// 			rotation[0] += rspeed;
+// 		}
+// 		if (glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS) {
+// 			scale /= scaleSpeed;
+// 		}
+// 		if (glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS) {
+// 			scale *= scaleSpeed;
+// 		}
+// 		if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
+// 			if (isWireframe) {
+// 				isWireframe = false;
+// 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+// 			}
+// 			else {
+// 				isWireframe = true;
+// 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+// 			}
+// 		}
 
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+// 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+// 		glClear(GL_COLOR_BUFFER_BIT);
 
-		auto mat = glm::rotate(rotation[0], glm::vec3(0.0f, 1.0f, 0.0f)) * glm::rotate(rotation[1], glm::vec3(1.0f, 0.0f, 0.0f)) * glm::scale(glm::vec3(scale, scale, scale));
+// 		auto mat = glm::rotate(rotation[0], glm::vec3(0.0f, 1.0f, 0.0f)) * glm::rotate(rotation[1], glm::vec3(1.0f, 0.0f, 0.0f)) * glm::scale(glm::vec3(scale, scale, scale));
 
-		for (auto m : this->meshes) {
-			mesh = m.second;
-			materialName = mesh->getDefaultMaterialName();
+// 		for (auto m : this->meshes) {
+// 			mesh = m.second;
+// 			materialName = mesh->getDefaultMaterialName();
 
-			std::string target = "default";
-			if (this->materials.count(materialName) == 1) {
-				target = materialName;
-			}
+// 			std::string target = "default";
+// 			if (this->materials.count(materialName) == 1) {
+// 				target = materialName;
+// 			}
 
-			material = this->materials.at(target);
+// 			material = this->materials.at(target);
 			
-			this->textures.at(material->texture)->bind();
+// 			this->textures.at(material->texture)->bind();
 			
-			Shader* shader = this->shaders.at(material->shader);
-			shader->bind();
+// 			Shader* shader = this->shaders.at(material->shader);
+// 			shader->bind();
 
-			glm::mat4 mvp = this->mainCamera->projectionViewMatrix() * mat;
+// 			glm::mat4 mvp = this->mainCamera->projectionViewMatrix() * mat;
 
-			shader->setUniform4x4f("u_MVP", mvp);
+// 			shader->setUniform4x4f("u_MVP", mvp);
 
-			mesh->draw();
-		}
+// 			mesh->draw();
+// 		}
 
-		glfwSwapBuffers(this->window);
-		glfwPollEvents();
-	}
-}
+// 		glfwSwapBuffers(this->window);
+// 		glfwPollEvents();
+// 	}
+// }
 
 Renderer::Renderer(GLFWwindow* window) {
 	this->window = window;
@@ -218,8 +207,6 @@ Renderer::Renderer(GLFWwindow* window) {
 	}
 
 	glViewport(0, 0, this->windowX, this->windowY);
-
-	//glfwSetFramebufferSizeCallback(window, &this->updateWindowDimensions);
 
 	// Create and register default assets.
 	Camera* defaultCam = new Camera(0, this->windowX, 0, this->windowY, -600, 600);

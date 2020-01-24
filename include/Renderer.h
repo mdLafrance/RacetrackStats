@@ -31,9 +31,6 @@ struct Scene {
 };
 
 class Renderer {
-	int windowX;
-	int windowY;
-
 	GLFWwindow* window;
 
 	Camera* mainCamera;
@@ -53,10 +50,6 @@ public:
 	void loadMaterialLibrary(const std::string& target);
 	void loadOBJ(const std::string& target);
 
-	inline void getWindowDimensions(int* width, int* height);
-	inline void updateWindowDimensions(int width, int height);
-	inline void updateWindowDimensions(GLFWwindow* window, int width, int height);
-
 	void registerTexture(const std::string& id, Texture* texture);
 	void registerShader(const std::string& id, Shader* shader);
 	void registerMesh(const std::string& id, OBJMesh* mesh);
@@ -67,7 +60,7 @@ public:
 
 	void setMainCamera(const std::string& id);
 
-	void start();
+	// void start();
 
 	void deleteObjects();
 

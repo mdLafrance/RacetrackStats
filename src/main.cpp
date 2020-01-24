@@ -51,17 +51,7 @@ int main() {
 
 	Renderer* renderer = new Renderer(window);
 
-	std::cout << "Loading shader" << std::endl;
-
-	Shader* test = new Shader("D:/Hacking/RacetrackStats/resources/shaders/test.vertex", "D:/Hacking/RacetrackStats/resources/shaders/test.vertex");
-
-	std::cout << "Done!" << std::endl;
-
-	return 0;
-
-	std::string projectRoot;
-
-	if (std::getenv("MSI") != nullptr) { // Env variable defined on main workstation
+	if (std::getenv("MSI")) { // Env variable defined on main workstation
 		renderer->loadScene("D:/Hacking/RacetrackStats/scenes/testingScene.scene");
 	}
 	else { // My other machine lol
