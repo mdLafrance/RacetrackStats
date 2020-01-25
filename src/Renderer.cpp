@@ -188,9 +188,7 @@ void Renderer::start() {
 
 			material = this->materials.at(target);
 			
-			this->textures.at(material->texture)->bind();
-			
-			Shader* shader = this->shaders.at(material->shader);
+			Shader* shader = material->shader;
 			shader->bind();
 
 			glm::mat4 mvp = this->mainCamera->projectionViewMatrix() * mat;
@@ -387,6 +385,12 @@ void Renderer::loadScene(const std::string& target) {
 void Renderer::loadMaterialLibrary(const std::string& target) {
 	std::cout << "Loading material library " << target << std::endl;
 	Utils::FileInfo fi = Utils::getFileInfo(target);
+
+	std::map<std::string, Material*> materials = Material::load(target);
+
+	for (auto p : materials) {
+		this->registerMaterial(p.first, p.second);
+	}
 }
 
 void Renderer::loadOBJ(const std::string& target){

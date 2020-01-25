@@ -96,7 +96,7 @@ Shader::Shader(const std::string& vertexShaderTarget, const std::string& fragmen
 
 	vertexCompiled = getGlShaderStatus(vertexShader);
 
-	// TODO: CHECK FOR AND REPORT ERRORS
+	// Create fragment shader
 
 	int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 

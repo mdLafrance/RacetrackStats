@@ -1,0 +1,6 @@
+Spec for shaders:
+
+0 MVP : 4x4 matrix
+1 map_Kd : map of diffuse
+2 map_Ks : map of Spec
+3 norm : normal map

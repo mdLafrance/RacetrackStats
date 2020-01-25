@@ -10,44 +10,55 @@ std::map<std::string, Material*> Material::load(const std::string& target)
 
 	std::ifstream f(target);
 	if (f.is_open()) {
-		std::cout << "Loading materials from " << target << std::endl;
-
 		while (getline(f, line)) {
+			// # indicates comment
+			if (line[0] == '#') continue;
+
 			tokens = Utils::split(line, ' ');
 
+			// Empty line
 			if (tokens.size() == 0) {
 				continue;
 			}
 
-			if (tokens[0] == "newmtl") {
+			std::string lineType = tokens[0];
+
+			// Start recording information for given material
+			if (lineType == "newmtl") {
+				// If a new material is encountered while one is being recorded, finish the current one.
 				if (current) {
 					materials[current->name] = current;
 				}
-				std::cout << "GENERATING MATERIAL " << tokens[1] << std::endl;
+				std::cout << "Generating Material " << tokens[1] << std::endl;
 				current = new Material(tokens[1], "default", "default");
-			}
-
-			if (tokens[0] == "map_Kd") {
-				if (current) {
-					current->texture = Utils::getFileNameNoExtension(tokens[1]);
-				}
+			} else if (lineType == "map_Kd") { // DIFFUSE MAP
+			} else if (lineType == "map_Ks"){ // SPEC MAP
+			} else if (lineType == "norm") { // NORMAL MAP
+			} else if (lineType == "illum") { // Illumination
+				current->illum = std::atof(tokens[1].c_str());
+			} else if (lineType == "Ka") { // Ambient 
+				current->Ka = glm::vec3();
+			} else if (lineType == "Kd"){ // Diffuse
+				current->Kd = glm::vec3();
+			} else if (lineType == "Ks"){ // Specular color
+				current->Ks = glm::vec3();
+			} else if (lineType == "Ns"){ // Specular exp
+				current->Ns = std::atof(tokens[1].c_str());
+			} else if (lineType == "Tr"){ // Transparency value, 1 is transparent
+				current->Tr = std::atof(tokens[1].c_str());
 			}
 		}
-
-	}
-	else {
+	} else {
 		std::cerr << "Couldn't open .mtl file: " << target << std::endl;
-	}
-
-	if (current != nullptr) {
-		materials[current->name] = current;
-	}
-
-	for (auto m : materials) {
-		std::cout << "Generated " << m.first << " with texture: " << m.second->texture << std::endl;
+		return std::map<std::string, Material*>();
 	}
 
 	f.close();
+
+	// Save last material
+	if (current != nullptr) {
+		materials[current->name] = current;
+	}
 
 	return materials;
 }
@@ -55,8 +66,6 @@ std::map<std::string, Material*> Material::load(const std::string& target)
 
 Material::Material(const std::string& name, const std::string& texture, const std::string& shader) {
 	this->name = name;
-	this->texture = texture;
-	this->shader = shader;
 }
 
 Material::~Material() {
