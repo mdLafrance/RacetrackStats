@@ -16,8 +16,9 @@ Camera::Camera(const float& xMin, const float& xMax, const float& yMin, const fl
 	this->proj = glm::ortho(xMin, xMax, yMin, yMax, zMin, zMax);
 	this->view = glm::mat4(1.0f);
 
-	this->isMainCam = false;
+	this->transform = new Transform();
 }
 
 Camera::~Camera() {
+	delete this->transform;
 }
