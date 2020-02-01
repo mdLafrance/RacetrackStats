@@ -39,6 +39,10 @@ void Shader::setUniform4x4f(const std::string& name, const glm::mat4& target) co
 	glUniformMatrix4fv(glad_glGetUniformLocation(this->shaderProgram, "u_MVP"), 1, GL_FALSE, &target[0][0]);
 }
 
+unsigned int Shader::programID() {
+	return this->shaderProgram;
+}
+
 bool getGlShaderStatus(int program) {
 	glValidateProgram(program);
 

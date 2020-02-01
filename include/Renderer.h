@@ -1,5 +1,8 @@
 #pragma once
 
+#define WINDOW_DEFAULT_X 1800
+#define WINDOW_DEFAULT_Y 1200
+
 #include <iostream>
 #include <utility>
 #include <string.h>
@@ -15,11 +18,7 @@
 #include <OBJ.h>
 #include <Camera.h>
 #include <Object.h>
-
-struct _WorldState {
-	int windowX;
-	int windowY;
-};
+#include <WorldState.h>
 
 // Global world state instantiated in main.cpp
 extern _WorldState WorldState;
@@ -45,6 +44,8 @@ class Renderer {
 
 	Scene scene;
 
+	unsigned int line_VAO;
+
 public:
 	void loadScene(const std::string& target);
 	void loadMaterialLibrary(const std::string& target);
@@ -58,7 +59,10 @@ public:
 
 	Object* newObject(const std::string& name);
 
+	Camera* getMainCamera();
 	void setMainCamera(const std::string& id);
+
+	void drawLine(const glm::vec3& origin, const glm::vec3& end, const glm::vec4& color);
 
 	// void start();
 

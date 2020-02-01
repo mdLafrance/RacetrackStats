@@ -54,6 +54,38 @@ void Renderer::setMainCamera(const std::string& id){
     }
 }
 
+void Renderer::drawLine(const glm::vec3& origin, const glm::vec3& end, const glm::vec4& color) {
+	// Draw a line from origin to end with given color
+
+	float vertices[6] = {
+		origin[0], origin[1], origin[2],
+		end[0], end[1], end[2]
+	};
+
+	float triangle[] = {
+		-120, 50, 0,
+		-50, -150, 0,
+		50, 0, 0
+
+	};
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	unsigned int VBO;
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(triangle), triangle, GL_STREAM_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	glDeleteBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
 void Renderer::deleteObjects() {
 	for (auto k : this->textures) {
 		delete k.second;
@@ -80,146 +112,29 @@ void Renderer::deleteObjects() {
 	}
 }
 
-// void Renderer::start() {
-// 	/*
-// 		Main Render loop.
-// 		Renders available meshes, handles input.
-// 	*/
-// 	glEnable(GL_CULL_FACE);
-// 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-// 	std::cout << "Renderer starting..." << std::endl;
-
-// 	this->meshes = OBJ::load("D:/projects/repos/GLTest/models/alien.obj");
-// 	//this->meshes = OBJ::load("D:/projects/repos/GLTest/test/mosport_vehicles.obj");
-
-// 	//auto spaceship = OBJ::load("D:/projects/repos/GLTest/models/spaceship.obj");
-
-// 	for (auto m : meshes) {
-// 		this->registerMesh(m.first, m.second);
-// 	}
-
-// 	OBJMesh* mesh;
-// 	std::string materialName;
-// 	Material* material;
-
-// 	bool isWireframe = false;
-
-// 	float rotation[2] = { 0.0f, 0.0f };
-
-// 	float scale = 1.0f;
-
-// 	float speed = 2.0f;
-// 	float rspeed = 0.05f;
-// 	float scaleSpeed = 1.1f;
-
-// 	while (!glfwWindowShouldClose(this->window)) {
-// 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-// 			glfwSetWindowShouldClose(this->window, true);
-// 		}
-
-// 		float inputs[2] = { 0.0f, 0.0f };
-
-// 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-// 			inputs[1] += speed;
-// 		}
-// 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-// 			inputs[0] -= speed;
-// 		}
-// 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-// 			inputs[1] -= speed;
-// 		}
-// 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-// 			inputs[0] += speed;
-// 		}
-// 		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-// 			rotation[1] -= rspeed;
-// 		}
-// 		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-// 			rotation[0] -= rspeed;
-// 		}
-// 		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-// 			rotation[1] += rspeed;
-// 		}
-// 		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-// 			rotation[0] += rspeed;
-// 		}
-// 		if (glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS) {
-// 			scale /= scaleSpeed;
-// 		}
-// 		if (glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS) {
-// 			scale *= scaleSpeed;
-// 		}
-// 		if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
-// 			if (isWireframe) {
-// 				isWireframe = false;
-// 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-// 			}
-// 			else {
-// 				isWireframe = true;
-// 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-// 			}
-// 		}
-
-// 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-// 		glClear(GL_COLOR_BUFFER_BIT);
-
-// 		auto mat = glm::rotate(rotation[0], glm::vec3(0.0f, 1.0f, 0.0f)) * glm::rotate(rotation[1], glm::vec3(1.0f, 0.0f, 0.0f)) * glm::scale(glm::vec3(scale, scale, scale));
-
-// 		for (auto m : this->meshes) {
-// 			mesh = m.second;
-// 			materialName = mesh->getDefaultMaterialName();
-
-// 			std::string target = "default";
-// 			if (this->materials.count(materialName) == 1) {
-// 				target = materialName;
-// 			}
-
-// 			material = this->materials.at(target);
-			
-			// Shader* shader = material->shader;
-			// shader->bind();
-// 			this->textures.at(material->texture)->bind();
-			
-// 			Shader* shader = this->shaders.at(material->shader);
-// 			shader->bind();
-
-// 			glm::mat4 mvp = this->mainCamera->projectionViewMatrix() * mat;
-
-// 			shader->setUniform4x4f("u_MVP", mvp);
-
-// 			mesh->draw();
-// 		}
-
-// 		glfwSwapBuffers(this->window);
-// 		glfwPollEvents();
-// 	}
-// }
-
 Renderer::Renderer(GLFWwindow* window) {
 	this->window = window;
 
-	glfwGetWindowSize(window, &this->windowX, &this->windowY);
-	std::cout << "Window with width height: " << this->windowX << ' ' << this->windowY << std::endl;
-	
 	glfwMakeContextCurrent(window);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		std::cerr << "Failed to initialize GLAD\n";
 	}
 
-	glViewport(0, 0, this->windowX, this->windowY);
+	glViewport(0, 0, WorldState.windowX, WorldState.windowY);
 
 	// Create and register default assets.
-	Camera* defaultCam = new Camera(0, this->windowX, 0, this->windowY, -600, 600);
+	Camera* defaultCam = new Camera(0, WINDOW_DEFAULT_X, 0, WINDOW_DEFAULT_Y, -600, 600);
 	this->registerCamera("default", defaultCam);
 	this->setMainCamera("default");
 
 	Shader* defaultShader = new Shader("default", "default");
+	Shader* lineShader = new Shader("default", "line");
 	Texture* defaultTexture = new Texture("default");
 	Material* defaultMaterial = new Material("default", "default", "default");
 
 	this->registerShader("default", defaultShader);
+	this->registerShader("line", lineShader);
 	this->registerTexture("default", defaultTexture);
 	this->registerMaterial("default", defaultMaterial);
 
@@ -253,6 +168,8 @@ void Renderer::tick(const double& dTime) {
 
 	// For now, only use default material/shaders
 
+	//this->drawLine(glm::vec3(0, -15, 0), glm::vec3(100, 0, 0), glm::vec4(0, 1, 1, 0));
+	
 	Shader* shader = this->shaders.at("default");
 	shader->bind();
 
@@ -261,6 +178,7 @@ void Renderer::tick(const double& dTime) {
 	glm::mat4 transform = glm::rotate(0.8f * (float)(glfwGetTime()), glm::vec3(0.f, 1.0f, 0.f));
 
 	shader->setUniform4x4f("MVP", VP * transform);
+	this->drawLine(glm::vec3(0, 15, 0), glm::vec3(100, 0, 0), glm::vec4(1, 0, 0, 1));
 
 	std::string objectName;
 	Object* object;
@@ -271,24 +189,6 @@ void Renderer::tick(const double& dTime) {
 		object->mesh->draw();
 	}
 
-	// Draw registered objects
-	// for (auto p : this->meshes) {
-	// 	OBJMesh* mesh = p.second;
-	// 	Material* mat = this->materials.at("default");
-	// 	Shader* shader = this->shaders.at(mat->shader);
-	// 	Texture* tex = this->textures.at(mat->texture);
-	// 	shader->bind();
-	// 	tex->bind();
-
-	// 	// TODO: Move this to transform component for objects
-	// 	glm::mat4 transform = glm::rotate(0.8f * (float)(glfwGetTime()), glm::vec3(0.f, 1.0f, 0.f));
-
-	// 	glm::mat4 proj = this->mainCamera->projectionViewMatrix();
-
-	// 	shader->setUniform4x4f("MVP", proj * transform);
-
-	// 	mesh->draw();
-	// }
 
 	glfwSwapBuffers(this->window);
 	glfwPollEvents();

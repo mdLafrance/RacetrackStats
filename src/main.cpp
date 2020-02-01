@@ -1,7 +1,5 @@
 #define STB_IMAGE_IMPLEMENTATION
 
-#define WINDOW_DEFAULT_X 800
-#define WINDOW_DEFAULT_Y 600
 #define WINDOW_TITLE "Racetrack Stats"
 
 #include <cstdlib>
@@ -22,6 +20,7 @@
 #include <Renderer.h>
 #include <Material.h>
 #include <Utils.h>
+#include <WorldState.h>
 
 _WorldState WorldState = { WINDOW_DEFAULT_X, WINDOW_DEFAULT_Y };
 

@@ -152,7 +152,7 @@ namespace OBJ
 			}
 
 			// Add generated object to map
-			meshes[groupName] = currentObject;
+			meshes[fullName] = currentObject;
 
 			// Cleanup for next mesh
 
@@ -264,9 +264,6 @@ namespace OBJ
 
 		std::cout << "Finished loading file " << target << " (" << stopWatch.total_s() << ")" << std::endl;
 
-		// long int bytes = 0;
-		// int objBytes = 0;
-
 		return meshes;
 	}
 }
@@ -312,8 +309,8 @@ void OBJMesh::generateBuffers() {
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, vertexSize, (void*)(6 * sizeof(float)));
 
 	// Clear binds
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0); 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void OBJMesh::bind() {
@@ -325,9 +322,13 @@ int OBJMesh::getApproxBytes() {
 }
 
 void OBJMesh::draw() {
-	//glDrawElements(GL_TRIANGLES, 3 * this->numberOfFaces, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(this->VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+	
 	glDrawArrays(GL_TRIANGLES, 0, 3 * this->numberOfFaces);
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 OBJMesh::OBJMesh(const std::string& meshName, const std::string& materialName, const std::string& parent, const std::string& origin, const int& numberOfFaces, const int& numberOfPositions, const int& numberOfNormals, const int& numberOfTexCoords) {
