@@ -1,7 +1,7 @@
 #pragma once
 
-#define WINDOW_DEFAULT_X 1800
-#define WINDOW_DEFAULT_Y 1200
+#define WINDOW_DEFAULT_X 800
+#define WINDOW_DEFAULT_Y 600
 
 #include <iostream>
 #include <utility>
@@ -71,5 +71,5 @@ public:
 	void tick(const double& dTime);
 	
 	Renderer(GLFWwindow* window);
-	~Renderer();
+	~Renderer() {};
 };

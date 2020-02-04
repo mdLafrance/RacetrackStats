@@ -29,46 +29,7 @@ inline string getWord(ifstream* target){
 
     return word;
 }
-/*
-std::cout << "Packaging " << groupName << " (" << numOfFaces << " tris)" << std::endl;
-collectingFaces = false;
 
-currentObject = new OBJMesh(targetFname + '.' + groupName, material, numOfFaces, numOfPositions, numOfNormals, numOfTexCoords);
-
-std::copy(positions.begin(), positions.end(), currentObject->vertexAttributes);
-std::copy(normals.begin(), normals.end(), currentObject->vertexAttributes + (3 * numOfPositions));
-std::copy(texCoords.begin(), texCoords.end(), currentObject->vertexAttributes + (3 * numOfPositions) + (3 * numOfNormals));
-
-// Write indeces of vertex components into FaceElements array of OBJMesh
-for (int i = 0; i < numOfFaces; i++) {
-	OBJ::FaceElements v1 = { faceIndeces[(9 * i) + 0], faceIndeces[(9 * i) + 1], faceIndeces[(9 * i) + 2] };
-	OBJ::FaceElements v2 = { faceIndeces[(9 * i) + 3], faceIndeces[(9 * i) + 4], faceIndeces[(9 * i) + 5] };
-	OBJ::FaceElements v3 = { faceIndeces[(9 * i) + 6], faceIndeces[(9 * i) + 7], faceIndeces[(9 * i) + 8] };
-
-	currentObject->defineFace(i, v1, v2, v3);
-}
-
-// Add generated object to map
-objMeshes.insert(std::pair<std::string, OBJMesh*>(targetFname + '.' + groupName, currentObject));
-
-// Cleanup for next mesh
-
-numOfFaces = 0;
-
-totalNumOfPositions += numOfPositions;
-totalNumOfTexCoords += numOfTexCoords;
-totalNumOfNormals += numOfNormals;
-
-numOfPositions = 0;
-numOfTexCoords = 0;
-numOfNormals = 0;
-
-positions.clear();
-normals.clear();
-texCoords.clear();
-
-faceIndeces.clear();
-*/
 namespace OBJ
 {
 	std::map<std::string, OBJMesh*> load(const std::string& target) {
@@ -86,12 +47,6 @@ namespace OBJ
 		Utils::StopWatch stopWatch;
 
 		std::string line;
-
-		/*
-		auto positions = VariableFloatArray();
-		auto normals = VariableFloatArray();
-		auto texCoords = VariableFloatArray();
-		*/
 
 		std::vector<float> positions;
 		std::vector<float> normals;
@@ -325,7 +280,7 @@ void OBJMesh::draw() {
 	glBindVertexArray(this->VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
 	
-	glDrawArrays(GL_TRIANGLES, 0, 3 * this->numberOfFaces);
+	glDrawArrays(GL_LINES, 0, 3 * this->numberOfFaces);
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

@@ -61,7 +61,37 @@ int main() {
 
 	double dTime = 0;
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	Shader* test = new Shader("default", "default");
+	glUniform4fv(glGetUniformLocation(test->programID(), "MVP"), 1, &glm::mat4()[0][0]);
+
+	float lines[] = {
+		-50, 50, 0,
+		-50,-50, 0,
+		50, 0, 0
+	};
+
+	glDisable(GL_CULL_FACE);
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	unsigned int VBO, VAO;
+
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(lines), lines, GL_STREAM_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	//glBindVertexArray(0);
+	//glDeleteBuffers(1, &VBO);
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINES);
 	
 	while (!glfwWindowShouldClose(window)) {
 		t1 = std::chrono::steady_clock::now();

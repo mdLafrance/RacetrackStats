@@ -141,61 +141,6 @@ Renderer::Renderer(GLFWwindow* window) {
 	std::cout << "Renderer initialized." << std::endl;
 }
 
-void Renderer::tick(const double& dTime) {
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	int translation[2] = { 0,0 };
-
-	// Collect input
-	if (glfwGetKey(this->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-		glfwSetWindowShouldClose(this->window, true);
-	}
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		translation[1] = 1;
-	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		translation[0] = -1;
-	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		translation[1] = -1;
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		translation[0] = 1;
-	}
-
-	this->mainCamera->translate(translation[0], translation[1], 0);
-
-	// For now, only use default material/shaders
-
-	//this->drawLine(glm::vec3(0, -15, 0), glm::vec3(100, 0, 0), glm::vec4(0, 1, 1, 0));
-	
-	Shader* shader = this->shaders.at("default");
-	shader->bind();
-
-	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
-
-	glm::mat4 transform = glm::rotate(0.8f * (float)(glfwGetTime()), glm::vec3(0.f, 1.0f, 0.f));
-
-	shader->setUniform4x4f("MVP", VP * transform);
-	this->drawLine(glm::vec3(0, 15, 0), glm::vec3(100, 0, 0), glm::vec4(1, 0, 0, 1));
-
-	std::string objectName;
-	Object* object;
-	for (auto p : this->objects) {
-		objectName = p.first;
-		object = p.second;
-
-		object->mesh->draw();
-	}
-
-
-	glfwSwapBuffers(this->window);
-	glfwPollEvents();
-}
-
-Renderer::~Renderer() {}
-
 void Renderer::loadScene(const std::string& target) {
 	std::ifstream f;
 	f.open(target);
@@ -305,4 +250,55 @@ Object* Renderer::newObject(const std::string& name) {
 	this->objects[name] = object;
 
 	return object;
+}
+
+void Renderer::tick(const double& dTime) {
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	int translation[2] = { 0,0 };
+
+	const float translateSpeed = 2;
+
+	// Collect input
+	if (glfwGetKey(this->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+		glfwSetWindowShouldClose(this->window, true);
+	}
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		translation[1] = translateSpeed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		translation[0] = -translateSpeed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		translation[1] = -translateSpeed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		translation[0] = translateSpeed;
+	}
+
+	this->mainCamera->translate(translation[0], translation[1], 0);
+
+	// For now, only use default material/shaders
+
+	Shader* shader = this->shaders.at("default");
+	shader->bind();
+
+	//this->drawLine(glm::vec3(0, 15, 0), glm::vec3(100, 0, 0), glm::vec4(1, 0, 0, 1));
+
+	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
+
+	glm::mat4 transform = glm::rotate(0.8f * (float)(glfwGetTime()), glm::vec3(0.f, 1.0f, 0.f));
+
+	shader->setUniform4x4f("MVP", VP * transform);
+
+	std::string objectName;
+	Object* object;
+
+	for (auto p : this->objects) {
+		p.second->mesh->draw();
+	}
+
+	glfwSwapBuffers(this->window);
+	glfwPollEvents();
 }
