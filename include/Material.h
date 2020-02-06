@@ -4,8 +4,10 @@
 #include <fstream>
 
 #include <glm/glm.hpp>
+
 #include <Texture.h>
 #include <Shader.h>
+#include <Utils.h>
 
 struct Material {
 	std::string name;

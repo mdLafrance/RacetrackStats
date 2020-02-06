@@ -63,11 +63,15 @@ void Renderer::drawLine(const glm::vec3& origin, const glm::vec3& end, const glm
 	};
 
 	float triangle[] = {
-		-120, 50, 0,
-		-50, -150, 0,
-		50, 0, 0
+		-0.5, 0.5, 0,
+		-0.5, -0.5, 0,
+		0.5, 0, 0
 
 	};
+
+	Shader* shader = this->shaders.at("line");
+	shader->bind();
+	shader->setUniform4x4f("MVP", glm::mat4());
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -121,7 +125,7 @@ Renderer::Renderer(GLFWwindow* window) {
 		std::cerr << "Failed to initialize GLAD\n";
 	}
 
-	glViewport(0, 0, WorldState.windowX, WorldState.windowY);
+	//glViewport(0, 0, WorldState.windowX, WorldState.windowY);
 
 	// Create and register default assets.
 	Camera* defaultCam = new Camera(0, WINDOW_DEFAULT_X, 0, WINDOW_DEFAULT_Y, -600, 600);
@@ -206,6 +210,7 @@ void Renderer::loadScene(const std::string& target) {
 	for (auto p : this->objects){
 		o = p.second;
 		std::string targetParent = o->mesh->getDefaultParentName();
+		std::string targetMaterial = o->mesh->getDefaultMaterialName();
 
 		if (targetParent != "") {
 			try {
@@ -214,6 +219,16 @@ void Renderer::loadScene(const std::string& target) {
 			catch (const std::out_of_range & oor) {
 				std::cerr << "Can't find parent " << "<" << targetParent << ">" << " for object " << p.first << std::endl;
 			}
+		}
+
+		if (targetMaterial != ""){//Utils::hasEnding(targetMaterial, "initialShadingGroup")){
+			try {
+				o->material = this->materials.at(targetMaterial);
+			} catch (const std::out_of_range& oor){
+				std::cerr << "Can't find material " << "<" << targetMaterial << "> for object " << p.first << std::endl;
+			}
+		} else {
+			o->material = this->materials.at("default");
 		}
 	}
 }
@@ -258,7 +273,7 @@ void Renderer::tick(const double& dTime) {
 
 	int translation[2] = { 0,0 };
 
-	const float translateSpeed = 2;
+	double translateSpeed = 1;
 
 	// Collect input
 	if (glfwGetKey(this->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -279,12 +294,12 @@ void Renderer::tick(const double& dTime) {
 
 	this->mainCamera->translate(translation[0], translation[1], 0);
 
+	this->drawLine(glm::vec3(0, 15, 0), glm::vec3(100, 0, 0), glm::vec4(1, 0, 0, 1));
+
 	// For now, only use default material/shaders
 
 	Shader* shader = this->shaders.at("default");
 	shader->bind();
-
-	//this->drawLine(glm::vec3(0, 15, 0), glm::vec3(100, 0, 0), glm::vec4(1, 0, 0, 1));
 
 	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
 
@@ -296,6 +311,7 @@ void Renderer::tick(const double& dTime) {
 	Object* object;
 
 	for (auto p : this->objects) {
+		p.second->material->bind();
 		p.second->mesh->draw();
 	}
 

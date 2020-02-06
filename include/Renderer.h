@@ -64,8 +64,6 @@ public:
 
 	void drawLine(const glm::vec3& origin, const glm::vec3& end, const glm::vec4& color);
 
-	// void start();
-
 	void deleteObjects();
 
 	void tick(const double& dTime);

@@ -61,10 +61,10 @@ namespace OBJ
 		bool collectingFaces = false;
 
 		std::string materialLibrary;
+		std::string materialName;
 
 		std::string groupName;
 		std::string groupParent;
-		std::string materialName;
 
 		OBJMesh* currentObject;
 
@@ -83,7 +83,7 @@ namespace OBJ
 
 			std::cout << "Writing vertex data for " << groupName << " (" << numOfFaces << " tris, ";
 
-			currentObject = new OBJMesh(fullName, materialName, groupParent, target, numOfFaces, numOfPositions, numOfNormals, numOfTexCoords);
+			currentObject = new OBJMesh(fullName, Utils::getFileInfo(materialLibrary).file + '.' + materialName, groupParent, target, numOfFaces, numOfPositions, numOfNormals, numOfTexCoords);
 
 			float* va = currentObject->vertexAttributes;
 

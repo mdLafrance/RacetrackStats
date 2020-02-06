@@ -10,6 +10,8 @@
 #include <sstream>
 #include <iostream>
 
+static const char DIRECTORY_SEPARATOR = '/';
+
 namespace Utils 
 {
 	//float PI = 3.14159265359;
@@ -25,6 +27,7 @@ namespace Utils
 	// String manipulation utility
 	std::vector<std::string> split(const std::string& s, char delimiter);
 	std::string getFileNameNoExtension(const std::string& target);
+	bool hasEnding(const std::string& a, const std::string& b);
 
 	// File utility
 	Utils::FileInfo getFileInfo(const std::string& target);
