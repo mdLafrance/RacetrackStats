@@ -1222,5 +1222,7 @@
     <None Include="include\glm\gtx\wrap.inl">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="resources\shaders\diffuse.vertex" />
+    <None Include="resources\shaders\diffuse.fragment" />
   </ItemGroup>
 </Project>

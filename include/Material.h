@@ -10,8 +10,8 @@
 #include <Utils.h>
 
 struct Material {
-	std::string name;
-	std::string origin;
+	std::string name; // Name of material
+	std::string origin; // Path to material library this material originated from
 
 	int illum;    // Illumination mode
 	glm::vec3 Ka; // ambient
@@ -22,15 +22,13 @@ struct Material {
 
 	Texture* map_Kd; // Diffuse map
 	Texture* map_Ks; // Spec map
-	Texture* norm; // Probably not gonna have time for this
+	Texture* norm; // Normal map 
 
 	Shader* shader;
 
 	void bind();
 
 	static std::map<std::string, Material*> load(const std::string& target);
-
-	void setMVP(const glm::mat4x4& MVP);
 
 	Material(const std::string& name, const std::string& texture, const std::string& shader);
 	~Material();

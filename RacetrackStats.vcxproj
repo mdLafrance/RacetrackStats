@@ -522,6 +522,8 @@
     <None Include="include\glm\gtx\vector_angle.inl" />
     <None Include="include\glm\gtx\vector_query.inl" />
     <None Include="include\glm\gtx\wrap.inl" />
+    <None Include="resources\shaders\diffuse.fragment" />
+    <None Include="resources\shaders\diffuse.vertex" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

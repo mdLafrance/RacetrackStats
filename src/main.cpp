@@ -22,7 +22,7 @@
 #include <Utils.h>
 #include <WorldState.h>
 
-_WorldState WorldState = { WINDOW_DEFAULT_X, WINDOW_DEFAULT_Y };
+_WorldState WorldState = { WINDOW_DEFAULT_X, WINDOW_DEFAULT_Y, nullptr};
 
 int main() {
 	// Init Context
@@ -48,12 +48,21 @@ int main() {
 	glfwSetWindowSizeCallback(window, windowResizeCallbackFunction);
 	glfwSetErrorCallback(Utils::glfwErrorCallbackFunction);
 
+	bool onMSI = std::getenv("MSI") != nullptr;
+
+	if (onMSI) {
+		::WorldState.projectRoot = "D:/Hacking/RacetrackStats";
+	}
+	else {
+		::WorldState.projectRoot = "C:/Users/maxto/OneDrive/Documents/Hacking/RacetrackStats";
+	}
+
 	Renderer* renderer = new Renderer(window);
 
-	if (std::getenv("MSI")) { // Env variable defined on main workstation
+	if (onMSI) {
 		renderer->loadScene("D:/Hacking/RacetrackStats/scenes/testingScene.scene");
 	}
-	else { // My other machine lol
+	else { 
 		renderer->loadScene("C:/Users/maxto/OneDrive/Documents/Hacking/RacetrackStats/scenes/testingScene_laptop.scene");
 	}
 

@@ -305,5 +305,5 @@ OBJMesh::~OBJMesh() {
 	delete[] this->vertexAttributes;
 
 	glDeleteBuffers(1, &this->VBO);
-	glDeleteBuffers(1, &this->VAO);
+	glDeleteVertexArrays(1, &this->VAO);
 }

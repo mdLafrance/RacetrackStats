@@ -1,14 +1,15 @@
 #include <Shader.h>
+
 const char* vShaderSource =
 "#version 330 core\n"
 "layout(location = 0) in vec3 vPos;\n"
 "layout(location = 1) in vec3 vNorm;\n"
 "layout(location = 2) in vec2 vTex;\n"
-"uniform mat4 u_MVP;\n"
+"uniform mat4 MVP;\n"
 "out vec2 texCoord;\n"
 "void main() {\n"
 "   texCoord = vTex;\n"
-"	gl_Position = u_MVP * vec4(vPos.x, vPos.y, vPos.z, 1.0);\n"
+"	gl_Position = MVP * vec4(vPos.x, vPos.y, vPos.z, 1.0);\n"
 "}\0";
 
 const char* fShaderSourceBasic =
@@ -17,7 +18,6 @@ const char* fShaderSourceBasic =
 "out vec4 FragColor;\n"
 "uniform sampler2D tex;\n"
 "void main(){\n"
-"	//FragColor = texture(tex, texCoord);\n"
 "	FragColor = vec4(0.1f, 0.0f, 0.8f, 1.0f);\n"
 "}\n\0";
 
@@ -28,15 +28,22 @@ const char* fShaderSourceTexture =
 "uniform sampler2D tex;\n"
 "void main(){\n"
 "	FragColor = texture(tex, texCoord);\n"
-"	//FragColor = vec4(0.1f, 0.0f, 0.8f, 1.0f);\n"
 "}\n\0";
 
 void Shader::bind() {
 	glUseProgram(this->shaderProgram);
 }
 
-void Shader::setUniform4x4f(const std::string& name, const glm::mat4& target) const {
-	glUniformMatrix4fv(glad_glGetUniformLocation(this->shaderProgram, "u_MVP"), 1, GL_FALSE, &target[0][0]);
+void Shader::setUniformMatrix4fv(const std::string& name, const glm::mat4& target) const {
+	glUniformMatrix4fv(glad_glGetUniformLocation(this->shaderProgram, name.c_str()), 1, GL_FALSE, &target[0][0]);
+}
+
+void Shader::setUniform3fv(const std::string& name, const glm::vec3& v) const {
+	glUniform3fv(glad_glGetUniformLocation(this->shaderProgram, name.c_str()), 1, &v[0]);
+}
+
+void Shader::setUniformf(const std::string& name, const float& f) const {
+	glUniform1f(glad_glGetUniformLocation(this->shaderProgram, name.c_str()), &f);
 }
 
 unsigned int Shader::programID() {
@@ -44,21 +51,15 @@ unsigned int Shader::programID() {
 }
 
 bool getGlShaderStatus(int program) {
-	glValidateProgram(program);
-
 	int success;
 
-	glGetProgramiv(program, GL_VALIDATE_STATUS, &success);
+	glGetProgramiv(program, GL_LINK_STATUS, &success);
 
 	if (!success) {
-		std::cerr << "Shader program " << program << " failed to compile: " << std::endl;
+		char status[512];
 
-		int length;
-		char* status = new char[512];
-
-		glGetShaderInfoLog(program, 512, &length, status);
-
-		std::cout << status << std::endl;
+		glGetProgramInfoLog(program, 512, NULL, status);
+		std::cerr << "Shader program " << program << " failed to compile: \n" << status << std::endl;
 	}
 
 	return (bool)success;

@@ -133,11 +133,16 @@ Renderer::Renderer(GLFWwindow* window) {
 	this->setMainCamera("default");
 
 	Shader* defaultShader = new Shader("default", "default");
+	Shader* diffuseShader = new Shader(
+		std::string(WorldState.projectRoot) + "/resources/shaders/diffuse.vertex", 
+		std::string(WorldState.projectRoot) + "/resources/shaders/diffuse.fragment"
+	);
 	Shader* lineShader = new Shader("default", "line");
 	Texture* defaultTexture = new Texture("default");
 	Material* defaultMaterial = new Material("default", "default", "default");
 
 	this->registerShader("default", defaultShader);
+	this->registerShader("diffuse", diffuseShader);
 	this->registerShader("line", lineShader);
 	this->registerTexture("default", defaultTexture);
 	this->registerMaterial("default", defaultMaterial);
@@ -305,7 +310,7 @@ void Renderer::tick(const double& dTime) {
 
 	glm::mat4 transform = glm::rotate(0.8f * (float)(glfwGetTime()), glm::vec3(0.f, 1.0f, 0.f));
 
-	shader->setUniform4x4f("MVP", VP * transform);
+	shader->setUniformMatrix4fv("MVP", VP * transform);
 
 	std::string objectName;
 	Object* object;
