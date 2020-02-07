@@ -5,7 +5,7 @@ void Camera::updateProjectionMatrix(const float& xMin, const float& xMax, const 
 }
 
 glm::mat4 Camera::projectionViewMatrix() {
-	return this->proj * this->transform->getMatrix();//this->view;
+	return this->proj * this->transform->getMatrix();
 }
 
 Camera::Camera(const float& xMin, const float& xMax, const float& yMin, const float& yMax, const float& zMin, const float& zMax) {

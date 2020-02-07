@@ -48,6 +48,17 @@ void Transform::setScale(const glm::vec3& components){
 	this->S = glm::scale(components);
 }
 
+glm::vec3 Transform::forward() {
+	glm::vec4 k = this->getMatrix() * glm::vec4(0, 0, -1, 1);
+
+	return glm::vec3(k[0] / k[3], k[1] / k[3], k[2] / k[3]);
+}
+
+glm::vec3 Transform::right() {
+	glm::vec4 k = this->getMatrix() * glm::vec4(1, 0, 0, 1);
+
+	return glm::vec3(k[0] / k[3], k[1] / k[3], k[2] / k[3]);
+}
 
 Transform::Transform() {
 	this->matrix = glm::mat4(1.0f);

@@ -29,6 +29,9 @@ public:
 
 	glm::mat4x4 getMatrix();
 
+	glm::vec3 forward();
+	glm::vec3 right();
+
 	Transform();
 	~Transform();
 };
