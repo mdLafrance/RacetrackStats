@@ -339,9 +339,9 @@ void Renderer::tick(const double& dTime) {
 	glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	int translation[2] = { 0,0 };
+	float translation[2] = { 0,0 };
 
-	double translateSpeed = 1;
+	float translateSpeed = 1;
 
 	// Collect input
 	if (glfwGetKey(this->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -366,11 +366,11 @@ void Renderer::tick(const double& dTime) {
 	}
 
 	// Calcuate new MVP for camera on this frame
-	this->mainCamera->transform->translate(glm::vec3(translation[0], translation[1], 0));
+	Transform* camTransform = this->mainCamera->transform;
+	camTransform->translate(glm::vec3((translation[0] * camTransform->right()) + (translation[1] * camTransform->forward())));
 
 	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
-	glm::mat4 transform = glm::scale(glm::vec3(20,20,20)) * glm::rotate(0.8f * (float)(glfwGetTime()), glm::vec3(0.f, 1.0f, 0.f));
-	glm::mat4 MVP = VP * transform;
+	//glm::mat4 transform = glm::scale(glm::vec3(20,20,20)) * glm::rotate(0.8f * (float)(glfwGetTime()), glm::vec3(0.f, 1.0f, 0.f));
 
 	Object* object;
 	Shader* shader;
@@ -384,8 +384,8 @@ void Renderer::tick(const double& dTime) {
 
 		shader = object->material->shader;
 
-		object->transform->setRotation(0.8f * (float)(glfwGetTime()), glm::vec3(0,1,0));
-		object->transform->setScale(glm::vec3(20, 20, 20));
+		//object->transform->setRotation(0.8f * (float)(glfwGetTime()), glm::vec3(0,1,0));
+		//object->transform->setScale(glm::vec3(20, 20, 20));
 
 		shader->setUniformMatrix4fv("VP", VP);
 		shader->setUniformMatrix4fv("MVP", VP * object->transform->getMatrix());
