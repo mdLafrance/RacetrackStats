@@ -135,6 +135,9 @@ Renderer::Renderer(GLFWwindow* window) {
 	glCullFace(GL_BACK);
 	glCullFace(GL_CW);
 
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
 	std::cout << "Renderer initialized." << std::endl;
 }
 
@@ -308,11 +311,11 @@ Object* Renderer::newObject(const std::string& name) {
 
 void Renderer::tick(const double& dTime) {
 	glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	int translation[2] = { 0,0 };
 
-	double translateSpeed = 2;
+	double translateSpeed = 1;
 
 	// Collect input
 	if (glfwGetKey(this->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -340,7 +343,7 @@ void Renderer::tick(const double& dTime) {
 	this->mainCamera->translate(translation[0], translation[1], 0);
 
 	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
-	glm::mat4 transform = glm::rotate(0.8f * (float)(glfwGetTime()), glm::vec3(0.f, 1.0f, 0.f));
+	glm::mat4 transform = glm::scale(glm::vec3(20,20,20)) * glm::rotate(0.8f * (float)(glfwGetTime()), glm::vec3(0.f, 1.0f, 0.f));
 	glm::mat4 MVP = VP * transform;
 
 	Object* object;
