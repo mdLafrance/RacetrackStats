@@ -1,6 +1,13 @@
 name Testing Scene Laptop
 
+# Paths to any resource files
 D:/Hacking/RacetrackStats/testingResources/alien.obj
 D:/Hacking/RacetrackStats/testingResources/alien.mtl
 
 D:/Hacking/RacetrackStats/testingResources/cube.obj
+D:/Hacking/RacetrackStats/testingResources/cube.mtl
+
+# Specification for any lights in the scene
+# light <directional|point> p0 p1 p2 c0 c1 c2 
+# where p<x> are position/direction in xyz and c<x> is color in rgb
+light directional -2.0 -5.0 -10.0 1.0 1.0 1.0

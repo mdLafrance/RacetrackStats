@@ -120,6 +120,7 @@
     <ClCompile Include="include\glm\detail\glm.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\glad.c" />
+    <ClCompile Include="src\Light.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\OBJ.cpp" />
@@ -376,6 +377,7 @@
     <ClInclude Include="include\glm\vec3.hpp" />
     <ClInclude Include="include\glm\vec4.hpp" />
     <ClInclude Include="include\glm\vector_relational.hpp" />
+    <ClInclude Include="include\Light.h" />
     <ClInclude Include="include\Material.h" />
     <ClInclude Include="include\OBJ.h" />
     <ClInclude Include="include\Object.h" />
@@ -522,8 +524,6 @@
     <None Include="include\glm\gtx\vector_angle.inl" />
     <None Include="include\glm\gtx\vector_query.inl" />
     <None Include="include\glm\gtx\wrap.inl" />
-    <None Include="resources\shaders\diffuse.fragment" />
-    <None Include="resources\shaders\diffuse.vertex" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

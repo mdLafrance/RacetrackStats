@@ -20,11 +20,12 @@ std::map<std::string, Material*> Material::load(const std::string& target)
 			tokens = Utils::split(line, ' ');
 
 			// Empty line
-			if (tokens.size() == 0) {
-				continue;
-			}
+			if (tokens.size() == 0) continue;
 
-			std::string lineType = tokens[0];
+			std::string lineType = tokens.front();
+			std::string lineBack = tokens.back(); // For the sake of time, dont include flags for inputs. Only need type, and last arg
+
+			// All spec here is defined in wavefront's OBJ spec
 
 			// Start recording information for given material
 			if (lineType == "newmtl") {
@@ -33,34 +34,46 @@ std::map<std::string, Material*> Material::load(const std::string& target)
 					materials[fi.file + '.' + current->name] = current;
 				}
 				std::cout << "Generating Material " << tokens[1] << std::endl;
-				current = new Material(tokens[1], "default", "default");
+				current = new Material(tokens[1]);
 
 			} else if (lineType == "map_Kd") { // DIFFUSE MAP
-				current->map_Kd = new Texture(fi.directory + DIRECTORY_SEPARATOR + tokens[1]);
+				current->map_Kd = new Texture(fi.directory + DIRECTORY_SEPARATOR + lineBack);
+				current->addFlag(MATERIAL_USE_map_Kd);
 
 			} else if (lineType == "map_Ks"){ // SPEC MAP
-				current->map_Ks = new Texture(fi.directory + DIRECTORY_SEPARATOR + tokens[1]);
+				current->map_Ks = new Texture(fi.directory + DIRECTORY_SEPARATOR + lineBack);
+				current->addFlag(MATERIAL_USE_map_Ks);
 			
 			} else if (lineType == "norm") { // NORMAL MAP
-				current->norm = new Texture(fi.directory + DIRECTORY_SEPARATOR + tokens[1]);
+				current->norm = new Texture(fi.directory + DIRECTORY_SEPARATOR + lineBack);
+				current->addFlag(MATERIAL_USE_map_norm);
 			
 			} else if (lineType == "illum") { // Illumination
-				current->illum = std::atof(tokens[1].c_str());
+				current->illum = std::atof(lineBack.c_str());
 			
 			} else if (lineType == "Ka") { // Ambient 
-				current->Ka = glm::vec3();
+				current->Ka = glm::vec3(std::atof(tokens[1].c_str()), std::atof(tokens[2].c_str()), std::atof(tokens[3].c_str()));
+				current->addFlag(MATERIAL_USE_Ka);
 			
 			} else if (lineType == "Kd"){ // Diffuse
-				current->Kd = glm::vec3();
+				current->Kd = glm::vec3(std::atof(tokens[1].c_str()), std::atof(tokens[2].c_str()), std::atof(tokens[3].c_str()));
+				current->addFlag(MATERIAL_USE_Kd);
 			
 			} else if (lineType == "Ks"){ // Specular color
-				current->Ks = glm::vec3();
+				current->Ks = glm::vec3(std::atof(tokens[1].c_str()), std::atof(tokens[2].c_str()), std::atof(tokens[3].c_str()));
+				current->addFlag(MATERIAL_USE_Ks);
 			
 			} else if (lineType == "Ns"){ // Specular exp
-				current->Ns = std::atof(tokens[1].c_str());
+				current->Ns = std::atof(lineBack.c_str());
+				current->addFlag(MATERIAL_USE_Ns);
 			
 			} else if (lineType == "Tr"){ // Transparency value, 1 is transparent
-				current->Tr = std::atof(tokens[1].c_str());
+				current->Tr = std::atof(lineBack.c_str());
+				current->addFlag(MATERIAL_USE_Tr);
+
+			} else if (lineType == "d"){ // Equivalent transparency value, Tr is inverse of d
+				current->Tr = 1 - std::atof(lineBack.c_str());
+				current->addFlag(MATERIAL_USE_Tr);
 			}
 		}
 	} else {
@@ -78,12 +91,64 @@ std::map<std::string, Material*> Material::load(const std::string& target)
 	return materials;
 }
 
-void Material::bind(){
-	
+inline void Material::addFlag(const uint8_t& flag) {
+	this->flags |= flag;
 }
 
-Material::Material(const std::string& name, const std::string& texture, const std::string& shader) {
+inline void Material::removeFlag(const uint8_t& flag) {
+	this->flags &= ~flag;
+}
+
+inline bool Material::checkFlag(const uint8_t& flag) {
+	return this->flags & flag;
+}
+
+void Material::bind(){
+	unsigned int shaderID = this->shader->programID();
+
+	this->shader->bind();
+	
+	this->shader->setUniform3fv("Ka", this->Ka);
+	this->shader->setUniform3fv("Kd", this->Kd);
+	this->shader->setUniform3fv("Ks", this->Ks);
+
+	if (this->checkFlag(MATERIAL_USE_map_Kd)) {
+		glUniform1i(glGetUniformLocation(shaderID, "map_Kd"), TEXTURE_LOCATION_map_Kd);
+		glActiveTexture(GL_TEXTURE0 + TEXTURE_LOCATION_map_Kd);
+		glBindTexture(GL_TEXTURE_2D, this->map_Kd->getID());
+	}
+
+	if (this->checkFlag(MATERIAL_USE_map_Ks)) {
+		glUniform1i(glGetUniformLocation(shaderID, "map_Ks"), TEXTURE_LOCATION_map_Ks);
+		glActiveTexture(GL_TEXTURE0 + TEXTURE_LOCATION_map_Ks);
+		glBindTexture(GL_TEXTURE_2D, this->map_Ks->getID());
+	}
+
+	if (this->checkFlag(MATERIAL_USE_map_norm)) {
+		glUniform1i(glGetUniformLocation(shaderID, "norm"), TEXTURE_LOCATION_norm);
+		glActiveTexture(GL_TEXTURE0 + TEXTURE_LOCATION_norm);
+		glBindTexture(GL_TEXTURE_2D, this->norm->getID());
+	}
+}
+
+void Material::setMVP(const glm::mat4& mvp) {
+	this->shader->setUniformMatrix4fv("MVP", mvp);
+}
+
+Material::Material(const std::string& name) {
 	this->name = name;
+	this->flags = 0;
+
+	this->Ka = glm::vec3(0,0,0);
+	this->Kd = glm::vec3(0,0,0);
+	this->Ks = glm::vec3(0,0,0);
+
+	this->Ns = 0;
+	this->Tr = 0;
+
+	this->map_Kd = nullptr;
+	this->map_Ks = nullptr;
+	this->norm = nullptr;
 }
 
 Material::~Material() {

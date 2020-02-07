@@ -53,24 +53,3 @@ namespace Utils
 		~StopWatch();
 	};
 }
-
-class VariableFloatArray {
-	int size;
-	int sizeOfData;
-	float* data;
-
-public:
-	void add(const float& target);
-	void push_back(const float& target); // For compatability with vector for internal testing
-
-	int getSize();
-
-	float at(const int& target);
-	void clear();
-
-	float& operator[](const int& index);
-
-	VariableFloatArray();
-	VariableFloatArray(const int& size);
-	~VariableFloatArray();
-};

@@ -9,6 +9,10 @@ std::string Texture::getName()
 	return this->name;
 }
 
+unsigned int Texture::getID() {
+	return this->ID;
+}
+
 Texture::Texture(const std::string& target) {
 	if (target == "default") {
 		this->width = 0;

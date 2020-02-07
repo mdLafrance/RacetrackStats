@@ -45,6 +45,10 @@ void Renderer::registerCamera(const std::string& id, Camera* camera){
     }
 }
 
+Camera* Renderer::getMainCamera() {
+	return this->mainCamera;
+}
+
 void Renderer::setMainCamera(const std::string& id){
     try {
         this->mainCamera = this->cameras.at(id);
@@ -71,7 +75,7 @@ void Renderer::drawLine(const glm::vec3& origin, const glm::vec3& end, const glm
 
 	Shader* shader = this->shaders.at("line");
 	shader->bind();
-	shader->setUniform4x4f("MVP", glm::mat4());
+	shader->setUniformMatrix4fv("MVP", glm::mat4());
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -125,29 +129,48 @@ Renderer::Renderer(GLFWwindow* window) {
 		std::cerr << "Failed to initialize GLAD\n";
 	}
 
-	//glViewport(0, 0, WorldState.windowX, WorldState.windowY);
+	this->resetData();
 
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glCullFace(GL_CW);
+
+	std::cout << "Renderer initialized." << std::endl;
+}
+
+void Renderer::resetData() {
 	// Create and register default assets.
 	Camera* defaultCam = new Camera(0, WINDOW_DEFAULT_X, 0, WINDOW_DEFAULT_Y, -600, 600);
-	this->registerCamera("default", defaultCam);
-	this->setMainCamera("default");
 
 	Shader* defaultShader = new Shader("default", "default");
 	Shader* diffuseShader = new Shader(
-		std::string(WorldState.projectRoot) + "/resources/shaders/diffuse.vertex", 
-		std::string(WorldState.projectRoot) + "/resources/shaders/diffuse.fragment"
+		std::string(WorldState.projectRoot) + "/resources/shaders/diffuse.vert", 
+		std::string(WorldState.projectRoot) + "/resources/shaders/diffuse.frag"
 	);
 	Shader* lineShader = new Shader("default", "line");
-	Texture* defaultTexture = new Texture("default");
-	Material* defaultMaterial = new Material("default", "default", "default");
 
+	Texture* defaultTexture = new Texture("default");
+
+	Material* defaultMaterial = new Material("default");
+	defaultMaterial->shader = defaultShader;
+
+	this->registerCamera("default", defaultCam);
 	this->registerShader("default", defaultShader);
 	this->registerShader("diffuse", diffuseShader);
 	this->registerShader("line", lineShader);
 	this->registerTexture("default", defaultTexture);
 	this->registerMaterial("default", defaultMaterial);
 
-	std::cout << "Renderer initialized." << std::endl;
+	this->setMainCamera("default");
+
+	this->numOfLights = 0;
+}
+
+Renderer::~Renderer() {
+	delete[] this->lights;
+	delete[] this->lightMatrices;
+
+	this->deleteObjects();
 }
 
 void Renderer::loadScene(const std::string& target) {
@@ -159,7 +182,7 @@ void Renderer::loadScene(const std::string& target) {
 		return;
 	}
 
-	std::cout << std::endl << "Loading Scene " << target << "..." << std::endl;
+	std::cout << "Loading Scene " << target << "..." << std::endl;
 
 	this->scene.name = Utils::getFileInfo(target).file;
 	this->scene.path = target;
@@ -173,14 +196,24 @@ void Renderer::loadScene(const std::string& target) {
 		std::vector<std::string> tokens = Utils::split(line, ' ');
 		std::string lineType = tokens[0];
 
-		// Other line specs deprecated
-		// Leaving this functionality in for later
-
-		if (lineType == "name"){
+		// Name of scene
+		if (lineType == "name") {
 			int nameLength = line.size() - 5; // "name " is 5 chars
-	 		this->scene.name = line.substr(5, nameLength);		
+			this->scene.name = line.substr(5, nameLength);
+		}
+		// Light to be used in scene
+		else if (lineType == "light") {
+			if (this->numOfLights >= MAX_LIGHT_COUNT) {
+				std::cerr << "Too many lights attempting to be created for scene. (Max light count is " << MAX_LIGHT_COUNT << ")" << std::endl;
+			}
+			glm::vec3 color = { std::atof(tokens[2].c_str()), std::atof(tokens[3].c_str()), std::atof(tokens[4].c_str()) };
+			glm::vec3 x = { std::atof(tokens[5].c_str()), std::atof(tokens[6].c_str()), std::atof(tokens[7].c_str()) };
+			LightType t = tokens[1] == "directional" ? LightType::DIRECTIONAL : LightType::POINT;
+
+			this->lights[this->numOfLights++] = { color, x, t };
+		}
 		// Line is just path to some file to be included in the scene
-		} else { 
+		else { 
 			Utils::FileInfo fi = Utils::getFileInfo(line);
 
 			if (fi.extension == "mtl"){ // Load mtl library file
@@ -205,12 +238,9 @@ void Renderer::loadScene(const std::string& target) {
 		Object* o = this->newObject(p.first);
 
 		o->mesh = p.second;
-		// o->material = this->materials.at(p.second->getDefaultMaterialName);
-		o->material = this->materials.at("default");
 	}
 
-	// Now that all necessary Objects have been generated, link parents
-
+	// Now that all necessary Objects have been generated with their meshes, link parents and materials
 	Object* o;
 	for (auto p : this->objects){
 		o = p.second;
@@ -226,7 +256,7 @@ void Renderer::loadScene(const std::string& target) {
 			}
 		}
 
-		if (targetMaterial != ""){//Utils::hasEnding(targetMaterial, "initialShadingGroup")){
+		if (targetMaterial != ""){
 			try {
 				o->material = this->materials.at(targetMaterial);
 			} catch (const std::out_of_range& oor){
@@ -245,6 +275,7 @@ void Renderer::loadMaterialLibrary(const std::string& target) {
 	std::map<std::string, Material*> materials = Material::load(target);
 
 	for (auto p : materials) {
+		p.second->shader = this->shaders.at("diffuse");
 		this->registerMaterial(p.first, p.second);
 	}
 }
@@ -266,6 +297,9 @@ Object* Renderer::newObject(const std::string& name) {
 	}
 
 	Object* object = new Object(name);
+	
+	object->transform = new Transform();
+	object->material = this->materials.at("default");
 
 	this->objects[name] = object;
 
@@ -273,12 +307,12 @@ Object* Renderer::newObject(const std::string& name) {
 }
 
 void Renderer::tick(const double& dTime) {
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	int translation[2] = { 0,0 };
 
-	double translateSpeed = 1;
+	double translateSpeed = 2;
 
 	// Collect input
 	if (glfwGetKey(this->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -297,27 +331,36 @@ void Renderer::tick(const double& dTime) {
 		translation[0] = translateSpeed;
 	}
 
+	// Generate gpu-friendly matrix representation for lights 
+	for (int i = 0; i < this->numOfLights; i++) {
+		*(this->lightMatrices + i) = (this->lights + i)->getMatrix();
+	}
+
+	// Calcuate new MVP for camera on this frame
 	this->mainCamera->translate(translation[0], translation[1], 0);
 
-	this->drawLine(glm::vec3(0, 15, 0), glm::vec3(100, 0, 0), glm::vec4(1, 0, 0, 1));
-
-	// For now, only use default material/shaders
-
-	Shader* shader = this->shaders.at("default");
-	shader->bind();
-
 	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
-
 	glm::mat4 transform = glm::rotate(0.8f * (float)(glfwGetTime()), glm::vec3(0.f, 1.0f, 0.f));
+	glm::mat4 MVP = VP * transform;
 
-	shader->setUniformMatrix4fv("MVP", VP * transform);
-
-	std::string objectName;
 	Object* object;
+	Shader* shader;
 
+	//TODO: sort objects by material, then render by material
 	for (auto p : this->objects) {
-		p.second->material->bind();
-		p.second->mesh->draw();
+		object = p.second;
+
+		// Binding Material binds associated Shader, which sets its own internal uniforms
+		object->material->bind();
+
+		shader = object->material->shader;
+
+		shader->setUniformMatrix4fv("VP", VP);
+		shader->setUniformMatrix4fv("MVP", MVP);
+
+		shader->setLights(this->numOfLights, this->lightMatrices);
+
+		object->mesh->draw();
 	}
 
 	glfwSwapBuffers(this->window);

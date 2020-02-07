@@ -280,7 +280,7 @@ void OBJMesh::draw() {
 	glBindVertexArray(this->VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
 	
-	glDrawArrays(GL_LINES, 0, 3 * this->numberOfFaces);
+	glDrawArrays(GL_TRIANGLES, 0, 3 * this->numberOfFaces);
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

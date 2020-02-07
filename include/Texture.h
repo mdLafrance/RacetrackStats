@@ -24,6 +24,8 @@ public:
 
 	std::string getName();
 
+	unsigned int getID();
+
 	Texture(const std::string& target);
 	~Texture();
 };

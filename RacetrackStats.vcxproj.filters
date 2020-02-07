@@ -51,6 +51,9 @@
     <ClCompile Include="src\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Light.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Camera.h">
@@ -818,6 +821,9 @@
     <ClInclude Include="include\WorldState.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Light.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\glm\detail\func_common.inl">
@@ -1222,7 +1228,5 @@
     <None Include="include\glm\gtx\wrap.inl">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="resources\shaders\diffuse.vertex" />
-    <None Include="resources\shaders\diffuse.fragment" />
   </ItemGroup>
 </Project>

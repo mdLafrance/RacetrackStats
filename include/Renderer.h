@@ -1,8 +1,5 @@
 #pragma once
 
-#define WINDOW_DEFAULT_X 800
-#define WINDOW_DEFAULT_Y 600
-
 #include <iostream>
 #include <utility>
 #include <string.h>
@@ -18,7 +15,12 @@
 #include <OBJ.h>
 #include <Camera.h>
 #include <Object.h>
+#include <Light.h>
 #include <WorldState.h>
+
+#define WINDOW_DEFAULT_X 800
+#define WINDOW_DEFAULT_Y 600
+#define MAX_LIGHT_COUNT 8
 
 // Global world state instantiated in main.cpp
 extern _WorldState WorldState;
@@ -46,6 +48,13 @@ class Renderer {
 
 	unsigned int line_VAO;
 
+	int numOfLights;
+	Light lights[MAX_LIGHT_COUNT];
+	glm::mat3 lightMatrices[MAX_LIGHT_COUNT];
+
+	void resetData();
+	void deleteObjects();
+
 public:
 	void loadScene(const std::string& target);
 	void loadMaterialLibrary(const std::string& target);
@@ -64,10 +73,8 @@ public:
 
 	void drawLine(const glm::vec3& origin, const glm::vec3& end, const glm::vec4& color);
 
-	void deleteObjects();
-
 	void tick(const double& dTime);
 	
 	Renderer(GLFWwindow* window);
-	~Renderer() {};
+	~Renderer();
 };

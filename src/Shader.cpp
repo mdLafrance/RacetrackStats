@@ -18,17 +18,17 @@ const char* fShaderSourceBasic =
 "out vec4 FragColor;\n"
 "uniform sampler2D tex;\n"
 "void main(){\n"
-"	FragColor = vec4(0.1f, 0.0f, 0.8f, 1.0f);\n"
+"	FragColor = vec4(0.8, 0.8, 0.8, 1.0f);\n"
 "}\n\0";
 
-const char* fShaderSourceTexture =
-"#version 330 core\n"
-"in vec2 texCoord;\n"
-"out vec4 FragColor;\n"
-"uniform sampler2D tex;\n"
-"void main(){\n"
-"	FragColor = texture(tex, texCoord);\n"
-"}\n\0";
+// const char* fShaderSourceTexture =
+// "#version 330 core\n"
+// "in vec2 texCoord;\n"
+// "out vec4 FragColor;\n"
+// "uniform sampler2D tex;\n"
+// "void main(){\n"
+// "	FragColor = texture(tex, texCoord);\n"
+// "}\n\0";
 
 void Shader::bind() {
 	glUseProgram(this->shaderProgram);
@@ -43,7 +43,13 @@ void Shader::setUniform3fv(const std::string& name, const glm::vec3& v) const {
 }
 
 void Shader::setUniformf(const std::string& name, const float& f) const {
-	glUniform1f(glad_glGetUniformLocation(this->shaderProgram, name.c_str()), &f);
+	glUniform1f(glad_glGetUniformLocation(this->shaderProgram, name.c_str()), f);
+}
+
+void Shader::setLights(const int& count, const glm::mat3* m0) {
+	glUniform1i(glad_glGetUniformLocation(this->shaderProgram, "numOfLights"), count);
+
+	glUniformMatrix3fv(glad_glGetUniformLocation(this->shaderProgram, "lights"), count, GL_FALSE, &(*m0)[0][0]);
 }
 
 unsigned int Shader::programID() {
@@ -59,6 +65,7 @@ bool getGlShaderStatus(int program) {
 		char status[512];
 
 		glGetProgramInfoLog(program, 512, NULL, status);
+
 		std::cerr << "Shader program " << program << " failed to compile: \n" << status << std::endl;
 	}
 

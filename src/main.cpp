@@ -2,6 +2,10 @@
 
 #define WINDOW_TITLE "Racetrack Stats"
 
+// Name of project this is for
+// Might want to extract some functionality for later use, so some functionality/dependency will be guarded by this
+#define __RACETRACK_STATS__
+
 #include <cstdlib>
 
 #include <vector>
@@ -21,8 +25,14 @@
 #include <Material.h>
 #include <Utils.h>
 #include <WorldState.h>
+#include <Light.h>
 
-_WorldState WorldState = { WINDOW_DEFAULT_X, WINDOW_DEFAULT_Y, nullptr};
+_WorldState WorldState = { 
+	WINDOW_DEFAULT_X, // Starting window width
+	WINDOW_DEFAULT_Y, // Starting window height
+	{0.2, 0.2, 0.1},  // vec3 ambient color for the scene
+	nullptr			  // (string) path to root of executable (set in main)
+};
 
 int main() {
 	// Init Context
