@@ -5,22 +5,29 @@
 #include <glm/gtx/transform.hpp>
 
 class Transform {
-	glm::mat4x4 matrix;
+	glm::mat4 matrix;
+
+	glm::mat4 T;
+	glm::mat4 R;
+	glm::mat4 S;
+
+	bool updateMatrix;
 
 	Transform* parent;
 
 public:
 	void translate(const glm::vec3& dp);
-	void translate(const float& x, const float& y, const float& z);
+	void setTranslation(const glm::vec3& dest);
 
 	void rotate(const float& angle, const glm::vec3& dir);
+	void setRotation(const float& angle, const glm::vec3& dir);
 
 	void scale(const glm::vec3& components);
-	void scale(const float& x, const float& y, const float& z);
+	void setScale(const glm::vec3& components);
 
 	void setParent(Transform* parent);
 
-	glm::mat4x4 getViewProjectionMatrix();
+	glm::mat4x4 getMatrix();
 
 	Transform();
 	~Transform();

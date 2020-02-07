@@ -1,8 +1,13 @@
 #include "Transform.h"
 
-glm::mat4x4 Transform::getViewProjectionMatrix() {
+glm::mat4x4 Transform::getMatrix() {
+	if (this->updateMatrix){
+		this->matrix = T * R * S;
+		this->updateMatrix = false;
+	}
+
 	if (this->parent != nullptr) {
-		return this->parent->getViewProjectionMatrix() * this->matrix;
+		return this->parent->getMatrix() * this->matrix;
 	}
 	else {
 		return this->matrix;
@@ -13,8 +18,46 @@ void Transform::setParent(Transform* parent){
 	this->parent = parent;
 }
 
+void Transform::translate(const glm::vec3& dp){
+	this->updateMatrix = true;
+	this->T *= glm::translate(dp);
+}
+
+void Transform::setTranslation(const glm::vec3& dest){
+	this->updateMatrix = true;
+	this->T = glm::translate(dest);
+}
+
+void Transform::rotate(const float& angle, const glm::vec3& dir){
+	this->updateMatrix = true;
+	this->R *= glm::rotate(angle, dir);
+}
+
+void Transform::setRotation(const float& angle, const glm::vec3& dir){
+	this->updateMatrix = true;
+	this->R = glm::rotate(angle, dir);
+}
+
+void Transform::scale(const glm::vec3& components){
+	this->updateMatrix = true;
+	this->S *= glm::scale(components);
+}
+
+void Transform::setScale(const glm::vec3& components){
+	this->updateMatrix = true;
+	this->S = glm::scale(components);
+}
+
+
 Transform::Transform() {
-	this->matrix = glm::mat4x4(1.0f);
+	this->matrix = glm::mat4(1.0f);
+
+	this->T = glm::mat4(1.0f);
+	this->R = glm::mat4(1.0f);
+	this->S = glm::mat4(1.0f);
+
+	this->updateMatrix = false;
+
 	this->parent = nullptr;
 }
 
