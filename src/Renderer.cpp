@@ -208,12 +208,38 @@ void Renderer::loadScene(const std::string& target) {
 		else if (lineType == "light") {
 			if (this->numOfLights >= MAX_LIGHT_COUNT) {
 				std::cerr << "Too many lights attempting to be created for scene. (Max light count is " << MAX_LIGHT_COUNT << ")" << std::endl;
+				continue;
 			}
-			glm::vec3 color = { std::atof(tokens[2].c_str()), std::atof(tokens[3].c_str()), std::atof(tokens[4].c_str()) };
-			glm::vec3 x = { std::atof(tokens[5].c_str()), std::atof(tokens[6].c_str()), std::atof(tokens[7].c_str()) };
-			LightType t = tokens[1] == "directional" ? LightType::DIRECTIONAL : LightType::POINT;
 
-			this->lights[this->numOfLights++] = { color, x, t };
+			std::string word;
+
+			int k = 1;
+
+			Light light = {tokens[k++] == "directional" ? LightType::DIRECTIONAL : LightType::POINT};
+
+			while (k < tokens.size()){
+				word = tokens[k++];	
+
+				if (word == "-p" || word == "d" || word == "v"){
+					light.setPointDirection({ std::atof(tokens[k++].c_str()), std::atof(tokens[k++].c_str()), std::atof(tokens[k++].c_str()) });
+				}
+
+				if (word == "-c"){
+					light.setColor({ std::atof(tokens[k++].c_str()), std::atof(tokens[k++].c_str()), std::atof(tokens[k++].c_str()) });
+				}
+
+				if (word == "-i"){
+					light.setIntensity(std::atof(tokens[k++].c_str()));
+				}
+
+				if (word == "-i" || word == "-f"){
+					light.setK(std::atof(tokens[k++].c_str()));
+				}
+			}
+
+			std::cout << "Created new " << tokens[1] << " light." << std::endl;
+
+			this->lights[this->numOfLights++] = light;
 		}
 		// Line is just path to some file to be included in the scene
 		else { 
@@ -358,8 +384,11 @@ void Renderer::tick(const double& dTime) {
 
 		shader = object->material->shader;
 
+		object->transform->setRotation(0.8f * (float)(glfwGetTime()), glm::vec3(0,1,0));
+		object->transform->setScale(glm::vec3(20, 20, 20));
+
 		shader->setUniformMatrix4fv("VP", VP);
-		shader->setUniformMatrix4fv("MVP", MVP);
+		shader->setUniformMatrix4fv("MVP", VP * object->transform->getMatrix());
 
 		shader->setLights(this->numOfLights, this->lightMatrices);
 

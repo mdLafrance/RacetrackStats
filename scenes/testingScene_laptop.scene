@@ -6,3 +6,6 @@ name Testing Scene Laptop
 C:/Users/maxto/OneDrive/Documents/Hacking/RacetrackStats/testingResources/teapot.obj
 C:/Users/maxto/OneDrive/Documents/Hacking/RacetrackStats/testingResources/cube.mtl
 
+# light <type> <intensity> [x y z] [r g b
+light directional -i 1.0 -d -2.0 -5.0 -10.0 -c 1.0 1.0 1.0 -f 0.5
+

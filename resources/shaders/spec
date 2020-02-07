@@ -9,15 +9,17 @@ Spec for lights:
 
 Lights will be given in a 3x3 matrix:
 
-[c0 p0 a]
-[c1 p1 b]
-[c2 p2 c]
+[c0 p0 dp]
+[c1 p1 i]
+[c2 p2 _]
 
 With:
     c<x> = color component x
     p<x> = position component x
 
-    a -> directonal or point?
-        a = 0 -> directional light
-        a != 0 -> point light
+    dp -> directonal or point?
+        dp = 0 -> directional light
+        dp != 0 -> point light
+
+    i -> intensity of light
 

@@ -7,7 +7,7 @@ void Light::buildMatrix() {
 	this->matrix = glm::mat3(
 		this->color,
 		this->x,
-		{ this->type == LightType::DIRECTIONAL ? 0 : 1, 0, 0 } // glm::vec3
+		{ this->t, this->i, this->k } // glm::vec3
 	);
 }
 
@@ -20,35 +20,51 @@ void Light::setColor(const glm::vec3& color) {
 	this->buildMatrix();
 }
 
-void Light::setX(const glm::vec3& point_direction) {
+void Light::setPointDirection(const glm::vec3& point_direction) {
 	this->x = point_direction;
 	this->buildMatrix();
+}
+
+void Light::setIntensity(const float& i) {
+	this->i = i;
+}
+
+void Light::setK(const float& k) {
+	this->k = k;
 }
 
 Light::Light() {
-	/*
-		DEFAULT CONSTRUCTOR
-	*/
+	this->type = LightType::DIRECTIONAL;
 	this->color = glm::vec3();
 	this->x= glm::vec3();
-	this->type = LightType::DIRECTIONAL;
 
-	this->matrix = glm::mat4(1.0f);
+	this->t = 0;
+	this->i = DEFAULT_LIGHT_INTENSITY;
+	this->k = DEFAULT_POINT_FALLOFF;
+
+	this->matrix = glm::mat4(0.0f);
 }
 
-Light::Light(const glm::vec3 color, const glm::vec3 point_direction, const LightType& type) {
-	this->color = color;
-	this->x = point_direction;
+Light::Light(const LightType& type) {
 	this->type = type;
+	this->color = glm::vec3();
+	this->x= glm::vec3();
+
+	this->t = type == LightType::DIRECTIONAL ? 0 : 1;
+	this->i = DEFAULT_LIGHT_INTENSITY;
+	this->k = DEFAULT_POINT_FALLOFF;
+
+	this->matrix = glm::mat4(0.0f);
+}
+
+Light::Light(const LightType& type, const glm::vec3 point_direction, const glm::vec3 color, const float& i){
+	this->type = type;
+	this->x = point_direction;
+	this->color = color;
+
+	this->t = type == LightType::DIRECTIONAL ? 0 : 1;
+	this->i = i;
+	this->k = DEFAULT_POINT_FALLOFF;
 
 	this->buildMatrix();
-
-	std::cout << "Created new " << (this->type == LightType::DIRECTIONAL ? "directional " : "point ") << "light: (" <<
-		this->color[0] << ' ' <<
-		this->color[1] << ' ' <<
-		this->color[2] << ") (" <<
-
-		this->x[0] << ' ' <<
-		this->x[1] << ' ' <<
-		this->x[2] << ')' << std::endl;
 }

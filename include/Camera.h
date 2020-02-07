@@ -23,6 +23,8 @@ public:
 
 	glm::mat4 projectionViewMatrix();
 
+	glm::vec3 forward();
+
 	Camera(const float& xMin, const float& xMax, const float& yMin, const float& yMax, const float& zMin, const float& zMax);
 	~Camera();
 };

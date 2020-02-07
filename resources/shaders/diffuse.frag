@@ -25,5 +25,6 @@ in mediump vec2 v_texCoord;
 out vec4 FragColor;
 
 void main() {
+	// Note:dddd
 	FragColor = vec4(Kd, 1.0f) + texture(map_Kd, v_texCoord);
 }
