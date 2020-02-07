@@ -366,7 +366,7 @@ void Renderer::tick(const double& dTime) {
 	}
 
 	// Calcuate new MVP for camera on this frame
-	this->mainCamera->translate(translation[0], translation[1], 0);
+	this->mainCamera->transform->translate(glm::vec3(translation[0], translation[1], 0));
 
 	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
 	glm::mat4 transform = glm::scale(glm::vec3(20,20,20)) * glm::rotate(0.8f * (float)(glfwGetTime()), glm::vec3(0.f, 1.0f, 0.f));

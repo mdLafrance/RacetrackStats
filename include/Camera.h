@@ -19,8 +19,6 @@ public:
 
 	void updateProjectionMatrix(const float& xMin, const float& xMax, const float& yMin, const float& yMax, const float& zMin, const float& zMax);
 
-	void translate(const float& x, const float& y, const float& z);
-
 	glm::mat4 projectionViewMatrix();
 
 	glm::vec3 forward();
