@@ -144,7 +144,9 @@ Renderer::Renderer(GLFWwindow* window) {
 
 void Renderer::resetData() {
 	// Create and register default assets.
-	Camera* defaultCam = new Camera(0, WINDOW_DEFAULT_X, 0, WINDOW_DEFAULT_Y, 0, 2000);
+	// Default is persp cam
+	Camera* defaultCam = new Camera(45.0f, WINDOW_DEFAULT_X / WINDOW_DEFAULT_Y, 0, 2000);
+	defaultCam->transform->setTranslation(glm::vec3(0, 0, -100));
 
 	Shader* defaultShader = new Shader("default", "default");
 	Shader* diffuseShader = new Shader(
@@ -166,8 +168,6 @@ void Renderer::resetData() {
 	this->registerMaterial("default", defaultMaterial);
 
 	this->setMainCamera("default");
-
-	this->mainCamera->transform->setTranslation(glm::vec3(0, 0, -600));
 
 	this->numOfLights = 0;
 }
