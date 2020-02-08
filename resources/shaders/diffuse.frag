@@ -28,5 +28,5 @@ void main() {
 	vec3 normal = normalize(v_norm);
 	
 
-	FragColor = vec4(Kd, 1.0f) + texture(map_Kd, v_texCoord);
+	FragColor = texture(map_Kd, v_texCoord);
 }

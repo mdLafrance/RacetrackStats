@@ -131,7 +131,8 @@ Renderer::Renderer(GLFWwindow* window) {
 
 	this->resetData();
 
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
+	glDisable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glCullFace(GL_CW);
 
@@ -143,7 +144,7 @@ Renderer::Renderer(GLFWwindow* window) {
 
 void Renderer::resetData() {
 	// Create and register default assets.
-	Camera* defaultCam = new Camera(0, WINDOW_DEFAULT_X, 0, WINDOW_DEFAULT_Y, -600, 600);
+	Camera* defaultCam = new Camera(0, WINDOW_DEFAULT_X, 0, WINDOW_DEFAULT_Y, 0, 2000);
 
 	Shader* defaultShader = new Shader("default", "default");
 	Shader* diffuseShader = new Shader(
@@ -165,6 +166,8 @@ void Renderer::resetData() {
 	this->registerMaterial("default", defaultMaterial);
 
 	this->setMainCamera("default");
+
+	this->mainCamera->transform->setTranslation(glm::vec3(0, 0, -600));
 
 	this->numOfLights = 0;
 }
@@ -367,7 +370,8 @@ void Renderer::tick(const double& dTime) {
 
 	// Calcuate new MVP for camera on this frame
 	Transform* camTransform = this->mainCamera->transform;
-	camTransform->translate(glm::vec3((translation[0] * camTransform->right()) + (translation[1] * camTransform->forward())));
+	//camTransform->translate(glm::vec3((translation[0] * camTransform->right()) + (translation[1] * camTransform->forward())));
+	camTransform->translate(-1.0f * glm::vec3(translation[0], translation[1], 0));
 
 	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
 	//glm::mat4 transform = glm::scale(glm::vec3(20,20,20)) * glm::rotate(0.8f * (float)(glfwGetTime()), glm::vec3(0.f, 1.0f, 0.f));
@@ -383,9 +387,6 @@ void Renderer::tick(const double& dTime) {
 		object->material->bind();
 
 		shader = object->material->shader;
-
-		//object->transform->setRotation(0.8f * (float)(glfwGetTime()), glm::vec3(0,1,0));
-		//object->transform->setScale(glm::vec3(20, 20, 20));
 
 		shader->setUniformMatrix4fv("VP", VP);
 		shader->setUniformMatrix4fv("MVP", VP * object->transform->getMatrix());

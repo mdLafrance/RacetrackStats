@@ -1,8 +1,3 @@
-#include <chrono>
-#include <vector>
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
 #include <OBJ.h>
 
 using namespace std;
@@ -165,7 +160,8 @@ namespace OBJ
 				// Direct parent of object precedes name of object if line contains more words than "g <groupName>"
 				int s = tokens.size();
 				if (s > 2) {
-					groupParent = tokens[s-3]; // tokens[-2]
+					groupParent = tokens[s-2]; // tokens[-2]
+					std::cout << "Parent! for " << groupName << " : " << groupParent << std::endl;
 				} 
 			}
 
