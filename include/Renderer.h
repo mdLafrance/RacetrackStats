@@ -25,6 +25,8 @@
 // Global world state instantiated in main.cpp
 extern _WorldState WorldState;
 
+std::string vec3ToString(const glm::vec3& v);
+
 struct Scene {
 	std::string name;
 	std::string path;

@@ -1,5 +1,12 @@
 #include <Renderer.h>
 
+std::string vec3ToString(const glm::vec3& v) {
+	char s[32];
+	sprintf(s, "[%.3f, %.3f, %.3f]", v[0], v[1], v[2]);
+
+	return std::string(s);
+}
+
 void Renderer::registerTexture(const std::string& id, Texture* texture){
     if (this->textures.count(id) == 0){
         this->textures[id] = texture;
@@ -343,10 +350,12 @@ void Renderer::tick(const double& dTime) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	float translation[2] = { 0,0 };
+	float rotation[2] = { 0,0 };
 
 	float translateSpeed = 1;
+	float rotationSpeed = 0.2f;
 
-	// Collect input
+	// TRANSLATION
 	if (glfwGetKey(this->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(this->window, true);
 	}
@@ -363,6 +372,20 @@ void Renderer::tick(const double& dTime) {
 		translation[0] = translateSpeed;
 	}
 
+	// ROTATION 
+	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		rotation[1] = rotationSpeed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		rotation[0] = rotationSpeed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		rotation[1] = -rotationSpeed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		rotation[0] = -rotationSpeed;
+	}
+
 	// Generate gpu-friendly matrix representation for lights 
 	for (int i = 0; i < this->numOfLights; i++) {
 		*(this->lightMatrices + i) = (this->lights + i)->getMatrix();
@@ -370,11 +393,14 @@ void Renderer::tick(const double& dTime) {
 
 	// Calcuate new MVP for camera on this frame
 	Transform* camTransform = this->mainCamera->transform;
-	//camTransform->translate(glm::vec3((translation[0] * camTransform->right()) + (translation[1] * camTransform->forward())));
-	camTransform->translate(-1.0f * glm::vec3(translation[0], translation[1], 0));
+	
+	camTransform->rotate(rotation[0], glm::vec3(0,1,0));
+	camTransform->rotate(rotation[1], camTransform->right());
+
+	camTransform->translate((-1.0f * translation[0] * camTransform->right()) + (-1.0f * translation[1] * camTransform->forward()));
+
 
 	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
-	//glm::mat4 transform = glm::scale(glm::vec3(20,20,20)) * glm::rotate(0.8f * (float)(glfwGetTime()), glm::vec3(0.f, 1.0f, 0.f));
 
 	Object* object;
 	Shader* shader;
