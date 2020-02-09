@@ -29,7 +29,7 @@ void main(){
 	v_texCoord = in_texCoord;
 
 	// View coordinate converted normals and positions, for phong calc in frag
-	v_norm = vec3(MV * vec4(in_norm, 0));
+	v_norm = in_norm;
 	v_pos = vec3(MV * in_pos4fv);
 
 	gl_Position = MVP * in_pos4fv;

@@ -48,7 +48,7 @@ Light::Light() {
 Light::Light(const LightType& type) {
 	this->type = type;
 	this->color = glm::vec3();
-	this->x= glm::vec3();
+	this->x = glm::vec3();
 
 	this->t = type == LightType::DIRECTIONAL ? 0 : 1;
 	this->i = DEFAULT_LIGHT_INTENSITY;

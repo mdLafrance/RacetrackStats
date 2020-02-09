@@ -230,7 +230,7 @@ void Renderer::loadScene(const std::string& target) {
 			while (k < tokens.size()){
 				word = tokens[k++];	
 
-				if (word == "-p" || word == "d" || word == "v"){
+				if (word == "-p" || word == "-d" || word == "-v"){
 					light.setPointDirection({ std::atof(tokens[k++].c_str()), std::atof(tokens[k++].c_str()), std::atof(tokens[k++].c_str()) });
 				}
 
@@ -243,13 +243,18 @@ void Renderer::loadScene(const std::string& target) {
 				}
 
 				if (word == "-i" || word == "-f"){
-					light.setK(std::atof(tokens[k++].c_str()));
+					light.setK(std::atof(tokens[k].c_str()));
 				}
 			}
 
 			std::cout << "Created new " << tokens[1] << " light." << std::endl;
 
 			this->lights[this->numOfLights++] = light;
+		}
+		else if (lineType == "ambient") {
+			::WorldState.ambientLight[0] = std::atof(tokens[1].c_str());
+			::WorldState.ambientLight[1] = std::atof(tokens[2].c_str());
+			::WorldState.ambientLight[2] = std::atof(tokens[3].c_str());
 		}
 		// Line is just path to some file to be included in the scene
 		else { 
@@ -346,7 +351,7 @@ Object* Renderer::newObject(const std::string& name) {
 }
 
 void Renderer::tick(const double& dTime) {
-	glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	float translation[3] = { 0,0,0 };
@@ -426,10 +431,12 @@ void Renderer::tick(const double& dTime) {
 
 		shader = object->material->shader;
 
+		// Override mateiral ambient with world ambient for now
+		glUniform3fv(glad_glGetUniformLocation(shader->programID(), "Ka"), 1, &WorldState.ambientLight[0]);
+
 		shader->setUniformMatrix4fv("MV", VP);
 		shader->setUniformMatrix4fv("MVP", VP * object->transform->getMatrix());
 
-		std::cout << "Setting " << this->numOfLights << " lights.\n";
 		shader->setLights(this->numOfLights, this->lightMatrices);
 
 		object->mesh->draw();
