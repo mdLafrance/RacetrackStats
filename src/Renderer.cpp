@@ -152,7 +152,7 @@ Renderer::Renderer(GLFWwindow* window) {
 void Renderer::resetData() {
 	// Create and register default assets.
 	// Default is persp cam
-	Camera* defaultCam = new Camera(45.0f, WINDOW_DEFAULT_X / WINDOW_DEFAULT_Y, 0, 2000);
+	Camera* defaultCam = new Camera(45.0f, 1.0f /*WINDOW_DEFAULT_X/WINDOW_DEFAULT_Y*/, 0, 2000);
 	defaultCam->transform->setTranslation(glm::vec3(0, 0, -100));
 
 	Shader* defaultShader = new Shader("default", "default");
@@ -415,7 +415,28 @@ void Renderer::tick(const double& dTime) {
 	camTransform->rotate(-rotation[0], worldUp);
 	camTransform->rotate(-rotation[1], glm::vec3(1,0,0));
 
-	camTransform->translate((translation[0] * camTransform->right()) + (-1.0f * translation[1] * camTransform->forward()) + (translation[2] * glm::vec3(0,1,0)));
+	glm::vec3 dx, dy, dz;
+	if (abs(translation[0]) > 0.01) {
+		dx = translation[0] * camTransform->right();
+		dx.y = 0;
+		dx = glm::normalize(dx);
+	}
+	else {
+		dx = { 0,0,0 };
+	}
+
+	dy = translation[2] * glm::vec3(0, 1, 0);
+
+	if (abs(translation[1]) > 0.01) {
+		dz = -1.0f * translation[1] * camTransform->forward();
+		dz.y = 0;
+		dz = normalize(dz);
+	}
+	else {
+		dz = { 0,0,0 };
+	}
+
+	camTransform->translate(dx + dy + dz);
 
 	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
 

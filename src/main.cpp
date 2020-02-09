@@ -30,11 +30,11 @@
 _WorldState WorldState = { 
 	WINDOW_DEFAULT_X, // Starting window width
 	WINDOW_DEFAULT_Y, // Starting window height
-	{0.2, 0.2, 0.1},  // vec3 ambient color for the scene
+	{0.0f, 0.0f, 0.0f},  // vec3 ambient color for the scene
 	nullptr			  // (string) path to root of executable (set in main)
 };
 
-int main() {
+int main(int argc, char** argv) {
 	// Init Context
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -70,10 +70,10 @@ int main() {
 	Renderer* renderer = new Renderer(window);
 
 	if (onMSI) {
-		renderer->loadScene("D:/Hacking/RacetrackStats/scenes/testingScene.scene");
+		renderer->loadScene(std::string(::WorldState.projectRoot) + "/resources/scenes/testingScene.scene");
 	}
 	else { 
-		renderer->loadScene("C:/Users/maxto/OneDrive/Documents/Hacking/RacetrackStats/scenes/testingScene_laptop.scene");
+		renderer->loadScene(std::string(::WorldState.projectRoot) + "/resources/scenes/testingScene_laptop.scene");
 	}
 
 	std::chrono::time_point<std::chrono::steady_clock> t1, t2;

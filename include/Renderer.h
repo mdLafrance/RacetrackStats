@@ -18,8 +18,9 @@
 #include <Light.h>
 #include <WorldState.h>
 
-#define WINDOW_DEFAULT_X 800
-#define WINDOW_DEFAULT_Y 600
+#define WINDOW_DEFAULT_X 1000
+#define WINDOW_DEFAULT_Y 1000
+
 #define MAX_LIGHT_COUNT 8
 
 // Global world state instantiated in main.cpp
