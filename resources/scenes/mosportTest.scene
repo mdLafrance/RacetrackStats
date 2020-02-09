@@ -1,0 +1,7 @@
+name Mosport Track Test
+
+D:/Hacking/RacetrackStats/Mosport/jr_mosport.obj
+D:/Hacking/RacetrackStats/Mosport/jr_mosport.mtl
+
+ambient 0.35 0.3 0.3
+light directional -i 1 -v -2 -10 -2 -c 0.8 0.8 0.8

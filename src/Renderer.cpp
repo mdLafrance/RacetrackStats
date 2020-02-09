@@ -146,6 +146,8 @@ Renderer::Renderer(GLFWwindow* window) {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
+	Texture* test = new Texture("D:/Hacking/RacetrackStats/Mosport/texture/mosport_objs_2.dds");
+
 	std::cout << "Renderer initialized." << std::endl;
 }
 
