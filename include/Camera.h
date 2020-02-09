@@ -13,7 +13,6 @@ extern _WorldState WorldState;
 class Camera {
 	CameraType type;
 
-	glm::mat4 view;
 	glm::mat4 proj;
 
 	bool isMainCam;

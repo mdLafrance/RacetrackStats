@@ -66,6 +66,10 @@ glm::vec3 Transform::up() {
 	return glm::vec3(k);
 }
 
+glm::vec3 Transform::position(){
+	return glm::vec3(glm::column(this->T, 3));
+}
+
 Transform::Transform() {
 	this->matrix = glm::mat4(1.0f);
 

@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/matrix_access.hpp>
 #include <glm/gtx/transform.hpp>
 
 class Transform {
@@ -28,6 +29,8 @@ public:
 	void setParent(Transform* parent);
 
 	glm::mat4x4 getMatrix();
+
+	glm::vec3 position();
 
 	glm::vec3 forward();
 	glm::vec3 right();

@@ -355,6 +355,11 @@ void Renderer::tick(const double& dTime) {
 	float translateSpeed = 1;
 	float rotationSpeed = 0.2f;
 
+	if (!std::getenv("MSI")) {
+		translateSpeed *= 0.2;
+		rotationSpeed *= 0.06;
+	}
+
 	// TRANSLATION
 	if (glfwGetKey(this->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(this->window, true);
@@ -394,8 +399,11 @@ void Renderer::tick(const double& dTime) {
 	// Calcuate new MVP for camera on this frame
 	Transform* camTransform = this->mainCamera->transform;
 	
-	camTransform->rotate(rotation[0], glm::vec3(0,1,0));
-	camTransform->rotate(rotation[1], camTransform->right());
+	camTransform->rotate(-rotation[0], glm::vec3(0,1,0));
+	camTransform->rotate(-rotation[1], camTransform->right());
+
+	//std::cout << vec3ToString(camTransform->forward()) << std::endl;
+	std::cout << vec3ToString(camTransform->position()) << std::endl;
 
 	camTransform->translate((-1.0f * translation[0] * camTransform->right()) + (-1.0f * translation[1] * camTransform->forward()));
 
