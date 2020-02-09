@@ -4,7 +4,7 @@
 
 // Uniforms
 uniform mat4 MVP;
-uniform mat4 VP;
+uniform mat4 MV;
 
 uniform vec3 Ka;
 uniform vec3 Kd;
@@ -20,9 +20,17 @@ layout (location = 2) in vec2 in_texCoord;
 
 // out
 out mediump vec3 v_norm;
+out mediump vec3 v_pos;
 out mediump vec2 v_texCoord;
 
 void main(){
+	vec4 in_pos4fv = vec4(in_pos, 1);
+
 	v_texCoord = in_texCoord;
-	gl_Position = MVP * vec4(in_pos, 1.0f);
+
+	// View coordinate converted normals and positions, for phong calc in frag
+	v_norm = vec3(MV * vec4(in_norm, 0));
+	v_pos = vec3(MV * in_pos4fv);
+
+	gl_Position = MVP * in_pos4fv;
 }

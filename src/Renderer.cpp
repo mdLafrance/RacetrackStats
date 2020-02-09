@@ -349,11 +349,11 @@ void Renderer::tick(const double& dTime) {
 	glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	float translation[2] = { 0,0 };
+	float translation[3] = { 0,0,0 };
 	float rotation[2] = { 0,0 };
 
 	float translateSpeed = 1;
-	float rotationSpeed = 0.2f;
+	float rotationSpeed = 0.05f;
 
 	if (!std::getenv("MSI")) {
 		translateSpeed *= 0.2;
@@ -375,6 +375,12 @@ void Renderer::tick(const double& dTime) {
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 		translation[0] = translateSpeed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+		translation[2] = translateSpeed;
+	}
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+		translation[2] = -translateSpeed;
 	}
 
 	// ROTATION 
@@ -398,15 +404,13 @@ void Renderer::tick(const double& dTime) {
 
 	// Calcuate new MVP for camera on this frame
 	Transform* camTransform = this->mainCamera->transform;
-	
-	camTransform->rotate(-rotation[0], glm::vec3(0,1,0));
-	camTransform->rotate(-rotation[1], camTransform->right());
 
-	//std::cout << vec3ToString(camTransform->forward()) << std::endl;
-	std::cout << vec3ToString(camTransform->position()) << std::endl;
+	glm::vec3 worldUp = glm::inverse(camTransform->getMatrix()) * glm::vec4(0, 1, 0, 0); // did this on a hunch, why does it work??
 
-	camTransform->translate((-1.0f * translation[0] * camTransform->right()) + (-1.0f * translation[1] * camTransform->forward()));
+	camTransform->rotate(-rotation[0], worldUp);
+	camTransform->rotate(-rotation[1], glm::vec3(1,0,0));
 
+	camTransform->translate((translation[0] * camTransform->right()) + (-1.0f * translation[1] * camTransform->forward()) + (translation[2] * glm::vec3(0,1,0)));
 
 	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
 
@@ -422,9 +426,10 @@ void Renderer::tick(const double& dTime) {
 
 		shader = object->material->shader;
 
-		shader->setUniformMatrix4fv("VP", VP);
+		shader->setUniformMatrix4fv("MV", VP);
 		shader->setUniformMatrix4fv("MVP", VP * object->transform->getMatrix());
 
+		std::cout << "Setting " << this->numOfLights << " lights.\n";
 		shader->setLights(this->numOfLights, this->lightMatrices);
 
 		object->mesh->draw();

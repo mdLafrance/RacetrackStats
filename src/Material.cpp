@@ -91,15 +91,15 @@ std::map<std::string, Material*> Material::load(const std::string& target)
 	return materials;
 }
 
-inline void Material::addFlag(const uint8_t& flag) {
+inline void Material::addFlag(const uint32_t& flag) {
 	this->flags |= flag;
 }
 
-inline void Material::removeFlag(const uint8_t& flag) {
+inline void Material::removeFlag(const uint32_t& flag) {
 	this->flags &= ~flag;
 }
 
-inline bool Material::checkFlag(const uint8_t& flag) {
+inline bool Material::checkFlag(const uint32_t& flag) {
 	return this->flags & flag;
 }
 
@@ -111,6 +111,8 @@ void Material::bind(){
 	this->shader->setUniform3fv("Ka", this->Ka);
 	this->shader->setUniform3fv("Kd", this->Kd);
 	this->shader->setUniform3fv("Ks", this->Ks);
+
+	glUniform1i(glad_glGetUniformLocation(this->shader->programID(), "flags"), this->flags);
 
 	if (this->checkFlag(MATERIAL_USE_map_Kd)) {
 		glUniform1i(glGetUniformLocation(shaderID, "map_Kd"), TEXTURE_LOCATION_map_Kd);

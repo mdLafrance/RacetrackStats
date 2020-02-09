@@ -23,7 +23,7 @@ glm::mat4 Camera::projectionViewMatrix() {
 
 	};
 
-	return this->proj * view;// this->transform->getMatrix();
+	return this->proj * view;
 }
 
 Camera::Camera(const float& fov, const float& aspect, const float& zMin, const float& zMax) {
