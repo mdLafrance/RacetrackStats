@@ -65,13 +65,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\include;$(ProjectDir)include;D:\Hacking\c++\3rdParty\glfw\include;$(IncludePath)</IncludePath>
+    <SourcePath>$(ProjectDir)src\3rdParty;$(ProjectDir)src;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\include;$(ProjectDir)include;D:\Hacking\c++\3rdParty\glfw\include;$(IncludePath)</IncludePath>
-    <SourcePath>C:\Users\maxto\OneDrive\Documents\Hacking\RacetrackStats\src;$(SourcePath)</SourcePath>
+    <SourcePath>$(ProjectDir)src\3rdParty;$(ProjectDir)src;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -118,8 +119,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="include\glm\detail\glm.cpp" />
+    <ClCompile Include="src\3rdParty\glad.c" />
     <ClCompile Include="src\Camera.cpp" />
-    <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\Light.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Material.cpp" />
@@ -383,6 +384,12 @@
     <ClInclude Include="include\Object.h" />
     <ClInclude Include="include\Renderer.h" />
     <ClInclude Include="include\Shader.h" />
+    <ClInclude Include="include\SOIL\image_DXT.h" />
+    <ClInclude Include="include\SOIL\image_helper.h" />
+    <ClInclude Include="include\SOIL\SOIL.h" />
+    <ClInclude Include="include\SOIL\stbi_DDS_aug.h" />
+    <ClInclude Include="include\SOIL\stbi_DDS_aug_c.h" />
+    <ClInclude Include="include\SOIL\stb_image_aug.h" />
     <ClInclude Include="include\stb\stb_image.h" />
     <ClInclude Include="include\Texture.h" />
     <ClInclude Include="include\Transform.h" />

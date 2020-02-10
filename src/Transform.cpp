@@ -49,7 +49,7 @@ void Transform::setScale(const glm::vec3& components){
 }
 
 glm::vec3 Transform::forward() {
-	glm::vec4 k = this->getMatrix() * glm::vec4(0, 0, -1, 0);
+	glm::vec4 k = this->getMatrix() * glm::vec4(0,0,-1,0);
 
 	return glm::vec3(k);
 }

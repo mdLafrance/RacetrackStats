@@ -456,6 +456,7 @@ void Renderer::tick(const double& dTime) {
 
 		// Override mateiral ambient with world ambient for now
 		glUniform3fv(glad_glGetUniformLocation(shader->programID(), "Ka"), 1, &WorldState.ambientLight[0]);
+		//glUniform3fv(glad_glGetUniformLocation(shader->programID(), "cameraForward"), 1, &this->mainCamera->transform->forward()[0]);
 
 		shader->setUniformMatrix4fv("MV", VP);
 		shader->setUniformMatrix4fv("MVP", VP * object->transform->getMatrix());

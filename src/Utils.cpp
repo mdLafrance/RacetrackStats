@@ -34,6 +34,18 @@ namespace Utils
 		}
 	}
 
+	std::string replace(const std::string& s, const char& a, const char& b){
+		std::string newString(s.size(), ' ');
+
+		char c;
+		for (int i = 0; i < s.size(); i++){
+			c = s[i];
+			newString[i] = c == a ? b : c;
+		}
+
+		return newString;
+	}
+
 	std::string getFileNameNoExtension(const std::string& target) {
 		std::string s = target;
 		std::replace(s.begin(), s.end(), '\\', '/');

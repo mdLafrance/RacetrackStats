@@ -70,8 +70,8 @@ int main(int argc, char** argv) {
 	Renderer* renderer = new Renderer(window);
 
 	if (onMSI) {
-		//renderer->loadScene(std::string(::WorldState.projectRoot) + "/resources/scenes/mosportTest.scene");
-		renderer->loadScene(std::string(::WorldState.projectRoot) + "/resources/scenes/testingScene.scene");
+		renderer->loadScene(std::string(::WorldState.projectRoot) + "/resources/scenes/mosportTest.scene");
+		//renderer->loadScene(std::string(::WorldState.projectRoot) + "/resources/scenes/testingScene.scene");
 	}
 	else { 
 		renderer->loadScene(std::string(::WorldState.projectRoot) + "/resources/scenes/testingScene_laptop.scene");

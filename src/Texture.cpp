@@ -24,11 +24,20 @@ Texture::Texture(const std::string& target) {
 		return;
 	}
 
+	std::string fname;
+
+	if (Utils::hasEnding(target, "dds")){
+		fname = (target.substr(0, target.size()-3) + "png");
+		std::cerr << "Attempting to load unsupported dds file, will now try to load png mirror: " << fname << std::endl;
+	} else {
+		fname = target;
+	}
+
 	stbi_set_flip_vertically_on_load(true);
 
-	this->data = stbi_load(target.c_str(), &this->width, &this->height, &this->nrChannels, 0);
+	this->data = stbi_load(fname.c_str(), &this->width, &this->height, &this->nrChannels, 0);
 
-	this->name = Utils::getFileNameNoExtension(target);
+	this->name = Utils::getFileNameNoExtension(fname);
 
 	glGenTextures(1, &this->ID);
 	glBindTexture(GL_TEXTURE_2D, this->ID); 
@@ -41,10 +50,10 @@ Texture::Texture(const std::string& target) {
 	if (data) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->width, this->height, 0, GL_RGB, GL_UNSIGNED_BYTE, this->data);
 		glGenerateMipmap(GL_TEXTURE_2D);
-		std::cout << "Loaded Texture: " << target << std::endl;
+		std::cout << "Loaded Texture: " << fname << std::endl;
 	}
 	else {
-		std::cout << "ERROR: Couldn't load texture " << target << std::endl;
+		std::cout << "ERROR: Couldn't load texture " << fname << std::endl;
 	}
 
 	stbi_image_free(this->data);

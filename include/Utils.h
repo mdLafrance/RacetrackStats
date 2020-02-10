@@ -28,6 +28,7 @@ namespace Utils
 	std::vector<std::string> split(const std::string& s, char delimiter);
 	std::string getFileNameNoExtension(const std::string& target);
 	bool hasEnding(const std::string& a, const std::string& b);
+	std::string replace(const std::string& s, const char& a, const char& b);
 
 	// File utility
 	Utils::FileInfo getFileInfo(const std::string& target);
