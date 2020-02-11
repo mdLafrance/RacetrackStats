@@ -1,7 +1,17 @@
 name Mosport Track Test
 
-D:/Hacking/RacetrackStats/Mosport/mosport_people.obj
-D:/Hacking/RacetrackStats/Mosport/mosport_people.mtl
+#D:/Hacking/RacetrackStats/testingResources/forest_low.obj
+
+D:/Hacking/RacetrackStats/Mosport/jr_mosport.obj
+
+#D:/Hacking/RacetrackStats/Mosport/mosport_3dgrassA.obj
+#D:/Hacking/RacetrackStats/Mosport/mosport_crew.obj
+#D:/Hacking/RacetrackStats/Mosport/mosport_horizon.obj
+#D:/Hacking/RacetrackStats/Mosport/mosport_layers.obj
+#D:/Hacking/RacetrackStats/Mosport/mosport_objects.obj
+#D:/Hacking/RacetrackStats/Mosport/mosport_people.obj
+#D:/Hacking/RacetrackStats/Mosport/mosport_tires.obj
+#D:/Hacking/RacetrackStats/Mosport/mosport_vehicles.obj
 
 ambient 0.15 0.1 0.1
 light directional -i 10 -v -2 -10 -2 -c 0.8 0.8 0.8
