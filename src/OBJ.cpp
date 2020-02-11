@@ -1,47 +1,40 @@
 #include <OBJ.h>
 
-using namespace std;
+inline void getFirstWord(const char* s, char* dest){
+	int i = 0;
 
-inline void seekToEndl(ifstream* target){
-    char c;
-    while(!target->eof()){
-        c = target->get();
-        if (c == '\n'){
-            return;
-        }
-    }
-}
+	while (s[i] != ' ' && s[i] != '\0'){
+		*(dest + i) = s[i];
+		i += 1;
+	}
 
-inline string getWord(ifstream* target){
-    string word = "";
-
-    char c = target->get();
-
-    while(!target->eof() && (c != ' ') && (c != '\n')){
-        word += c;
-        c = target->get();
-    }
-
-    return word;
+	*(dest+i) = '\0';
 }
 
 namespace OBJ
 {
 	std::map<std::string, OBJMesh*> load(const std::string& target) {
-		ifstream f;
+		FILE* f;
 
-		f.open(target);
+		f = fopen(target.c_str(), "r");
 
-		if (!f.is_open()) {
+		if (!f) {
 			std::cerr << "Couldn't Open File " << target << " For OBJ Loading" << std::endl;
 			return std::map<std::string, OBJMesh*>();
 		}
 
+		Utils::StopWatch writeVertex, readData, total;
+
+		total.start();
+
 		Utils::FileInfo fi = Utils::getFileInfo(target);
 
-		Utils::StopWatch stopWatch;
+		const char* line_cstr;
+		char firstWord[128];
+		char line[1024];
+		//std::string line;
 
-		std::string line;
+		float a, b, c; // Float values read from a line
 
 		std::vector<float> positions;
 		std::vector<float> normals;
@@ -70,6 +63,10 @@ namespace OBJ
 		std::map<std::string, OBJMesh*> meshes;
 
 		auto closeObject = [&]() {
+			std::cout << " (" << readData.lap_s() << ")" << std::endl;
+
+			writeVertex.start();
+
 			collectingFaces = false;
 
 			int numOfFaces = faceIndeces.size() / 9; // 3 components per 3 verteces per face
@@ -112,50 +109,60 @@ namespace OBJ
 
 			faceIndeces.clear();
 
-			std::cout << stopWatch.lap_s() << ")" << std::endl;
+			std::cout << writeVertex.lap_s() << ")" << std::endl;
 		};
 
-		stopWatch.start();
+		long lines = 0;
 
-		while (std::getline(f, line)) {
-			if (line == "") {
-				continue;
+		while (fscanf(f, "%s", firstWord) != EOF) {
+			
+			++lines;
+
+			//std::cout << '\r' << lines << " [" << p_start << ", " << p_end << "] : " << line << '\r';
+			//std::cout << '\r' << lines << " : " << line << '\r';
+
+			if (firstWord[0] == '\n' || firstWord[0] == '#' || firstWord[0] == 's') {
+				goto nextline;
 			}
 
-			std::vector<std::string> tokens = Utils::split(line, ' ');
+			//getFirstWord(line, firstWord);
 
-			std::string lineType = tokens[0];
-
-			// Comment lines start with #
-			if (lineType == "#" || lineType == "s") {
-				continue;
-			}
-
-			if (collectingFaces && (lineType != "f")) {
+			if (collectingFaces && !(firstWord[0] == 'f')) {
 				closeObject();
 			}
 
 			// New Material
-			if (lineType == "mtllib") {
-				std::cout << "File using material library " << tokens[1] << std::endl;
-				materialLibrary = tokens[1];
-				continue;
+			if (strcmp(firstWord, "mtllib") == 0) {
+				fscanf(f, "%s", line, firstWord); 
+				materialLibrary = std::string(firstWord);
+				std::cout << "File using material library " << materialLibrary << std::endl;
+				goto nextline;
 			}
 
-			if (lineType == "usemtl") {
-				materialName = tokens[1];
-				continue;
+			if (strcmp(firstWord, "usemtl") == 0) {
+				fscanf(f, "%s", line, firstWord); 
+				materialName = std::string(firstWord);
+				goto nextline;
 			}
 
 			// New group
-			if (lineType == "g") {
+			if (firstWord[0] == 'g') {
+				fgets(line, sizeof(line), f);
+
+				std::vector<std::string> tokens = Utils::split(std::string(line), ' ');
+
+				std::string back = tokens.back();
+
 				// Don't care about default group
-				if (tokens.back() == "default") {
+				if (back == "default") {
 					continue;
 				}
 
 				// Name of object is last in the line
-				groupName = tokens.back();
+				groupName = back.substr(0, back.size()-1);
+
+				std::cout << "Reading data for new group " << groupName;
+				readData.start();
 				 
 				// Direct parent of object precedes name of object if line contains more words than "g <groupName>"
 				int s = tokens.size();
@@ -163,49 +170,100 @@ namespace OBJ
 					groupParent = tokens[s-2]; // tokens[-2]
 					std::cout << "Parent! for " << groupName << " : " << groupParent << std::endl;
 				} 
+
+				continue;
+				//goto nextline;
 			}
 
 			// Vertices
-			if (lineType == "v") {
+			if (strcmp(firstWord, "v") == 0) {
 				++numOfPositions;
-				positions.push_back(std::atof(tokens[1].c_str()));
-				positions.push_back(std::atof(tokens[2].c_str()));
-				positions.push_back(std::atof(tokens[3].c_str()));
 
-				//std::cout << "(" << ((positions.getSize())/3) << ") "<<"Added point: " << std::atof(tokens[1].c_str()) << " " << std::atof(tokens[2].c_str()) << " " << std::atof(tokens[3].c_str()) << std::endl;
+				fscanf(f, "%f %f %f", &a, &b, &c);
+
+				positions.push_back(a);
+				positions.push_back(b);
+				positions.push_back(c);
+
+				goto nextline;
 			}
 
 			// Texture Coords
-			if (lineType == "vt") {
+			if (strcmp(firstWord, "vt") == 0) {
 				++numOfTexCoords;
-				texCoords.push_back(std::atof(tokens[1].c_str()));
-				texCoords.push_back(std::atof(tokens[2].c_str()));
+
+				fscanf(f, "%f %f", &a, &b);
+
+				texCoords.push_back(a);
+				texCoords.push_back(b);
+
+				goto nextline;
 			}
 
 			// Vertex Normals 
-			if (lineType == "vn") {
+			if (strcmp(firstWord, "vn") == 0) {
 				++numOfNormals;
-				normals.push_back(std::atof(tokens[1].c_str()));
-				normals.push_back(std::atof(tokens[2].c_str()));
-				normals.push_back(std::atof(tokens[3].c_str()));
+
+				fscanf(f, "%f %f %f", &a, &b, &c);
+
+				normals.push_back(a);
+				normals.push_back(b);
+				normals.push_back(c);
+
+				goto nextline;
 			}
 
 			// Faces
-			if (lineType == "f") {
+			if (firstWord[0] == 'f') {
 				collectingFaces = true;
 
-				// Add each of 1/2/3 4/5/6 7/8/9
+				fgets(line, sizeof(line), f);
+
+				int i = 0;
+				int k = 0;
+
+				char c = line[i];
+				char index[128];
+
+				while (c != '\n' && c != '\0') {
+					if (isdigit(c)){
+						while (isdigit(c)){
+							index[k++] = c;
+							c = line[++i];
+						}
+
+						index[k] = '\0';
+						k = 0;
+
+						faceIndeces.push_back(std::stof(index) - 1);
+					}
+
+					c = line[++i];
+				}
+				
+				/*
+				// OLD WAY
+				auto tokens = Utils::split("f" + std::string(line), ' ');
+
 				for (int i = 1; i < 4; i++) {
 					for (std::string f : Utils::split(tokens[i], '/')) {
-						faceIndeces.push_back(std::stoi(f) - 1); // OBJ face indeces are 1-indexed
+						faceIndeces.push_back(std::stoi(f) - 1);
 					}
 				}
+				*/
+
+				continue;
 			}
+
+			std::cerr << "Unrecognized obj line: " << line << std::endl;
+
+nextline:
+			fgets(line, sizeof(line), f); // Eat rest of line
 		}
 
 		closeObject();
 
-		f.close();
+		fclose(f);
 		
 		for (auto p : meshes) {
 			OBJMesh* m = p.second;
@@ -213,7 +271,7 @@ namespace OBJ
 			m->generateBuffers();
 		}
 
-		std::cout << "Finished loading file " << target << " (" << stopWatch.total_s() << ")" << std::endl;
+		std::cout << "Finished loading file " << target << " (" << total.lap_s() << ")" << std::endl;
 
 		return meshes;
 	}

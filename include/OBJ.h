@@ -1,7 +1,9 @@
 #pragma once
 
 #include <iostream>
+#include <stdio.h>
 #include <string>
+#include <string.h>
 #include <fstream>
 #include <map>
 #include <chrono>
