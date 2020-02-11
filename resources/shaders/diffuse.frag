@@ -62,7 +62,7 @@ void main() {
 
 	N_vcs = normalize(vec3(MV * vec4(N, 0)));
 
-	Iout = Ka; // Accumulated output intensity
+	Iout = vec3(Ka.x * diffuse.x, Ka.y * diffuse.y, Ka.z * diffuse.z);  // Accumulated output intensity
 
 	float NdotL, RdotV, intensity;
 

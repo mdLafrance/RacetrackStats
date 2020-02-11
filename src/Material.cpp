@@ -31,10 +31,10 @@ std::map<std::string, Material*> Material::load(const std::string& target)
 			if (lineType == "newmtl") {
 				// If a new material is encountered while one is being recorded, finish the current one.
 				if (current) {
-					materials[fi.file + '.' + current->name] = current;
+					materials[current->name] = current;
 				}
-				std::cout << "Generating Material " << tokens[1] << std::endl;
-				current = new Material(tokens[1]);
+				current = new Material(fi.file + '.' + tokens[1]);
+				std::cout << "Generating Material " << current->name << std::endl;
 
 			} else if (lineType == "map_Kd") { // DIFFUSE MAP
 				current->map_Kd = new Texture(fi.directory + DIRECTORY_SEPARATOR + lineBack);
@@ -85,7 +85,7 @@ std::map<std::string, Material*> Material::load(const std::string& target)
 
 	// Save last material
 	if (current != nullptr) {
-		materials[fi.file + '.' + current->name] = current;
+		materials[current->name] = current;
 	}
 
 	return materials;

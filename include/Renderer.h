@@ -58,6 +58,8 @@ class Renderer {
 	void resetData();
 	void deleteObjects();
 
+	long int frameCount;
+
 public:
 	void loadScene(const std::string& target);
 	void loadMaterialLibrary(const std::string& target);

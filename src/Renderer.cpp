@@ -179,6 +179,8 @@ void Renderer::resetData() {
 	this->setMainCamera("default");
 
 	this->numOfLights = 0;
+
+	this->frameCount = 0;
 }
 
 Renderer::~Renderer() {
@@ -359,6 +361,10 @@ Object* Renderer::newObject(const std::string& name) {
 }
 
 void Renderer::tick(const double& dTime) {
+	++this->frameCount;
+	if (this->frameCount % 10 == 0){
+		std::cout << '\r' << (1/dTime) << " fps";
+	}
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -369,8 +375,8 @@ void Renderer::tick(const double& dTime) {
 	float rotationSpeed = 0.05f;
 
 	if (!std::getenv("MSI")) {
-		translateSpeed *= 0.2;
-		rotationSpeed *= 0.06;
+		translateSpeed = 0.1;
+		rotationSpeed *= 0.05f;
 	}
 
 	// TRANSLATION
@@ -428,6 +434,7 @@ void Renderer::tick(const double& dTime) {
 		dx = translation[0] * camTransform->right();
 		dx.y = 0;
 		dx = glm::normalize(dx);
+		dx *= translateSpeed;
 	}
 	else {
 		dx = { 0,0,0 };
@@ -439,6 +446,7 @@ void Renderer::tick(const double& dTime) {
 		dz = -1.0f * translation[1] * camTransform->forward();
 		dz.y = 0;
 		dz = normalize(dz);
+		dz *= translateSpeed;
 	}
 	else {
 		dz = { 0,0,0 };
@@ -451,6 +459,7 @@ void Renderer::tick(const double& dTime) {
 	Object* object;
 	Shader* shader;
 
+	/*
 	//TODO: sort objects by material, then render by material
 	for (auto p : this->objects) {
 		object = p.second;
@@ -471,6 +480,52 @@ void Renderer::tick(const double& dTime) {
 
 		object->mesh->draw();
 	}
+	*/
+
+	std::map<std::string, std::vector<Object*>> materialMapping;
+
+	Object* o;
+	Material* m;
+	Shader* s;
+	std::string materialName;
+
+	for (std::pair<std::string, Object*> p : this->objects){
+		o = p.second;
+		materialName = o->material->name;	
+
+		if (materialMapping.count(materialName) == 0){
+			materialMapping[materialName] = std::vector<Object*>();
+		}
+
+		materialMapping[materialName].push_back(o);
+	}
+
+	for (std::pair<std::string, std::vector<Object*>> p : materialMapping){
+		m = this->materials.at(p.first);
+		s = m->shader;
+
+		m->bind();
+
+		glUniform3fv(glad_glGetUniformLocation(s->programID(), "Ka"), 1, &WorldState.ambientLight[0]);
+
+		s->setUniformMatrix4fv("MV", VP);
+
+		s->setLights(this->numOfLights, this->lightMatrices);
+
+		for (Object* o : p.second){
+			s->setUniformMatrix4fv("MVP", VP * o->transform->getMatrix());
+			o->mesh->draw();
+		}
+	}
+
+	/*
+		skybox position = mainCamera.position
+		skybox rotation = 0v
+
+		draw skybox*
+		*set gl_Position in shader = pos with z=1
+
+	*/
 
 	glfwSwapBuffers(this->window);
 	glfwPollEvents();
