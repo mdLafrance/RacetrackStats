@@ -81,7 +81,7 @@ public:
 
 	void bind();
 
-	void generateBuffers();
+	void generateBuffers(float* data);
 
 	int getApproxBytes();
 

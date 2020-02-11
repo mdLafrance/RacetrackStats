@@ -149,8 +149,6 @@ Renderer::Renderer(GLFWwindow* window) {
 	// glEnable(GL_BLEND);
 	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	Texture* test = new Texture("D:/Hacking/RacetrackStats/Mosport/texture/mosport_objs_2.dds");
-
 	std::cout << "Renderer initialized." << std::endl;
 }
 

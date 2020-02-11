@@ -62,6 +62,10 @@ namespace OBJ
 
 		std::map<std::string, OBJMesh*> meshes;
 
+		// Dummy values
+		int dataSize = 1;
+		float* data = new float[1];
+
 		auto closeObject = [&]() {
 			std::cout << " (" << readData.lap_s() << ")" << std::endl;
 
@@ -77,26 +81,33 @@ namespace OBJ
 
 			currentObject = new OBJMesh(fullName, Utils::getFileInfo(materialLibrary).file + '.' + materialName, groupParent, target, numOfFaces, numOfPositions, numOfNormals, numOfTexCoords);
 
-			float* va = currentObject->vertexAttributes;
+			if ((3 * 8 * numOfFaces) > dataSize){
+				delete[] data;
+				dataSize = 3 * 8 * numOfFaces;
+				data = new float[dataSize];
+			}
+
 
 			for (int i = 0; i < 3 * numOfFaces; i++) {
 				// add position triplet for each face
 				currentPositionIndex = faceIndeces[(3 * i) + 0];
-				*(va + (8 * i) + 0) = positions[(3 * currentPositionIndex) + 0];
-				*(va + (8 * i) + 1) = positions[(3 * currentPositionIndex) + 1];
-				*(va + (8 * i) + 2) = positions[(3 * currentPositionIndex) + 2];
+				*(data + (8 * i) + 0) = positions[(3 * currentPositionIndex) + 0];
+				*(data + (8 * i) + 1) = positions[(3 * currentPositionIndex) + 1];
+				*(data + (8 * i) + 2) = positions[(3 * currentPositionIndex) + 2];
 
 				// add normals triplet for each face
 				currentNormalIndex = faceIndeces[(3 * i) + 2];
-				*(va + (8 * i) + 3) = normals[(3 * currentNormalIndex) + 0];
-				*(va + (8 * i) + 4) = normals[(3 * currentNormalIndex) + 1];
-				*(va + (8 * i) + 5) = normals[(3 * currentNormalIndex) + 2];
+				*(data + (8 * i) + 3) = normals[(3 * currentNormalIndex) + 0];
+				*(data + (8 * i) + 4) = normals[(3 * currentNormalIndex) + 1];
+				*(data + (8 * i) + 5) = normals[(3 * currentNormalIndex) + 2];
 
 				// add tex coordinates pair for each face
 				currentTexCoordIndex = faceIndeces[(3 * i) + 1];
-				*(va + (8 * i) + 6) = texCoords[(2 * currentTexCoordIndex) + 0];
-				*(va + (8 * i) + 7) = texCoords[(2 * currentTexCoordIndex) + 1];
+				*(data + (8 * i) + 6) = texCoords[(2 * currentTexCoordIndex) + 0];
+				*(data + (8 * i) + 7) = texCoords[(2 * currentTexCoordIndex) + 1];
 			}
+
+			currentObject->generateBuffers(data);
 
 			// Add generated object to map
 			meshes[fullName] = currentObject;
@@ -264,12 +275,14 @@ nextline:
 		closeObject();
 
 		fclose(f);
+
+		delete[] data;
 		
-		for (auto p : meshes) {
-			OBJMesh* m = p.second;
-			std::cout << "Generating VBO for " << m->getMeshName() << std::endl;
-			m->generateBuffers();
-		}
+		// for (auto p : meshes) {
+		// 	OBJMesh* m = p.second;
+		// 	std::cout << "Generating VBO for " << m->getMeshName() << std::endl;
+		// 	m->generateBuffers();
+		// }
 
 		std::cout << "Finished loading file " << target << " (" << total.lap_s() << ")" << std::endl;
 
@@ -293,7 +306,7 @@ unsigned int OBJMesh::getNumberOfFaces() {
 	return this->numberOfFaces;
 }
 
-void OBJMesh::generateBuffers() {
+void OBJMesh::generateBuffers(float* data) {
 	// Generate and bind VAO for this mesh
 	glGenVertexArrays(1, &this->VAO);
 	glBindVertexArray(this->VAO);
@@ -302,7 +315,7 @@ void OBJMesh::generateBuffers() {
 	int lenOfVBO = sizeof(float) * 3 * 8 * this->numberOfFaces;
 	glGenBuffers(1, &this->VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-	glBufferData(GL_ARRAY_BUFFER, lenOfVBO, this->vertexAttributes, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, lenOfVBO, data, GL_STATIC_DRAW);
 
 	int vertexSize = 8 * sizeof(float);
 	// Enable pointer for vertex positions
@@ -321,7 +334,7 @@ void OBJMesh::generateBuffers() {
 	glBindVertexArray(0); 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	delete[] this->vertexAttributes; // Not needed anymore?
+	//delete[] this->vertexAttributes; // Not needed anymore?
 }
 
 void OBJMesh::bind() {
@@ -354,7 +367,7 @@ OBJMesh::OBJMesh(const std::string& meshName, const std::string& materialName, c
 	this->numOfNormals   = numberOfNormals;
 	this->numOfTexCoords = numberOfTexCoords;
 
-	this->vertexAttributes = new float[8 * 3 * this->numberOfFaces];
+	//this->vertexAttributes = new float[8 * 3 * this->numberOfFaces];
 }
 
 OBJMesh::~OBJMesh() {
