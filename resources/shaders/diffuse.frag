@@ -42,10 +42,14 @@ void main() {
 
 	V = normalize(-1.0f * v_pos);
 
+	float diffuse_alpha = 1.0f;
+
 	// diffuse, spec, and normal can be driven by texture instead of unfiform value if flags are set in material
 	diffuse = Kd;
 	if ((flags & MATERIAL_USE_map_Kd) != 0){
-		diffuse = vec3(texture(map_Kd, v_texCoord));
+		vec4 tex = texture(map_Kd, v_texCoord);
+		diffuse = tex.xyz;
+		diffuse_alpha = tex.a;
 	}
 
 	if ((flags & MATERIAL_USE_map_Ks) != 0){
@@ -96,6 +100,6 @@ void main() {
 		}
 	}
 
-	FragColor = vec4(Iout, 1.0f - Tr);
+	FragColor = vec4(Iout, diffuse_alpha);
 
 }

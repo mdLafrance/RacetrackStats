@@ -3,31 +3,35 @@ name Mosport Track Test
 #D:/Hacking/RacetrackStats/testingResources/forest_low.obj
 
 D:/Hacking/RacetrackStats/Mosport/jr_mosport.obj
-D:/Hacking/RacetrackStats/Mosport/mosport_people.obj
-D:/Hacking/RacetrackStats/Mosport/mosport_horizon.obj
-D:/Hacking/RacetrackStats/Mosport/mosport_layers.obj
-#D:/Hacking/RacetrackStats/Mosport/mosport_3dgrassA.obj
 D:/Hacking/RacetrackStats/Mosport/mosport_crew.obj
 D:/Hacking/RacetrackStats/Mosport/mosport_horizon.obj
-D:/Hacking/RacetrackStats/Mosport/mosport_layers.obj
+#D:/Hacking/RacetrackStats/Mosport/mosport_layers.obj
 D:/Hacking/RacetrackStats/Mosport/mosport_objects.obj
+D:/Hacking/RacetrackStats/Mosport/mosport_people.obj
 D:/Hacking/RacetrackStats/Mosport/mosport_tires.obj
 D:/Hacking/RacetrackStats/Mosport/mosport_vehicles.obj
-
+D:/Hacking/RacetrackStats/Mosport/mosport_trees.obj
 
 D:/Hacking/RacetrackStats/Mosport/jr_mosport.mtl
-D:/Hacking/RacetrackStats/Mosport/mosport_people.mtl
-D:/Hacking/RacetrackStats/Mosport/mosport_horizon.mtl
-D:/Hacking/RacetrackStats/Mosport/mosport_layers.mtl
-#D:/Hacking/RacetrackStats/Mosport/mosport_3dgrassA.mtl
 D:/Hacking/RacetrackStats/Mosport/mosport_crew.mtl
 D:/Hacking/RacetrackStats/Mosport/mosport_horizon.mtl
-D:/Hacking/RacetrackStats/Mosport/mosport_layers.mtl
+#D:/Hacking/RacetrackStats/Mosport/mosport_layers.mtl
 D:/Hacking/RacetrackStats/Mosport/mosport_objects.mtl
+D:/Hacking/RacetrackStats/Mosport/mosport_people.mtl
 D:/Hacking/RacetrackStats/Mosport/mosport_tires.mtl
 D:/Hacking/RacetrackStats/Mosport/mosport_vehicles.mtl
+D:/Hacking/RacetrackStats/Mosport/mosport_trees.mtl
 
-ambient 0.15 0.1 0.1
-light directional -i 10 -v -2 -10 -2 -c 0.8 0.8 0.8
+D:/Hacking/RacetrackStats/Mosport/mosport_3dgrassA.obj
+D:/Hacking/RacetrackStats/Mosport/mosport_3dgrassA.mtl
+D:/Hacking/RacetrackStats/Mosport/mosport_3dgrassB.obj
+D:/Hacking/RacetrackStats/Mosport/mosport_3dgrassB.mtl
+D:/Hacking/RacetrackStats/Mosport/mosport_3dgrassC.obj
+D:/Hacking/RacetrackStats/Mosport/mosport_3dgrassC.mtl
+D:/Hacking/RacetrackStats/Mosport/mosport_3dgrassD.obj
+D:/Hacking/RacetrackStats/Mosport/mosport_3dgrassD.mtl
+
+ambient 0.13 0.1 0.1
+light directional -i 4 -v -2 -10 -5 -c 0.9 0.85 0.8
 
 #display.land

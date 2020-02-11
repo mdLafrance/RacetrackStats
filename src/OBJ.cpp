@@ -320,6 +320,8 @@ void OBJMesh::generateBuffers() {
 	// Clear binds
 	glBindVertexArray(0); 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	delete[] this->vertexAttributes; // Not needed anymore?
 }
 
 void OBJMesh::bind() {

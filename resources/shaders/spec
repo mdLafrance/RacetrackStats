@@ -31,3 +31,7 @@ MATERIAL_USE_Kd       16
 MATERIAL_USE_Ks       32
 MATERIAL_USE_Ns       64
 MATERIAL_USE_Tr       128
+
+Improvements:
+-OBJs each create a vertex data array which is thrown away after buffering, only 1 is needed for all objects
+-Parrellize loading of files

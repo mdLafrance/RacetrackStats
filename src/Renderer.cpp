@@ -138,13 +138,16 @@ Renderer::Renderer(GLFWwindow* window) {
 
 	this->resetData();
 
-	glFrontFace(GL_CW);
+	glFrontFace(GL_CCW);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
+
+	// glEnable(GL_BLEND);
+	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	Texture* test = new Texture("D:/Hacking/RacetrackStats/Mosport/texture/mosport_objs_2.dds");
 
@@ -426,12 +429,12 @@ void Renderer::tick(const double& dTime) {
 
 	glm::vec3 worldUp = glm::inverse(camTransform->getMatrix()) * glm::vec4(0, 1, 0, 0); // did this on a hunch, why does it work??
 
-	camTransform->rotate(-rotation[0], worldUp);
+	camTransform->rotate(rotation[0], worldUp);
 	camTransform->rotate(-rotation[1], glm::vec3(1,0,0));
 
 	glm::vec3 dx, dy, dz;
 	if (abs(translation[0]) > 0.01) {
-		dx = translation[0] * camTransform->right();
+		dx = -1 * translation[0] * camTransform->right();
 		dx.y = 0;
 		dx = glm::normalize(dx);
 		dx *= translateSpeed;
@@ -456,10 +459,10 @@ void Renderer::tick(const double& dTime) {
 
 	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
 
+	/*
 	Object* object;
 	Shader* shader;
 
-	/*
 	//TODO: sort objects by material, then render by material
 	for (auto p : this->objects) {
 		object = p.second;
@@ -480,7 +483,7 @@ void Renderer::tick(const double& dTime) {
 
 		object->mesh->draw();
 	}
-	*/
+*/
 
 	std::map<std::string, std::vector<Object*>> materialMapping;
 

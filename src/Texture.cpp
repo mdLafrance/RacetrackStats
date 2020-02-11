@@ -35,7 +35,7 @@ Texture::Texture(const std::string& target) {
 
 	stbi_set_flip_vertically_on_load(true);
 
-	this->data = stbi_load(fname.c_str(), &this->width, &this->height, &this->nrChannels, 0);
+	this->data = stbi_load(fname.c_str(), &this->width, &this->height, &this->nrChannels, STBI_rgb_alpha);
 
 	this->name = Utils::getFileNameNoExtension(fname);
 
@@ -48,7 +48,7 @@ Texture::Texture(const std::string& target) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->width, this->height, 0, GL_RGB, GL_UNSIGNED_BYTE, this->data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, this->data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 		std::cout << "Loaded Texture: " << fname << std::endl;
 	}
