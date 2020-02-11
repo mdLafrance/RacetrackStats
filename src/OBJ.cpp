@@ -133,15 +133,15 @@ namespace OBJ
 
 			// New Material
 			if (strcmp(firstWord, "mtllib") == 0) {
-				fscanf(f, "%s", line, firstWord); 
-				materialLibrary = std::string(firstWord);
+				fscanf(f, "%s", line); 
+				materialLibrary = std::string(line);
 				std::cout << "File using material library " << materialLibrary << std::endl;
 				goto nextline;
 			}
 
 			if (strcmp(firstWord, "usemtl") == 0) {
-				fscanf(f, "%s", line, firstWord); 
-				materialName = std::string(firstWord);
+				fscanf(f, "%s", line); 
+				materialName = std::string(line);
 				goto nextline;
 			}
 
