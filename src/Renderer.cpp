@@ -138,10 +138,10 @@ Renderer::Renderer(GLFWwindow* window) {
 
 	this->resetData();
 
-	//glEnable(GL_CULL_FACE);
-	glDisable(GL_CULL_FACE);
+	glFrontFace(GL_CW);
+
+	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
-	glCullFace(GL_CW);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
@@ -197,6 +197,8 @@ void Renderer::loadScene(const std::string& target) {
 		return;
 	}
 
+	Utils::StopWatch timer;
+
 	std::cout << "Loading Scene " << target << "..." << std::endl;
 
 	this->scene.name = Utils::getFileInfo(target).file;
@@ -204,6 +206,8 @@ void Renderer::loadScene(const std::string& target) {
 	this->scene.files = std::vector<std::string>();
 
 	std::string line;
+
+	timer.start();
 
 	while (std::getline(f, line)) {
 		if (line == "" || line[0] == '#') continue;
@@ -312,6 +316,8 @@ void Renderer::loadScene(const std::string& target) {
 			o->material = this->materials.at("default");
 		}
 	}
+
+	std::cout << "Finished loading scene " << this->scene.name << " (" << timer.lap_s() << ")" << std::endl;
 }
 
 void Renderer::loadMaterialLibrary(const std::string& target) {
