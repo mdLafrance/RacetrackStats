@@ -367,7 +367,8 @@ void Renderer::tick(const double& dTime) {
 		std::cout << '\r' << (1/dTime) << " fps";
 		// std::cout.flush();
 	}
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	// glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.9f, 0.9f, 1.0f, 1.0f); // until we have a skybox
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	float translation[3] = { 0,0,0 };
