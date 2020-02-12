@@ -74,7 +74,8 @@ int main(int argc, char** argv) {
 		// renderer->loadScene(std::string(::WorldState.projectRoot) + "/resources/scenes/testingScene.scene");
 	}
 	else { 
-		renderer->loadScene(std::string(::WorldState.projectRoot) + "/resources/scenes/testingScene_laptop.scene");
+		// renderer->loadScene(std::string(::WorldState.projectRoot) + "/resources/scenes/testingScene_laptop.scene");
+		renderer->loadScene(std::string(::WorldState.projectRoot) + "/resources/scenes/mosportTest_laptop.scene");
 	}
 
 	std::chrono::time_point<std::chrono::steady_clock> t1, t2;

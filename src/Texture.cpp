@@ -53,7 +53,7 @@ Texture::Texture(const std::string& target) {
 		std::cout << "Loaded Texture: " << fname << std::endl;
 	}
 	else {
-		std::cout << "ERROR: Couldn't load texture " << fname << std::endl;
+		std::cerr << "ERROR: Couldn't load texture " << fname << std::endl;
 	}
 
 	stbi_image_free(this->data);

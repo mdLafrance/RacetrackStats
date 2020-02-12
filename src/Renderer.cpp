@@ -365,6 +365,7 @@ void Renderer::tick(const double& dTime) {
 	++this->frameCount;
 	if (this->frameCount % 10 == 0){
 		std::cout << '\r' << (1/dTime) << " fps";
+		// std::cout.flush();
 	}
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -376,8 +377,8 @@ void Renderer::tick(const double& dTime) {
 	float rotationSpeed = 0.05f;
 
 	if (!std::getenv("MSI")) {
-		translateSpeed = 0.1;
-		rotationSpeed *= 0.05f;
+		translateSpeed = 0.2;
+		rotationSpeed *= 0.3f;
 	}
 
 	// TRANSLATION

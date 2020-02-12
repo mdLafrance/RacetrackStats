@@ -129,9 +129,6 @@ namespace OBJ
 			
 			++lines;
 
-			//std::cout << '\r' << lines << " [" << p_start << ", " << p_end << "] : " << line << '\r';
-			//std::cout << '\r' << lines << " : " << line << '\r';
-
 			if (firstWord[0] == '\n' || firstWord[0] == '#' || firstWord[0] == 's') {
 				goto nextline;
 			}
@@ -277,12 +274,6 @@ nextline:
 		fclose(f);
 
 		delete[] data;
-		
-		// for (auto p : meshes) {
-		// 	OBJMesh* m = p.second;
-		// 	std::cout << "Generating VBO for " << m->getMeshName() << std::endl;
-		// 	m->generateBuffers();
-		// }
 
 		std::cout << "Finished loading file " << target << " (" << total.lap_s() << ")" << std::endl;
 

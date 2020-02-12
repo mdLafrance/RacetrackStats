@@ -1,0 +1,38 @@
+name Mosport Track Test
+
+# Files
+C:/Users/maxto/OneDrive/Documents/Mosport/jr_mosport.obj
+C:/Users/maxto/OneDrive/Documents/Mosport/mosport_crew.obj
+C:/Users/maxto/OneDrive/Documents/Mosport/mosport_horizon.obj
+C:/Users/maxto/OneDrive/Documents/Mosport/mosport_objects.obj
+#C:/Users/maxto/OneDrive/Documents/Mosport/mosport_people.obj
+C:/Users/maxto/OneDrive/Documents/Mosport/mosport_tires.obj
+C:/Users/maxto/OneDrive/Documents/Mosport/mosport_vehicles.obj
+C:/Users/maxto/OneDrive/Documents/Mosport/mosport_trees.obj
+
+#people causes jr to have black texture?? EXCEPT:
+#when run as ./RacetrackStats.exe 2> errorLog.txt ?????????????????????
+
+C:/Users/maxto/OneDrive/Documents/Mosport/jr_mosport.mtl
+C:/Users/maxto/OneDrive/Documents/Mosport/mosport_crew.mtl
+C:/Users/maxto/OneDrive/Documents/Mosport/mosport_horizon.mtl
+C:/Users/maxto/OneDrive/Documents/Mosport/mosport_objects.mtl
+C:/Users/maxto/OneDrive/Documents/Mosport/mosport_people.mtl
+C:/Users/maxto/OneDrive/Documents/Mosport/mosport_tires.mtl
+C:/Users/maxto/OneDrive/Documents/Mosport/mosport_vehicles.mtl
+C:/Users/maxto/OneDrive/Documents/Mosport/mosport_trees.mtl
+
+#C:/Users/maxto/OneDrive/Documents/Mosport/mosport_3dgrassA.obj
+#C:/Users/maxto/OneDrive/Documents/Mosport/mosport_3dgrassA.mtl
+#C:/Users/maxto/OneDrive/Documents/Mosport/mosport_3dgrassB.obj
+#C:/Users/maxto/OneDrive/Documents/Mosport/mosport_3dgrassB.mtl
+#C:/Users/maxto/OneDrive/Documents/Mosport/mosport_3dgrassC.obj
+#C:/Users/maxto/OneDrive/Documents/Mosport/mosport_3dgrassC.mtl
+#C:/Users/maxto/OneDrive/Documents/Mosport/mosport_3dgrassD.obj
+#C:/Users/maxto/OneDrive/Documents/Mosport/mosport_3dgrassD.mtl
+
+# Scene ambient light (r g b)
+ambient 0.3 0.3 0.35
+
+# Lights for the scene
+light directional -i 4 -v -2 -10 -5 -c 0.65 0.6 0.6 
