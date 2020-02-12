@@ -23,9 +23,7 @@ std::map<std::string, Material*> Material::load(const std::string& target)
 			if (tokens.size() == 0) continue;
 
 			std::string lineType = tokens.front();
-			std::string lineBack = tokens.back(); // For the sake of time, dont include flags for inputs. Only need type, and last arg
-
-			// All spec here is defined in wavefront's OBJ spec
+			std::string lineBack = tokens.back(); // For the sake of simplicity, dont include flags for inputs. Only need type, and last arg
 
 			// Start recording information for given material
 			if (lineType == "newmtl") {

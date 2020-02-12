@@ -32,7 +32,6 @@ namespace OBJ
 		const char* line_cstr;
 		char firstWord[128];
 		char line[1024];
-		//std::string line;
 
 		float a, b, c; // Float values read from a line
 
@@ -87,7 +86,6 @@ namespace OBJ
 				data = new float[dataSize];
 			}
 
-
 			for (int i = 0; i < 3 * numOfFaces; i++) {
 				// add position triplet for each face
 				currentPositionIndex = faceIndeces[(3 * i) + 0];
@@ -126,20 +124,16 @@ namespace OBJ
 		long lines = 0;
 
 		while (fscanf(f, "%s", firstWord) != EOF) {
-			
 			++lines;
 
 			if (firstWord[0] == '\n' || firstWord[0] == '#' || firstWord[0] == 's') {
 				goto nextline;
 			}
 
-			//getFirstWord(line, firstWord);
-
 			if (collectingFaces && !(firstWord[0] == 'f')) {
 				closeObject();
 			}
 
-			// New Material
 			if (strcmp(firstWord, "mtllib") == 0) {
 				fscanf(f, "%s", line); 
 				materialLibrary = std::string(line);
@@ -180,7 +174,6 @@ namespace OBJ
 				} 
 
 				continue;
-				//goto nextline;
 			}
 
 			// Vertices
@@ -248,17 +241,6 @@ namespace OBJ
 
 					c = line[++i];
 				}
-				
-				/*
-				// OLD WAY
-				auto tokens = Utils::split("f" + std::string(line), ' ');
-
-				for (int i = 1; i < 4; i++) {
-					for (std::string f : Utils::split(tokens[i], '/')) {
-						faceIndeces.push_back(std::stoi(f) - 1);
-					}
-				}
-				*/
 
 				continue;
 			}
@@ -324,8 +306,6 @@ void OBJMesh::generateBuffers(float* data) {
 	// Clear binds
 	glBindVertexArray(0); 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	//delete[] this->vertexAttributes; // Not needed anymore?
 }
 
 void OBJMesh::bind() {
@@ -333,7 +313,7 @@ void OBJMesh::bind() {
 }
 
 int OBJMesh::getApproxBytes() {
-	return (sizeof(float) * (3 * (numOfPositions + numOfNormals)) + (2 * numOfTexCoords)) + (sizeof(OBJ::FaceElements) * 3 * this->numberOfFaces);
+	return (sizeof(float) * (3 * (numOfPositions + numOfNormals)) + (2 * numOfTexCoords));
 }
 
 void OBJMesh::draw() {
@@ -357,8 +337,6 @@ OBJMesh::OBJMesh(const std::string& meshName, const std::string& materialName, c
 	this->numOfPositions = numberOfNormals;
 	this->numOfNormals   = numberOfNormals;
 	this->numOfTexCoords = numberOfTexCoords;
-
-	//this->vertexAttributes = new float[8 * 3 * this->numberOfFaces];
 }
 
 OBJMesh::~OBJMesh() {

@@ -37,18 +37,19 @@ namespace Utils
 	// Opengl Callbacks
 	void glfwErrorCallbackFunction(int ecode, const char* info);
 
+	// Utility class to time length of functions 
 	class StopWatch {
 		std::chrono::steady_clock::time_point origin;
 		std::chrono::steady_clock::time_point latest;
 
 	public:
 		std::chrono::milliseconds lap();
-		std::string lap_s();
+		std::string lap_s(); // Return string representation of current lap time 
 
 		std::chrono::milliseconds total();
-		std::string total_s();
+		std::string total_s(); // Return string representation of current run time
 
-		void start();
+		void start(); // Reset stopwatch values
 
 		StopWatch();
 		~StopWatch();

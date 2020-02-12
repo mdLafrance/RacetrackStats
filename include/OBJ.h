@@ -18,35 +18,6 @@ class OBJMesh;
 
 namespace OBJ
 {
-	typedef struct {
-		float position[3];
-		float normal[3];
-		float texCoords[2];
-	} Vertex;
-
-	typedef struct {
-		float x;
-		float y;
-		float z;
-	} R3;
-
-	typedef struct {
-		float u;
-		float v;
-	} TexPoint;
-
-	typedef struct {
-		int posID;
-		int normID;
-		int texID;
-	} FaceElements;
-
-	struct OBJData {
-		std::string name;
-		std::string mtllib;
-		std::vector<OBJMesh*> meshes;
-	};
-
 	std::map<std::string, OBJMesh*> load(const std::string& target);
 	//OBJData load(const std::string& target);
 }

@@ -27,6 +27,8 @@ glm::mat4 Camera::projectionViewMatrix() {
 }
 
 Camera::Camera(const float& fov, const float& aspect, const float& zMin, const float& zMax) {
+	// Constructor for perspective camera
+
 	this->type = CameraType::Perspective;
 
 	this->proj = glm::perspective(45.0f, aspect, 1.0f, zMax);
@@ -35,6 +37,7 @@ Camera::Camera(const float& fov, const float& aspect, const float& zMin, const f
 }
 
 Camera::Camera(const float& xMin, const float& xMax, const float& yMin, const float& yMax, const float& zMin, const float& zMax) {
+	// Perspective for orthographic camera 
 	this->type = CameraType::Orthographic;
 
 	this->proj = glm::ortho(xMin, xMax, yMin, yMax, zMin, zMax);

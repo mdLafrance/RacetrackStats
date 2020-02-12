@@ -21,15 +21,6 @@ const char* fShaderSourceBasic =
 "	FragColor = vec4(0.8, 0.8, 0.8, 1.0f);\n"
 "}\n\0";
 
-// const char* fShaderSourceTexture =
-// "#version 330 core\n"
-// "in vec2 texCoord;\n"
-// "out vec4 FragColor;\n"
-// "uniform sampler2D tex;\n"
-// "void main(){\n"
-// "	FragColor = texture(tex, texCoord);\n"
-// "}\n\0";
-
 void Shader::bind() {
 	glUseProgram(this->shaderProgram);
 }

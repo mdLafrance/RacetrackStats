@@ -28,6 +28,7 @@
 // Global world state instantiated in main.cpp
 extern _WorldState WorldState;
 
+// Convenince function for diagnostics
 std::string vec3ToString(const glm::vec3& v);
 
 struct Scene {

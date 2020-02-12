@@ -12,9 +12,9 @@
 #include <Utils.h>
 
 class Shader {
-	std::string target;
-
 	unsigned int shaderProgram;
+
+	std::string target;
 
 public:
 	void bind();

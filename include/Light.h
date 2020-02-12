@@ -10,12 +10,6 @@
 enum class LightType {DIRECTIONAL, POINT}; // spot?
 
 class Light {
-	/*
-		Light class is a quick way of tracking simple lights in the scene.
-		Lights with just color, position/direction, and two additional float parameters are sufficient for our purposes.
-		Light data is assembled into a mat3 (as per resources/shaders/spec) and passed to diffuse shader.
-	*/
-
 	LightType type;
 
 	glm::vec3 color;
@@ -24,8 +18,7 @@ class Light {
 	// Three components available for parameters.
 	// t -> type of light (0=directional, !0=point)
 	// i -> light intensity
-	// k -> for point, falloff speed of the function:
-	// 1-(x/(x-k))
+	// k -> for point, falloff speed of the function: 1-(x/(x-k))
 	float t;
 	float i;
 	float k;

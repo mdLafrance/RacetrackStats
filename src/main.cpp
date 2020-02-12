@@ -2,10 +2,6 @@
 
 #define WINDOW_TITLE "Racetrack Stats"
 
-// Name of project this is for
-// Might want to extract some functionality for later use, so some functionality/dependency will be guarded by this
-#define __RACETRACK_STATS__
-
 #include <cstdlib>
 
 #include <vector>
@@ -60,6 +56,7 @@ int main(int argc, char** argv) {
 
 	bool onMSI = std::getenv("MSI") != nullptr;
 
+	// For personal convenience when working, this is defined on one of my machines
 	if (onMSI) {
 		::WorldState.projectRoot = "D:/Hacking/RacetrackStats";
 	}

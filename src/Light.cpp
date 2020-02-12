@@ -12,6 +12,7 @@ void Light::buildMatrix() {
 }
 
 glm::mat3 Light::getMatrix() {
+	// NOTE: Matrix instead gets built when values are changed, since this function is run every draw
 	return this->matrix;
 }
 
@@ -27,10 +28,12 @@ void Light::setPointDirection(const glm::vec3& point_direction) {
 
 void Light::setIntensity(const float& i) {
 	this->i = i;
+	this->buildMatrix();
 }
 
 void Light::setK(const float& k) {
 	this->k = k;
+	this->buildMatrix();
 }
 
 Light::Light() {
@@ -42,7 +45,7 @@ Light::Light() {
 	this->i = DEFAULT_LIGHT_INTENSITY;
 	this->k = DEFAULT_POINT_FALLOFF;
 
-	this->matrix = glm::mat4(0.0f);
+	this->matrix = glm::mat3(0.0f);
 }
 
 Light::Light(const LightType& type) {
@@ -54,7 +57,7 @@ Light::Light(const LightType& type) {
 	this->i = DEFAULT_LIGHT_INTENSITY;
 	this->k = DEFAULT_POINT_FALLOFF;
 
-	this->matrix = glm::mat4(0.0f);
+	this->matrix = glm::mat3(0.0f);
 }
 
 Light::Light(const LightType& type, const glm::vec3 point_direction, const glm::vec3 color, const float& i){

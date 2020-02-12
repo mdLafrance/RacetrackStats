@@ -24,7 +24,9 @@ public:
 
 	glm::mat4 projectionViewMatrix();
 
+	// Perpective camera
 	Camera(const float& fov, const float& aspect, const float& zMin, const float& zMax);
+	// Orthographic camera
 	Camera(const float& xMin, const float& xMax, const float& yMin, const float& yMax, const float& zMin, const float& zMax);
 	~Camera();
 };
