@@ -9,6 +9,7 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
@@ -19,6 +20,8 @@
 #include <Object.h>
 #include <Light.h>
 #include <WorldState.h>
+
+#include <TSQueue.hpp>
 
 #define WINDOW_DEFAULT_X 1000
 #define WINDOW_DEFAULT_Y 1000
@@ -51,6 +54,12 @@ class Renderer {
 	std::map<std::string, Object*> objects;
 
 	Scene scene;
+
+	// TSQueue<std::string>* jobs;
+
+	// TSQueue<std::map<std::string, OBJMesh*>>* incomingMeshes;
+	// TSQueue<std::pair<Texture*, Texture*>>* incomingTextures;
+
 
 	unsigned int line_VAO;
 
