@@ -121,6 +121,7 @@
     <ClCompile Include="include\glm\detail\glm.cpp" />
     <ClCompile Include="src\3rdParty\glad.c" />
     <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\CVS.cpp" />
     <ClCompile Include="src\Light.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Material.cpp" />
@@ -134,6 +135,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Camera.h" />
+    <ClInclude Include="include\CVS.h" />
     <ClInclude Include="include\glad\glad.h" />
     <ClInclude Include="include\glm\common.hpp" />
     <ClInclude Include="include\glm\detail\compute_common.hpp" />
@@ -393,6 +395,7 @@
     <ClInclude Include="include\stb\stb_image.h" />
     <ClInclude Include="include\Texture.h" />
     <ClInclude Include="include\Transform.h" />
+    <ClInclude Include="include\TSQueue.hpp" />
     <ClInclude Include="include\Utils.h" />
     <ClInclude Include="include\WorldState.h" />
   </ItemGroup>

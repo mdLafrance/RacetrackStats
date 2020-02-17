@@ -2,6 +2,12 @@
 
 #define WINDOW_TITLE "Racetrack Stats"
 
+#ifdef MAKE_DLL
+	#define DLL_EXPORT __declspec(dllexport)
+#else 
+	#define DLL_EXPORT // No effect from macro
+#endif // DLL_EXPORT
+
 #include <cstdlib>
 
 #include <vector>
@@ -22,15 +28,21 @@
 #include <Utils.h>
 #include <WorldState.h>
 #include <Light.h>
+#include <CVS.h>
 
 _WorldState WorldState = { 
-	WINDOW_DEFAULT_X, // Starting window width
-	WINDOW_DEFAULT_Y, // Starting window height
+	WINDOW_DEFAULT_X,    // Starting window width
+	WINDOW_DEFAULT_Y,    // Starting window height
 	{0.0f, 0.0f, 0.0f},  // vec3 ambient color for the scene
-	nullptr			  // (string) path to root of executable (set in main)
+	nullptr			     // (string) path to root of executable (set in main)
 };
 
 int main(int argc, char** argv) {
+	CVS* file = new CVS("C:/Users/maxto/OneDrive/Documents/Hacking/RacetrackStats/resources/laps/mosport1.csv");
+
+	delete file;
+
+	return 0;
 	// Init Context
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -71,8 +83,8 @@ int main(int argc, char** argv) {
 		// renderer->loadScene(std::string(::WorldState.projectRoot) + "/resources/scenes/testingScene.scene");
 	}
 	else { 
-		// renderer->loadScene(std::string(::WorldState.projectRoot) + "/resources/scenes/testingScene_laptop.scene");
-		renderer->loadScene(std::string(::WorldState.projectRoot) + "/resources/scenes/mosportTest_laptop.scene");
+		renderer->loadScene(std::string(::WorldState.projectRoot) + "/resources/scenes/testingScene_laptop.scene");
+		// renderer->loadScene(std::string(::WorldState.projectRoot) + "/resources/scenes/mosportTest_laptop.scene");
 	}
 
 	std::chrono::time_point<std::chrono::steady_clock> t1, t2;

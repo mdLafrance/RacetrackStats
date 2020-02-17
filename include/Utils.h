@@ -29,6 +29,7 @@ namespace Utils
 	std::string getFileNameNoExtension(const std::string& target);
 	bool hasEnding(const std::string& a, const std::string& b);
 	std::string replace(const std::string& s, const char& a, const char& b);
+	int stringCount(char* s, const char& c);
 
 	// File utility
 	Utils::FileInfo getFileInfo(const std::string& target);
@@ -37,7 +38,7 @@ namespace Utils
 	// Opengl Callbacks
 	void glfwErrorCallbackFunction(int ecode, const char* info);
 
-	// Utility class to time length of functions 
+	// Utility class to time lengths of functions 
 	class StopWatch {
 		std::chrono::steady_clock::time_point origin;
 		std::chrono::steady_clock::time_point latest;

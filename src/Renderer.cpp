@@ -364,7 +364,8 @@ void Renderer::tick(const double& dTime) {
 		std::cout << '\r' << (1/dTime) << " fps";
 	}
 
-	glClearColor(0.9f, 0.9f, 1.0f, 1.0f); // until we have a skybox
+	//glClearColor(0.9f, 0.9f, 1.0f, 1.0f); // until we have a skybox
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	float translation[3] = { 0,0,0 };
@@ -374,9 +375,12 @@ void Renderer::tick(const double& dTime) {
 	float rotationSpeed = 0.05f;
 
 	if (!std::getenv("MSI")) {
-		translateSpeed = 0.2;
-		rotationSpeed *= 0.3f;
+		translateSpeed = 40;
+		rotationSpeed = 0.5f;
 	}
+
+	translateSpeed *= dTime;
+	rotationSpeed *= dTime;
 
 	// TRANSLATION
 	if (glfwGetKey(this->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {

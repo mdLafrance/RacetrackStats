@@ -54,6 +54,9 @@
     <ClCompile Include="src\3rdParty\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\CVS.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Camera.h">
@@ -840,6 +843,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\SOIL\stbi_DDS_aug_c.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\CVS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\TSQueue.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
