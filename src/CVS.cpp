@@ -14,6 +14,8 @@ CVS::CVS(const std::string& target) {
         return;
     }
 
+    std::cout << "Loading CVS file: " << target << ' ';
+
     sw.start();
 
     char line[2048];
@@ -31,9 +33,6 @@ CVS::CVS(const std::string& target) {
     }
 
     --this->numberOfLines; // Dont want to include line defining types
-
-    std::cout << "File has: " << this->numberOfFields << " types." << std::endl;
-    std::cout << "Counted " << this->numberOfLines << " lines" << std::endl;
 
     this->data = new char* [this->numberOfFields * this->numberOfLines];
 
@@ -58,7 +57,7 @@ CVS::CVS(const std::string& target) {
     std::vector<std::string> types = Utils::split(line_s, ',');
 
     for (std::string t : types) {
-        std::cout << "Registered <" << t << "> at " << i << std::endl;
+        // std::cout << "Registered <" << t << "> at " << i << std::endl;
         this->dataOffsets[t] = i++;
     }
 
@@ -74,6 +73,8 @@ CVS::CVS(const std::string& target) {
 
         c = line[i];
 
+        int wordCount = 0;
+
         while (c != '\0' && c != '\n') {
             if (c == ',') {
                 if (wordLength == 0) {
@@ -81,27 +82,40 @@ CVS::CVS(const std::string& target) {
 					goto nextword;
                 }
                 word[wordLength] = '\0';
-                char* destination = *(this->data + lineOffset++);
-                destination = new char[wordLength+1];
-                strcpy(destination, &word[0]);
+                *(this->data + lineOffset) = new char[wordLength+1];
+                strcpy((*(this->data + lineOffset)), &word[0]);
 				wordLength = 0;
+                ++lineOffset;
                 goto nextword;
             }
             word[wordLength++] = c;
 nextword:
             c = line[++i];
         }
+
+        // Last word
+        if (wordLength == 0) {
+            *(this->data + lineOffset++) = nullptr;
+        }
+        else {
+			word[wordLength] = '\0';
+			*(this->data + lineOffset) = new char[wordLength+1];
+			strcpy((*(this->data + lineOffset)), &word[0]);
+			wordLength = 0;
+			++lineOffset;
+        }
+
+        ++lineNumber;
     }
 
     fclose(f);
 
-    std::cout << "TIME: " << sw.lap_s() << std::endl;
+    std::cout << " (" << sw.lap_s() << ")" << std::endl;
 }
 
 CVS::~CVS(){
     for (int i = 0; i < (this->numberOfFields * this->numberOfLines); i++) {
-        std::cout << '\r' << i;
-        delete[] *(this->data + i);
+		delete *(this->data + i);
     }
 
     delete[] this->data;
