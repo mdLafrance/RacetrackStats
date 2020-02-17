@@ -114,6 +114,12 @@ nextword:
     fclose(f);
 
     std::cout << " (" << sw.lap_s() << ")" << std::endl;
+    
+    std::cout << this->numberOfFields << " data fields over " << this->numberOfLines-1 << " time points: " << std::endl;
+
+    for (const auto& p : this->dataTypes){
+        std::cout << p.first << std::endl;
+}
 }
 
 CSV::~CSV(){
@@ -127,7 +133,14 @@ CSV::~CSV(){
 std::string CSV::getData(const std::string& type, const int& line) const {
     if (this->dataOffsets.count(type) == 1) {
 		int offset = this->dataOffsets.at(type);
-		return *(this->data + (line * this->numberOfFields) + offset);
+
+        char* ptr = *(this->data + (line * this->numberOfFields) + offset);
+
+        if (ptr == nullptr){
+            return "";
+        } else {
+            return ptr;
+        }
     }
     else {
         std::cerr << "ERROR: Couldn't access data field <" << type << "> because it is not present in the csv." << std::endl;

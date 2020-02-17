@@ -40,7 +40,10 @@ _WorldState WorldState = {
 int main(int argc, char** argv) {
 	CSV* file = new CSV("C:/Users/maxto/OneDrive/Documents/Hacking/RacetrackStats/resources/laps/mosport1.csv");
 
-	std::cout << "Distance at 3 is: " << file->getData(4, 3);
+	std::string field = "DASH_SPD";
+	for (int i = 0; i < 86000; i++) {
+		std::cout << "\r " << field << ": " << file->getData(field, i);
+	}
 
 	delete file;
 
