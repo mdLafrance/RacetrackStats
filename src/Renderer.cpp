@@ -427,7 +427,7 @@ void Renderer::tick(const double& dTime) {
 	// Calcuate new MVP for camera on this frame
 	Transform* camTransform = this->mainCamera->transform;
 
-	glm::vec3 worldUp = glm::inverse(camTransform->getMatrix()) * glm::vec4(0, 1, 0, 0);
+	glm::vec3 worldUp = glm::inverse(camTransform->getMatrix()) * glm::vec4(0, 1, 0, 0); // why??
 
 	camTransform->rotate(rotation[0], worldUp);
 	camTransform->rotate(-rotation[1], glm::vec3(1,0,0));

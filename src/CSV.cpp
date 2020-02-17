@@ -66,6 +66,14 @@ CSV::CSV(const std::string& target) {
 
     i = 0;
 
+    auto writeWord = [&](){
+        word[wordLength] = '\0';
+        *(this->data + lineOffset) = new char[wordLength+1];
+        strcpy((*(this->data + lineOffset)), &word[0]);
+        wordLength = 0;
+        ++lineOffset;
+    };
+
     // Parse rest of data by line
     while (fgets(line, sizeof(line), f)) {
         i = 0;
@@ -84,11 +92,7 @@ CSV::CSV(const std::string& target) {
                     *(this->data + lineOffset++) = nullptr;
 					goto nextword;
                 }
-                word[wordLength] = '\0';
-                *(this->data + lineOffset) = new char[wordLength+1];
-                strcpy((*(this->data + lineOffset)), &word[0]);
-				wordLength = 0;
-                ++lineOffset;
+                writeWord();
                 goto nextword;
             }
             word[wordLength++] = c;
@@ -101,11 +105,7 @@ nextword:
             *(this->data + lineOffset++) = nullptr;
         }
         else {
-			word[wordLength] = '\0';
-			*(this->data + lineOffset) = new char[wordLength+1];
-			strcpy((*(this->data + lineOffset)), &word[0]);
-			wordLength = 0;
-			++lineOffset;
+            writeWord();
         }
 
         ++lineNumber;

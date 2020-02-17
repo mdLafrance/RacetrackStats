@@ -28,7 +28,7 @@
 #include <Utils.h>
 #include <WorldState.h>
 #include <Light.h>
-#include <CVS.h>
+#include <CSV.h>
 
 _WorldState WorldState = { 
 	WINDOW_DEFAULT_X,    // Starting window width
@@ -38,7 +38,9 @@ _WorldState WorldState = {
 };
 
 int main(int argc, char** argv) {
-	CVS* file = new CVS("C:/Users/maxto/OneDrive/Documents/Hacking/RacetrackStats/resources/laps/mosport1.csv");
+	CSV* file = new CSV("C:/Users/maxto/OneDrive/Documents/Hacking/RacetrackStats/resources/laps/mosport1.csv");
+
+	std::cout << "Distance at 3 is: " << file->getData(4, 3);
 
 	delete file;
 

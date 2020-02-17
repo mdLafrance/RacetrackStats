@@ -14,9 +14,9 @@ static const char DIRECTORY_SEPARATOR = '/';
 
 namespace Utils 
 {
-	//float PI = 3.14159265359;
-	//float DEG2RAD = 0.0174533;
-	//float RAD2DEG = 57.2958;
+	static const float PI = 3.14159265359;
+	static const float DEG2RAD = 0.0174533;
+	static const float RAD2DEG = 57.2958;
 
 	typedef struct { // D:/foo/bar/baz.py
 		std::string directory; // D:/foo/bar
@@ -27,10 +27,10 @@ namespace Utils
 	// String manipulation utility
 	std::vector<std::string> split(const std::string& s, char delimiter);
 	std::string getFileNameNoExtension(const std::string& target);
-	bool hasEnding(const std::string& a, const std::string& b);
 	std::string replace(const std::string& s, const char& a, const char& b);
-	int stringCount(char* s, const char& c);
 	std::string trimWhitespace(const std::string& s);
+	bool hasEnding(const std::string& a, const std::string& b);
+	int stringCount(char* s, const char& c);
 
 	// File utility
 	Utils::FileInfo getFileInfo(const std::string& target);
