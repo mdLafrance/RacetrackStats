@@ -30,6 +30,7 @@ namespace Utils
 	bool hasEnding(const std::string& a, const std::string& b);
 	std::string replace(const std::string& s, const char& a, const char& b);
 	int stringCount(char* s, const char& c);
+	std::string trimWhitespace(const std::string& s);
 
 	// File utility
 	Utils::FileInfo getFileInfo(const std::string& target);

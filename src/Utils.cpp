@@ -96,6 +96,27 @@ namespace Utils
 		return count;
 	}
 
+	std::string trimWhitespace(const std::string& s){
+		int firstCharacter = 0;
+		int lastCharacter = s.size();
+
+		char changes = 0; // 1, first changed, 2, last changed, 3 both changed
+
+		for (int i = 0; i < s.size(); i++){
+			if (s[i] != ' ') break;
+
+			++firstCharacter;
+		}
+
+		for (int i = s.size(); i >= 0; i--){
+			if (s[i] != ' ') break;
+
+			--lastCharacter;
+		}
+
+		return s.substr(firstCharacter, lastCharacter);
+	}
+
 	void Utils::glfwErrorCallbackFunction(int ecode, const char* info) {
 		std::cerr << "--------------------------------------------------------" << std::endl;
 		std::cerr << "ERROR CODE " << ecode << std::endl;
