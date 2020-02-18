@@ -20,6 +20,9 @@ public:
 
     std::string getData(const std::string& type, const int& line) const;
     std::string getData(const int& index, const int& line) const;
+    std::string getMetric(const std::string& type);
+
+    int numberOfTimePoints() const;
 
     bool hasData(const std::string& type);
 

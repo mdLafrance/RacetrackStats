@@ -156,6 +156,19 @@ std::string CSV::getData(const int& index, const int& line) const {
     return *(this->data + (line * this->numberOfFields) + index);
 }
 
+std::string CSV::getMetric(const std::string& type) {
+    if (!(this->dataTypes.count(type) == 1)) {
+        std::cerr << "ERROR: Type: " << type << " is not present in the CSV." << std::endl;
+        return "";
+    }
+
+    return this->dataTypes.at(type);
+}
+
+int CSV::numberOfTimePoints() const {
+    return this->numberOfLines;
+}
+
 bool CSV::hasData(const std::string& type) {
     return this->dataTypes.count(type) == 1;
 }

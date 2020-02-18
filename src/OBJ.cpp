@@ -340,8 +340,6 @@ OBJMesh::OBJMesh(const std::string& meshName, const std::string& materialName, c
 }
 
 OBJMesh::~OBJMesh() {
-	delete[] this->vertexAttributes;
-
 	glDeleteBuffers(1, &this->VBO);
 	glDeleteVertexArrays(1, &this->VAO);
 }

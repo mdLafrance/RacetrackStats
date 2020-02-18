@@ -364,10 +364,6 @@ void Renderer::tick(const double& dTime) {
 		std::cout << '\r' << (1/dTime) << " fps";
 	}
 
-	//glClearColor(0.9f, 0.9f, 1.0f, 1.0f); // until we have a skybox
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	float translation[3] = { 0,0,0 };
 	float rotation[2] = { 0,0 };
 
@@ -427,7 +423,7 @@ void Renderer::tick(const double& dTime) {
 	// Calcuate new MVP for camera on this frame
 	Transform* camTransform = this->mainCamera->transform;
 
-	glm::vec3 worldUp = glm::inverse(camTransform->getMatrix()) * glm::vec4(0, 1, 0, 0); // why??
+	glm::vec3 worldUp = glm::inverse(camTransform->getMatrix()) * glm::vec4(0, 1, 0, 0);
 
 	camTransform->rotate(rotation[0], worldUp);
 	camTransform->rotate(-rotation[1], glm::vec3(1,0,0));
@@ -504,6 +500,4 @@ void Renderer::tick(const double& dTime) {
 
 	*/
 
-	glfwSwapBuffers(this->window);
-	glfwPollEvents();
 }

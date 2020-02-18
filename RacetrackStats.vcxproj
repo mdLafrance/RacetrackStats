@@ -64,14 +64,14 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\include;$(ProjectDir)include;D:\Hacking\c++\3rdParty\glfw\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\include;$(ProjectDir)imgui;$(ProjectDir)include;D:\Hacking\c++\3rdParty\glfw\include;$(IncludePath)</IncludePath>
     <SourcePath>$(ProjectDir)src\3rdParty;$(ProjectDir)src;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\include;$(ProjectDir)include;D:\Hacking\c++\3rdParty\glfw\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\include;$(ProjectDir)imgui;$(ProjectDir)include;D:\Hacking\c++\3rdParty\glfw\include;$(IncludePath)</IncludePath>
     <SourcePath>$(ProjectDir)src\3rdParty;$(ProjectDir)src;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -118,8 +118,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="imgui\imgui_demo.cpp" />
+    <ClCompile Include="imgui\imgui_draw.cpp" />
+    <ClCompile Include="imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="include\glm\detail\glm.cpp" />
     <ClCompile Include="src\3rdParty\glad.c" />
+    <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\CSV.cpp" />
     <ClCompile Include="src\Light.cpp" />
@@ -134,6 +140,13 @@
     <ClCompile Include="src\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="imgui\imconfig.h" />
+    <ClInclude Include="imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="imgui\imgui_internal.h" />
+    <ClInclude Include="imgui\imstb_rectpack.h" />
+    <ClInclude Include="imgui\imstb_textedit.h" />
+    <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\CSV.h" />
     <ClInclude Include="include\glad\glad.h" />
@@ -398,6 +411,7 @@
     <ClInclude Include="include\TSQueue.hpp" />
     <ClInclude Include="include\Utils.h" />
     <ClInclude Include="include\WorldState.h" />
+    <ClInclude Include="imgui\imgui.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="include\glm\detail\func_common.inl" />
