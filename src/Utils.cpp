@@ -5,14 +5,12 @@ namespace Utils
 	std::vector<std::string> split(const std::string& s, char delimiter) {
 		std::vector<std::string> splitString;
 
-		std::string word;
+		std::string word = "";
 
 		for (int i = 0; i < s.length(); i++) {
 			if (s[i] == delimiter) {
-				if (!word.empty()) {
-					splitString.push_back(word);
-					word = "";
-				}
+				splitString.push_back(word);
+				word = "";
 				continue;
 			}
 

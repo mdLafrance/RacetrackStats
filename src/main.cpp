@@ -40,16 +40,6 @@
 #include <Light.h>
 #include <CSV.h>
 
-_WorldState WorldState = { 
-	WINDOW_DEFAULT_X,    // Starting window width
-	WINDOW_DEFAULT_Y,    // Starting window height
-	{0.0f, 0.0f, 0.0f},  // vec3 ambient color for the scene
-	nullptr,		     // (string) path to root of executable (set in main)
-	nullptr				 // (string) path to root of the mesh and texture data for mosport
-};
-
-static bool frameSizeChanged = false;
-
 struct _GuiState {
 	// Global states
 	GLuint viewportRenderTarget;
@@ -59,13 +49,37 @@ struct _GuiState {
 	float fontSize;
 	int padding = 17;
 	double fps; // Set in loop
+	bool sceneOpen = false;
+
+	// Render states
+	float FOV;
+	float nearClipPlane;
+	float farClipPlane;
+
+	// Cached Data fields
+	bool* dataFieldsEnabled = nullptr; // for some reason, bool vector returns proxy reference in stl
+	std::vector<std::string> dataFields;
 
 	// Menu bar state
 	bool selected_menu_File = false;
 	bool selected_menu_File_Open = false;
+	bool selected_menu_Options = false;
+	bool selected_menu_Options_doShowMap = true;
+	bool selected_menu_Options_doShowFPSCounter = true;
 };
 
 _GuiState GuiState;
+
+_WorldState WorldState = { 
+	WINDOW_DEFAULT_X,    // Starting window width
+	WINDOW_DEFAULT_Y,    // Starting window height
+	{0.0f, 0.0f, 0.0f},  // vec3 ambient color for the scene
+	nullptr,		     // (string) path to root of executable (set in main)
+	nullptr				 // (string) path to root of the mesh and texture data for mosport
+};
+
+static CSV* currentData;
+static bool frameSizeChanged = false;
 
 ImVec2 addImVec2(const ImVec2& a, const ImVec2& b) { // + operator not defined??
 	return ImVec2(a[0] + b[0], a[1] + b[1]);
@@ -73,20 +87,49 @@ ImVec2 addImVec2(const ImVec2& a, const ImVec2& b) { // + operator not defined??
 
 void drawUI(_GuiState& state) {
 	// Main menu drop down bar
-	int menuBarHeight = state.fontSize * 10 + 10;
+	int menuBarHeight = state.fontSize * 10 + 12; // eyeballing this a bit lol
 
 	float X, Y;
 	X = WorldState.windowX;
 	Y = WorldState.windowY;
 
+	// Reset necessary states
+	state.selected_menu_File_Open = false;
+
 	if (ImGui::BeginMainMenuBar()) {
 
 		if (ImGui::BeginMenu("File", &state.selected_menu_File)) {
 			ImGui::MenuItem("Open", NULL, &state.selected_menu_File_Open);
-			if (state.selected_menu_File_Open) {
-				std::cout << "Open file!" << std::endl;
-				state.selected_menu_File_Open = false;
-			}
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Options", &state.selected_menu_Options)) {
+			ImGui::Separator();
+			ImGui::Separator();
+
+			ImGui::Text("GUI Options");
+			ImGui::Separator();
+			ImGui::MenuItem("Show Map", NULL, &state.selected_menu_Options_doShowMap);
+			ImGui::MenuItem("Show FPS Counter", NULL, &state.selected_menu_Options_doShowFPSCounter);
+			ImGui::Text("Font Size");
+			ImGui::SameLine(300, 0);
+			ImGui::PushItemWidth(100);
+			ImGui::InputFloat("##Font size", &state.fontSize, 0, 0, "%.1f");
+
+			ImGui::Separator();
+			ImGui::Separator();
+
+			ImGui::Text("Render Options");
+			ImGui::Separator();
+			ImGui::Text("FOV");
+			ImGui::SameLine(300, 0);
+			ImGui::InputFloat("##FOV", &state.FOV, 0, 0, "%.2f");
+			ImGui::Text("Near Clip Plane");
+			ImGui::SameLine(300, 0);
+			ImGui::InputFloat("##Near Clip Plane", &state.nearClipPlane, 0, 0, "%.2f");
+			ImGui::Text("Far Clip Plane");
+			ImGui::SameLine(300, 0);
+			ImGui::InputFloat("##Far Clip Plane", &state.farClipPlane, 0, 0, "%.2f");
 			ImGui::EndMenu();
 		}
 
@@ -114,15 +157,42 @@ void drawUI(_GuiState& state) {
 	ImGui::SetNextWindowSize(ImVec2(X, Y / 2));
 	ImGui::SetNextWindowPos(ImVec2(0, Y/2), 0, ImVec2(0, 0));
 	ImGui::Begin("Data", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+
+	if (ImGui::CollapsingHeader("Data Types")) {
+		if (currentData) {
+			for (int i = 0; i < state.dataFields.size(); i++) {
+				ImGui::Checkbox(state.dataFields[i].c_str(), state.dataFieldsEnabled + i);
+			}
+		}
+	}
+
 	ImGui::End(); // Data Panel
 
 	// Overlayed map image
-	ImVec2 mapDimensions(state.mapTextureDimensions[0], state.mapTextureDimensions[1]); // Add vertical padding for title
-	ImGui::SetNextWindowSize(addImVec2(mapDimensions, ImVec2(0, menuBarHeight + state.padding)), 0);
-	ImGui::SetNextWindowPos(ImVec2(X - mapDimensions[0], menuBarHeight));
-	ImGui::Begin("Map", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
-	ImGui::Image((void*)state.mapTexture, mapDimensions);
-	ImGui::End(); // Map
+	if (state.selected_menu_Options_doShowMap) {
+		ImVec2 mapDimensions(state.mapTextureDimensions[0], state.mapTextureDimensions[1]); // Add vertical padding for title
+		ImGui::SetNextWindowSize(addImVec2(mapDimensions, ImVec2(state.padding, 0 /*menuBarHeight*/ + state.padding)), 0);
+		ImGui::SetNextWindowPos(ImVec2(X, menuBarHeight), 0, ImVec2(1,0));
+		ImGui::Begin("Map", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
+		ImGui::Image((void*)state.mapTexture, mapDimensions);
+		ImGui::End(); // Map
+	}
+
+	// FPS overlay
+	if (state.selected_menu_Options_doShowFPSCounter) {
+		ImVec2 fpsOverlaySize(state.fontSize * 65, (state.fontSize * 17) + 10);
+		// Generate fps readout text of the form <### fps\0>
+		char fpsReadout[8];
+		int fpsInt = (int)state.fps;
+		int fpsClipped = fpsInt >= 1000 ? 999 : fpsInt;
+		sprintf(fpsReadout, "%i fps", fpsClipped);
+
+		ImGui::SetNextWindowPos(ImVec2(0, Y/2), 0, ImVec2(0, 1));
+		ImGui::SetNextWindowSize(fpsOverlaySize);
+		ImGui::Begin("FPS", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
+		ImGui::Text(fpsReadout);
+		ImGui::End(); // FPS
+	}
 }
 
 int main(int argc, char** argv) {
@@ -162,15 +232,6 @@ int main(int argc, char** argv) {
 
 	Renderer* renderer = new Renderer(window);
 
-	/*
-	if (onMSI) {
-		renderer->loadScene(std::string(::WorldState.projectRoot) + "/resources/scenes/mosportTest.scene");
-	}
-	else {
-		renderer->loadScene(std::string(::WorldState.projectRoot) + "/resources/scenes/testingScene_laptop.scene");
-	}
-	*/
-
 	// Initialize imgui
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -199,47 +260,33 @@ int main(int argc, char** argv) {
 	double dTime = 0;
 	double seconds0 = glfwGetTime();
 
-	// TODO: Move this into small class
-
-	/*
-	GLuint FBO, zbuffer;
-
-	// Generate frame buffer
-	glGenFramebuffers(1, &FBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-
-	// Generate empty render texture
-	glGenTextures(1, &renderTexture);
-	glBindTexture(GL_TEXTURE_2D, renderTexture);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, RENDER_DEFAULT_X, RENDER_DEFAULT_Y, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-	// Attach to framebuffer
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderTexture, 0);
-
-	// Generate and attach zbuffer
-	glGenRenderbuffers(1, &zbuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, zbuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_ATTACHMENT, RENDER_DEFAULT_X, RENDER_DEFAULT_Y);
-
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
-
-	// done!
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	*/
-
 	glViewport(0, WorldState.windowY / 2, WorldState.windowX, WorldState.windowY);
 
 	while (!glfwWindowShouldClose(window)) {
+		// Process button clicks and options that user has clicked on the previous gui frame
+		if (GuiState.selected_menu_File_Open) {
+			if (GuiState.dataFieldsEnabled != nullptr) {
+				delete[] GuiState.dataFieldsEnabled;
+			}
+
+			renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/mosport_low.scene");
+			currentData = new CSV(std::string(WorldState.projectRoot) + "/resources/laps/mosport1.csv");
+			GuiState.dataFields = currentData->getOrderedData();
+			GuiState.dataFieldsEnabled = new bool[currentData->getNumberOfDataTypes()];
+		}
+
+		io.FontGlobalScale = GuiState.fontSize;
+
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		// If frame size changed, update appropriate fields
+		// TODO: Update camera view, right now it just stretches
 		if (frameSizeChanged) {
 			glfwGetFramebufferSize(window, &::WorldState.windowX, &::WorldState.windowY);
-
+			
+			// For now, instead of framebuffer -> image, just render where the image would be
+			// might not be a bad idea instead anyways
 			glViewport(0, WorldState.windowY / 2, WorldState.windowX, WorldState.windowY);
 			// Regenerate FBO and other resize events
 		}

@@ -14,7 +14,7 @@ CSV::CSV(const std::string& target) {
         return;
     }
 
-    std::cout << "Loading CSV file: " << target << ' ';
+    std::cout << "Loading CSV file: " << target << std::endl;
 
     sw.start();
 
@@ -58,7 +58,7 @@ CSV::CSV(const std::string& target) {
     std::string dataType;
 
     for (std::string t : Utils::split(line_s, ',')) {
-        auto dataAndType = CSV::splitNameAndType(t);
+        std::pair<std::string, std::string> dataAndType = CSV::splitNameAndType(t);
 
         this->dataOffsets[dataAndType.first] = i++;
         this->dataTypes[dataAndType.first] = dataAndType.second;
@@ -112,14 +112,8 @@ nextword:
     }
 
     fclose(f);
-
-    std::cout << " (" << sw.lap_s() << ")" << std::endl;
     
-    std::cout << this->numberOfFields << " data fields over " << this->numberOfLines-1 << " time points: " << std::endl;
-
-    for (const auto& p : this->dataTypes){
-        std::cout << p.first << std::endl;
-}
+    std::cout << "Loaded " << this->numberOfFields << " data fields over " << this->numberOfLines-1 << " time points. " << " (" << sw.lap_s() << ")" << std::endl;
 }
 
 CSV::~CSV(){
@@ -156,6 +150,56 @@ std::string CSV::getData(const int& index, const int& line) const {
     return *(this->data + (line * this->numberOfFields) + index);
 }
 
+int CSV::getBatchData(const std::string& type, const int& start, const int& end, char** dataBuffer) {
+    if (!this->hasData(type)) {
+        std::cerr << "ERROR: Requesting batch fetch for non-existent data type: " << type << std::endl;
+        return -1;
+    }
+
+    if (end < start || start < 0 || end > this->numberOfLines) {
+        throw std::range_error("Illegal bounds.");
+    }
+
+    int index = this->dataOffsets.at(type);
+    int j = 0;
+
+    for (int i = start; i < end; i++) {
+        *(dataBuffer + j++) = *(this->data + (i * this->numberOfFields) + index);
+    }
+
+    return 0;
+}
+
+int CSV::getBatchDataAsFloat(const std::string& type, const int& start, const int& end, float* dataBuffer) {
+    if (!this->hasData(type)) {
+        std::cerr << "ERROR: Requesting batch fetch for non-existent data type: " << type << std::endl;
+        return -1;
+    }
+
+    if (end < start || start < 0 || end > this->numberOfLines) {
+        throw std::range_error("Illegal bounds.");
+    }
+
+    int index = this->dataOffsets.at(type);
+    int j = 0;
+
+    for (int i = start; i < end; i++) {
+        *(dataBuffer + j++) = std::atof(*(this->data + (i * this->numberOfFields) + index));
+    }
+
+    return 0;
+}
+
+std::vector<std::string> CSV::getOrderedData() const {
+    std::vector<std::string> data(this->numberOfFields, "NULL");
+
+    for (std::pair<std::string, int> p : this->dataOffsets) {
+        data[p.second] = p.first;
+    }
+
+    return data;
+}
+
 std::string CSV::getMetric(const std::string& type) {
     if (!(this->dataTypes.count(type) == 1)) {
         std::cerr << "ERROR: Type: " << type << " is not present in the CSV." << std::endl;
@@ -165,7 +209,11 @@ std::string CSV::getMetric(const std::string& type) {
     return this->dataTypes.at(type);
 }
 
-int CSV::numberOfTimePoints() const {
+int CSV::getNumberOfDataTypes() const {
+    return this->numberOfFields;
+}
+
+int CSV::getNumberOfTimePoints() const {
     return this->numberOfLines;
 }
 

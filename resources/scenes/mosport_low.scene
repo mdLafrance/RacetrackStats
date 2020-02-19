@@ -1,0 +1,19 @@
+# Low res mosport track for smaller machines
+
+# Meshes
+C:/Users/maxto/OneDrive/Documents/Mosport/jr_mosport.obj
+C:/Users/maxto/OneDrive/Documents/Mosport/mosport_horizon.obj
+C:/Users/maxto/OneDrive/Documents/Mosport/mosport_vehicles.obj
+C:/Users/maxto/OneDrive/Documents/Mosport/mosport_objects.obj
+
+# Materials
+C:/Users/maxto/OneDrive/Documents/Mosport/jr_mosport.mtl
+C:/Users/maxto/OneDrive/Documents/Mosport/mosport_horizon.mtl
+C:/Users/maxto/OneDrive/Documents/Mosport/mosport_vehicles.mtl
+C:/Users/maxto/OneDrive/Documents/Mosport/mosport_objects.mtl
+
+# Scene ambient light (r g b)
+ambient 0.3 0.3 0.35
+
+# Lights for the scene
+light directional -i 2.5 -v -2 -10 -5 -c 0.65 0.6 0.6 
