@@ -13,6 +13,11 @@ unsigned int Texture::getID() {
 	return this->ID;
 }
 
+void Texture::getWidthHeight(float& w, float& h) {
+	w = this->width;
+	h = this->height;
+}
+
 Texture::Texture(const std::string& target) {
 	if (target == "default") {
 		this->width = 0;

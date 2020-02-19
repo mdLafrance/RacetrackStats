@@ -23,8 +23,8 @@ public:
 	void bind();
 
 	std::string getName();
-
 	unsigned int getID();
+	void getWidthHeight(float& w, float& h);
 
 	Texture(const std::string& target);
 	~Texture();
