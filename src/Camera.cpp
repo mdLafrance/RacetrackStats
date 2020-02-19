@@ -11,7 +11,7 @@ glm::mat4 Camera::projectionViewMatrix() {
 	glm::vec3 x, y, z, e;
 	
 	e = this->transform->position();
-	x =  -1.0f * this->transform->right();
+	x = -this->transform->right();
 	y = this->transform->up();
 	z = this->transform->forward();
 

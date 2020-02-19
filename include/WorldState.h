@@ -7,4 +7,5 @@ struct _WorldState {
 	float ambientLight[3];
 
 	const char* projectRoot;
+	const char* trackDataRoot;
 };

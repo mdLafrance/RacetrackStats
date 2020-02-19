@@ -23,9 +23,6 @@
 
 #include <TSQueue.hpp>
 
-#define WINDOW_DEFAULT_X 1000
-#define WINDOW_DEFAULT_Y 1000
-
 #define MAX_LIGHT_COUNT 8
 
 // Global world state instantiated in main.cpp
@@ -43,6 +40,8 @@ struct Scene {
 class Renderer {
 	GLFWwindow* window;
 
+	GLuint renderTarget;
+
 	Camera* mainCamera;
 
 	std::map<std::string, Texture*> textures;
@@ -54,12 +53,6 @@ class Renderer {
 	std::map<std::string, Object*> objects;
 
 	Scene scene;
-
-	// TSQueue<std::string>* jobs;
-
-	// TSQueue<std::map<std::string, OBJMesh*>>* incomingMeshes;
-	// TSQueue<std::pair<Texture*, Texture*>>* incomingTextures;
-
 
 	unsigned int line_VAO;
 

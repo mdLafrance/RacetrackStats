@@ -155,7 +155,8 @@ Renderer::Renderer(GLFWwindow* window) {
 void Renderer::resetData() {
 	// Create and register default assets.
 	// Default is persp cam
-	Camera* defaultCam = new Camera(45.0f, 1.0f /*WINDOW_DEFAULT_X/WINDOW_DEFAULT_Y*/, 0, 2000);
+	Camera* defaultCam = new Camera(45.0f, 1, 0, 2000);
+
 	defaultCam->transform->setTranslation(glm::vec3(0, 0, -100));
 
 	Shader* defaultShader = new Shader("default", "default");
@@ -360,9 +361,6 @@ Object* Renderer::newObject(const std::string& name) {
 
 void Renderer::tick(const double& dTime) {
 	++this->frameCount;
-	if (this->frameCount % 10 == 0){
-		std::cout << '\r' << (1/dTime) << " fps";
-	}
 
 	float translation[3] = { 0,0,0 };
 	float rotation[2] = { 0,0 };
