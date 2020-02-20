@@ -2,6 +2,12 @@
 
 namespace Utils
 {
+	int clampInt(const int& x, const int& min, const int& max) {
+		if (x < min) return min;
+		if (x > max) return max;
+		return x;
+	}
+
 	std::vector<std::string> split(const std::string& s, char delimiter) {
 		std::vector<std::string> splitString;
 

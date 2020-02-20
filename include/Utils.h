@@ -24,6 +24,9 @@ namespace Utils
 		std::string extension; // py
 	} FileInfo;
 
+	// Misc utility
+	int clampInt(const int& x, const int& min, const int& max);
+
 	// String manipulation utility
 	std::vector<std::string> split(const std::string& s, char delimiter);
 	std::string getFileNameNoExtension(const std::string& target);
