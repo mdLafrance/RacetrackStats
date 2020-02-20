@@ -147,7 +147,13 @@ std::string CSV::getData(const int& index, const int& line) const {
         throw std::out_of_range("Index is out of range.");
     }
 
-    return *(this->data + (line * this->numberOfFields) + index);
+	char* ptr = *(this->data + (line * this->numberOfFields) + index);
+
+	if (ptr == nullptr){
+		return "";
+	} else {
+		return ptr;
+	}
 }
 
 int CSV::getBatchData(const std::string& type, const int& start, const int& end, char** dataBuffer) {
