@@ -168,8 +168,6 @@ void Renderer::resetData() {
 	// Default is persp cam
 	Camera* defaultCam = new Camera(45.0f, 1, 0, 2000);
 
-	defaultCam->transform->setTranslation(glm::vec3(0, 0, -100));
-
 	Shader* defaultShader = new Shader("default", "default");
 	Shader* diffuseShader = new Shader(
 		std::string(WorldState.projectRoot) + "/resources/shaders/diffuse.vert", 
