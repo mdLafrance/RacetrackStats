@@ -15,16 +15,16 @@
 #define TEXTURE_LOCATION_map_Kd 0
 #define TEXTURE_LOCATION_map_Ka 1
 #define TEXTURE_LOCATION_map_Ks 2
-#define TEXTURE_LOCATION_norm 3
+#define TEXTURE_LOCATION_norm   3
 
 #define MATERIAL_USE_map_Kd   1
-#define MATERIAL_USE_map_Ks   2
-#define MATERIAL_USE_map_norm 4
-#define MATERIAL_USE_Ka       8
-#define MATERIAL_USE_Kd       16
-#define MATERIAL_USE_Ks       32
-#define MATERIAL_USE_Ns       64
-#define MATERIAL_USE_Tr       128
+#define MATERIAL_USE_map_Ks   1 << 1
+#define MATERIAL_USE_map_norm 1 << 2
+#define MATERIAL_USE_Ka       1 << 3
+#define MATERIAL_USE_Kd       1 << 4
+#define MATERIAL_USE_Ks       1 << 5
+#define MATERIAL_USE_Ns       1 << 6
+#define MATERIAL_USE_Tr       1 << 7
 
 
 struct Material {

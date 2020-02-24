@@ -26,6 +26,8 @@ namespace Utils
 
 	// Misc utility
 	int clampInt(const int& x, const int& min, const int& max);
+	float clampFloat(const float& x, const float& min, const float& max);
+	int signInt(const int& x);
 
 	// String manipulation utility
 	std::vector<std::string> split(const std::string& s, char delimiter);

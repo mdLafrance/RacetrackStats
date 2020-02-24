@@ -25,6 +25,9 @@ glm::mat4 Camera::projectionViewMatrix() {
 
 	return this->proj * view;
 }
+void Camera::setPerspectiveProjMatrix(const float& fov, const float& aspect, const float& zMin, const float& zMax) {
+	this->proj = glm::perspective(fov, aspect, zMin, zMax);
+}
 
 Camera::Camera(const float& fov, const float& aspect, const float& zMin, const float& zMax) {
 	// Constructor for perspective camera

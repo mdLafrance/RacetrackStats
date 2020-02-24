@@ -75,10 +75,11 @@ namespace OBJ
 			int numOfFaces = faceIndeces.size() / 9; // 3 components per 3 verteces per face
 
 			std::string fullName = fi.file + '.' + groupName;
+			std::string fullParentName = groupParent.size() == 0 ? "" : fi.file + '.' + groupParent;
 
 			std::cout << "Writing vertex data for " << groupName << " (" << numOfFaces << " tris, ";
 
-			currentObject = new OBJMesh(fullName, Utils::getFileInfo(materialLibrary).file + '.' + materialName, groupParent, target, numOfFaces, numOfPositions, numOfNormals, numOfTexCoords);
+			currentObject = new OBJMesh(fullName, Utils::getFileInfo(materialLibrary).file + '.' + materialName, fullParentName, target, numOfFaces, numOfPositions, numOfNormals, numOfTexCoords);
 
 			if ((3 * 8 * numOfFaces) > dataSize){
 				delete[] data;
@@ -130,10 +131,6 @@ namespace OBJ
 				goto nextline;
 			}
 
-			if (collectingFaces && !(firstWord[0] == 'f')) {
-				closeObject();
-			}
-
 			if (strcmp(firstWord, "mtllib") == 0) {
 				fscanf(f, "%s", line); 
 				materialLibrary = std::string(line);
@@ -149,6 +146,11 @@ namespace OBJ
 
 			// New group
 			if (firstWord[0] == 'g') {
+				// If we were previously writing to an object, save the vertices and data for that object.
+				if (faceIndeces.size() != 0) {
+					closeObject();
+				}
+
 				fgets(line, sizeof(line), f);
 
 				std::vector<std::string> tokens = Utils::split(std::string(line), ' ');

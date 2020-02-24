@@ -8,6 +8,16 @@ namespace Utils
 		return x;
 	}
 
+	float clampFloat(const float& x, const float& min, const float& max) {
+		if (x < min) return min;
+		if (x > max) return max;
+		return x;
+	}
+
+	int signInt(const int& x) {
+		return x >= 0 ? 1 : -1;
+	}
+
 	std::vector<std::string> split(const std::string& s, char delimiter) {
 		std::vector<std::string> splitString;
 

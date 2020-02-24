@@ -15,7 +15,7 @@ class Camera {
 
 	glm::mat4 proj;
 
-	bool isMainCam;
+	bool isMainCam = false;
 
 public:
 	Transform* transform;
@@ -23,6 +23,8 @@ public:
 	CameraType getType();
 
 	glm::mat4 projectionViewMatrix();
+
+	void setPerspectiveProjMatrix(const float& fov, const float& aspect, const float& zMin, const float& zMax);
 
 	// Perpective camera
 	Camera(const float& fov, const float& aspect, const float& zMin, const float& zMax);

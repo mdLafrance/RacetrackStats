@@ -21,6 +21,8 @@ struct _GuiState {
 	float mapTextureDimensions[2] = { 0,0 };
 
 	double fps; 
+
+	bool cameraSettingsChanged = false;
 	
 	// Render states
 	float FOV;
@@ -28,13 +30,15 @@ struct _GuiState {
 	float farClipPlane;
 	float brightness;
 
+	bool lineWidthChanged = false;
+	float lineWidth = 1;
+	float glLineWidthRange[2];
+
 	// Cached Data fields
 	bool* dataFieldsEnabled = nullptr; // for some reason, bool vector returns proxy reference in [] operator in stl
 	std::vector<std::string> dataFields;
 	int numberOfDataTypes;
 	int numberOfTimePoints;
-
-	float* TEST;
 
     // Gui states
     int timelinePosition = 0;
@@ -96,26 +100,32 @@ void drawUI(_GuiState& state) {
 			ImGui::Separator();
 
 			// RENDER OPTIONS
-			// TODO: make these work
 
 			ImGui::Text("Render Options");
 			ImGui::Separator();
 
 			ImGui::Text("FOV");
 			ImGui::SameLine(300, 0);
-			ImGui::InputFloat("##FOV", &state.FOV, 0, 0, "%.2f");
+			if (ImGui::InputFloat("##FOV", &state.FOV, 0, 0, "%.2f")) state.cameraSettingsChanged = true;
 
 			ImGui::Text("Near Clip Plane");
 			ImGui::SameLine(300, 0);
-			ImGui::InputFloat("##Near Clip Plane", &state.nearClipPlane, 0, 0, "%.2f");
+			if (ImGui::InputFloat("##Near Clip Plane", &state.nearClipPlane, 0, 0, "%.2f")) state.cameraSettingsChanged = true;
 
 			ImGui::Text("Far Clip Plane");
 			ImGui::SameLine(300, 0);
-			ImGui::InputFloat("##Far Clip Plane", &state.farClipPlane, 0, 0, "%.2f");
+			if (ImGui::InputFloat("##Far Clip Plane", &state.farClipPlane, 0, 0, "%.2f")) state.cameraSettingsChanged = true;
 
-			ImGui::Text("Brightness");
+			ImGui::Text("Brightness +/-");
 			ImGui::SameLine(300, 0);
 			ImGui::SliderFloat("##Brightness", &state.brightness, -1, 1);
+
+			// gl may not enable line width changes, in which case the max is 1
+			if (state.glLineWidthRange[1] > 1) {
+				ImGui::Text("Line Width");
+				ImGui::SameLine(300, 0);
+				if (ImGui::SliderFloat("##Line Widdth", &state.lineWidth, state.glLineWidthRange[0], Utils::clampFloat(state.glLineWidthRange[1], 1, 10))) state.lineWidthChanged = true;
+			}
 			
 			ImGui::EndMenu();
 		}
@@ -145,14 +155,12 @@ void drawUI(_GuiState& state) {
             // Add all toggles for data types
 			for (int i = 0; i < state.dataFields.size(); i++) {
 				ImGui::Checkbox(state.dataFields[i].c_str(), state.dataFieldsEnabled + i);
+				if (*(state.dataFieldsEnabled + i)) {
+					ImGui::Button("asdf");
+				}
 			}
 		}
 	} // Data type dropdown
-
-    // Main Graph
-	if (state.TEST) {
-		ImGui::PlotLines("Data", state.TEST, 20, 0, 0, 0, 1000000, ImVec2(X, 50), 1);
-	}
 
 	ImGui::End(); // Data Panel
 
@@ -189,7 +197,7 @@ void drawUI(_GuiState& state) {
 		}
 		else {
 			state.isPlaying = true;
-			state.timelinePosition += 1;
+			state.timelinePosition += Utils::signInt(state.playbackSpeed);
 		}
 	}
 

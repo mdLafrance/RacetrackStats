@@ -55,6 +55,17 @@ _WorldState WorldState = {
 static CSV* currentData;
 static bool frameSizeChanged = false;
 
+void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	// Spacebar to play/pause
+	if (key ==  GLFW_KEY_SPACE && action == GLFW_PRESS) {
+		GuiState.isPlaying = !GuiState.isPlaying;
+	}
+
+	// Arrow keys to nudge timeline
+	if (key ==  GLFW_KEY_LEFT && action == GLFW_PRESS) GuiState.timelinePosition -= GuiState.tickSkipAmount;
+	if (key ==  GLFW_KEY_RIGHT && action == GLFW_PRESS) GuiState.timelinePosition += GuiState.tickSkipAmount;
+}
+
 int main(int argc, char** argv) {
 	// Init Context
 	glfwInit();
@@ -74,9 +85,6 @@ int main(int argc, char** argv) {
 		frameSizeChanged = true;
 	};
 
-	glfwSetWindowSizeCallback(window, windowResizeCallbackFunction);
-	glfwSetErrorCallback(Utils::glfwErrorCallbackFunction);
-
 	// Initialize renderer
 	bool onMSI = std::getenv("MSI") != nullptr;
 
@@ -91,7 +99,20 @@ int main(int argc, char** argv) {
 	}
 
 	Renderer* renderer = new Renderer(window);
-	// renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/mosport_low.scene");
+	//renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/mosport_low.scene");
+	renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/testingScene_laptop.scene");
+
+	Transform* rootTransform = new Transform();
+
+	Transform* tempTransform;
+
+	// TODO: maybe overhaul object->mesh relationship, made that while learning
+	// for (std::pair<std::string, Object*> p : renderer->objects) {
+	// 	if (p.first.rfind("BMW_M3_E92.", 0) == 0) { // If startswith bmw prefix
+	// 		tempTransform = p.second->transform;
+	// 		tempTransform->setParent(rootTransform);
+	// 	}
+	// }
 
 	// Initialize imgui
 	IMGUI_CHECKVERSION();
@@ -108,18 +129,30 @@ int main(int argc, char** argv) {
 	::GuiState.fontSize = io.FontGlobalScale;
 	::GuiState.fps = 0;
 
+	::GuiState.nearClipPlane = 1;
+	::GuiState.farClipPlane = 1000;
+	::GuiState.FOV = 45.0f;
+
+	glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, ::GuiState.glLineWidthRange);
+
 	// Load track map texture
 	Texture* mapTexture = new Texture(std::string(WorldState.trackDataRoot) + "/ui/outline.png");
 
 	::GuiState.mapTexture = mapTexture->getID();
 	mapTexture->getWidthHeight(::GuiState.mapTextureDimensions[0], ::GuiState.mapTextureDimensions[1]);
 
+	glViewport(0, WorldState.windowY / 2, WorldState.windowX, WorldState.windowY);
+
+	// Initialize variables that will fluctuate over the runtime of the scene
+
+	// To accomodate for brightness slider, kind of just for fun
+	float originalAmbientLight[3];
+	memcpy(originalAmbientLight, WorldState.ambientLight, 3 * sizeof(float));
+
 	std::chrono::time_point<std::chrono::steady_clock> t1, t2;
 
 	double dTime = 0;
 	double seconds0 = glfwGetTime();
-
-	glViewport(0, WorldState.windowY / 2, WorldState.windowX, WorldState.windowY);
 
 	// Need to aggregate frame increase for playing over multiple frames, since can only tick in int amounts
 	float tickTotal = 0;
@@ -127,19 +160,30 @@ int main(int argc, char** argv) {
 	// If user hasn't ticked forward the playback, dont need to redraw
 	int previousTick = -1;
 
+	// Set glfw callbacks
+	glfwSetKeyCallback(window, keyPressCallback);
+	glfwSetWindowSizeCallback(window, windowResizeCallbackFunction);
+	glfwSetErrorCallback(Utils::glfwErrorCallbackFunction);
+
+	// renderer->getMainCamera()->transform->setTranslation(glm::vec3(577.466, -12.166, 6.49934));
+
 	while (!glfwWindowShouldClose(window)) {
+		t1 = std::chrono::steady_clock::now();
+
+		// Calculate fps of last frame, pass to gui
 		if ((glfwGetTime() - seconds0) > 0.1) {
 			GuiState.fps = 1/dTime;
 			seconds0 = glfwGetTime();
 		}
 
-		// Process user input from the previous gui frame
+		//
+		// Process user input to the gui from the previous frame
+		//
 
 		// If load new scene clicked
 		if (GuiState.selected_menu_File_Open) {
-			if (GuiState.dataFieldsEnabled != nullptr) {
-				delete[] GuiState.dataFieldsEnabled;
-			}
+			if (GuiState.dataFieldsEnabled != nullptr) delete[] GuiState.dataFieldsEnabled;
+			if (currentData != nullptr) delete currentData;
 
 			currentData = new CSV(std::string(WorldState.projectRoot) + "/resources/laps/mosport1.csv");
 
@@ -148,10 +192,6 @@ int main(int argc, char** argv) {
 			GuiState.dataFields = currentData->getOrderedData();
 			GuiState.dataFieldsEnabled = new bool[GuiState.numberOfDataTypes];
 			GuiState.sceneOpen = true;
-
-			// FOR TESTING
-			GuiState.TEST = new float[50];
-			currentData->getBatchDataAsFloat("Distance", 0, 50, GuiState.TEST);
 
 			// Start off with all data disabled
 			memset(GuiState.dataFieldsEnabled, 0, GuiState.numberOfDataTypes);
@@ -162,7 +202,7 @@ int main(int argc, char** argv) {
 			tickTotal += abs(GuiState.playbackSpeed) * dTime; // sign agnostic to allow for backwards playing
 
 			while (tickTotal > 1){
-				GuiState.timelinePosition += 1;// GuiState.playbackSpeed;
+				GuiState.timelinePosition += Utils::signInt(GuiState.playbackSpeed);
 				--tickTotal;
 				// just for testing
 				for (int i = 0; i < GuiState.numberOfDataTypes; i++){
@@ -178,33 +218,58 @@ int main(int argc, char** argv) {
 			tickTotal = 0;
 		}
 
+		if (GuiState.lineWidthChanged) {
+			renderer->setLineWidth(GuiState.lineWidth);
+			GuiState.lineWidthChanged = false;
+		}
+
+		//
+		// Handle resize of window, and update to camera settings through ui
+		//
+
+		// If user dragged window size around
+		if (frameSizeChanged) {
+			glfwGetFramebufferSize(window, &::WorldState.windowX, &::WorldState.windowY);
+			glViewport(0, WorldState.windowY / 2, WorldState.windowX, WorldState.windowY);
+
+			GuiState.cameraSettingsChanged = true; // force new perpective matrix
+			frameSizeChanged = false;
+		}
+
+		// If camera settings changed, build new view matrix
+		if (GuiState.cameraSettingsChanged) {
+			renderer->getMainCamera()->setPerspectiveProjMatrix(GuiState.FOV, (float)WorldState.windowX/WorldState.windowY, GuiState.nearClipPlane, GuiState.farClipPlane);
+			GuiState.cameraSettingsChanged = false;
+		}
+
+		// Adjust brightness based on brightness slider
+		WorldState.ambientLight[0] = originalAmbientLight[0] + GuiState.brightness;
+
+		renderer->getMainCamera()->transform->setParent(rootTransform);
+		WorldState.ambientLight[1] = originalAmbientLight[1] + GuiState.brightness;
+		WorldState.ambientLight[2] = originalAmbientLight[2] + GuiState.brightness;
+
+		// Update ui font size
 		io.FontGlobalScale = GuiState.fontSize;
 
+		// done gui handling
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// If frame size changed, update appropriate fields
-		// TODO: Update camera view, right now it just stretches
-		if (frameSizeChanged) {
-			glfwGetFramebufferSize(window, &::WorldState.windowX, &::WorldState.windowY);
-			
-			// For now, instead of framebuffer -> image, just render where the image would be
-			// might not be a bad idea instead anyways
-			glViewport(0, WorldState.windowY / 2, WorldState.windowX, WorldState.windowY);
-		}
-
-		t1 = std::chrono::steady_clock::now();
-
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		
+
+		// std::cout << '\r' << vec3ToString(renderer->getMainCamera()->transform->position());
+
+		// Draw renderable elements
 		renderer->tick(dTime);
 
+		// Draw GUI elements
 		drawUI(GuiState);
 
-		// Render dear imgui into screen
+		// Render dear imgui onto screen
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

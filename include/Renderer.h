@@ -50,11 +50,7 @@ class Renderer {
 	std::map<std::string, Material*> materials;
 	std::map<std::string, Camera*> cameras;
 
-	std::map<std::string, Object*> objects;
-
 	Scene scene;
-
-	unsigned int line_VAO;
 
 	int numOfLights;
 	Light lights[MAX_LIGHT_COUNT];
@@ -65,7 +61,12 @@ class Renderer {
 
 	long int frameCount;
 
+	float lineWidth;
+	float lineWidthMax = 1;
+
 public:
+	std::map<std::string, Object*> objects;
+
 	void loadScene(const std::string& target);
 	void loadMaterialLibrary(const std::string& target);
 	void loadOBJ(const std::string& target);
@@ -77,13 +78,18 @@ public:
 	void registerCamera(const std::string& id, Camera* camera);
 
 	Object* newObject(const std::string& name);
+	Object* getObject(const std::string& name);
 
 	Camera* getMainCamera();
 	void setMainCamera(const std::string& id);
 
-	void drawLine(const glm::vec3& origin, const glm::vec3& end, const glm::vec4& color);
+	// Draw a line of <color> from <origin> to <end> (in world space).
+	// drawOver=true will cause the line to draw on top of all other scene elements.
+	void drawLine(const glm::vec3& origin, const glm::vec3& end, const glm::vec3& color, bool drawOver=true);
 
 	void tick(const double& dTime);
+
+	void setLineWidth(const float& w);
 	
 	Renderer(GLFWwindow* window);
 	~Renderer();

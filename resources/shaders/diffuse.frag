@@ -1,9 +1,9 @@
 #version 330 core
 
 // Same flags values as in Material.h
-#define MATERIAL_USE_map_Kd 1
-#define MATERIAL_USE_map_Ks 2
-#define MATERIAL_USE_map_norm 4
+#define MATERIAL_USE_map_Kd   1
+#define MATERIAL_USE_map_Ks   1 << 1
+#define MATERIAL_USE_map_norm 1 << 2
 
 // Uniforms
 uniform mat4 MV;
@@ -87,12 +87,11 @@ void main() {
 			// Diffuse 
 			Iout += NdotL * intensity * vec3(diffuse.x * light_color.x, diffuse.y * light_color.y, diffuse.z * light_color.z);
 
-			continue;
+			continue; // spec behaving really strangely, fix after main features are done
 			// Spec
 			R = ((2.0 * NdotL) * N) - light_v;
 			RdotV = dot(R, vec3(MV* vec4(cameraForward,1)));
 			
-			// specular not working?
 			if (RdotV > 0.0){
 				Iout += pow(RdotV, Ns) * vec3(specular.x * light_color.x, specular.y * light_color.y, specular.z * light_color.z);
 			}
@@ -101,5 +100,4 @@ void main() {
 	}
 
 	FragColor = vec4(Iout, diffuse_alpha);
-
 }

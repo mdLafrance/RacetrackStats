@@ -20,24 +20,6 @@ CSV::CSV(const std::string& target) {
 
     char line[2048];
 
-    fgets(line, sizeof(line), f);
-
-    rewind(f);
-
-    // Count number of named fields for file
-    this->numberOfFields = Utils::stringCount(&line[0], ',') + 1;
-
-    // Count number of lines
-    while (fgets(line, sizeof(line), f)) {
-        ++this->numberOfLines;
-    }
-
-    --this->numberOfLines; // Dont want to include line defining types
-
-    this->data = new char* [this->numberOfFields * this->numberOfLines];
-
-    rewind(f);
-
     int i = 0; // Position in line
     int lineNumber = 0;
     int lineOffset = 0;
@@ -47,7 +29,7 @@ CSV::CSV(const std::string& target) {
     int wordLength = 0;
     char word[256];
 
-    // Parse first line into data fields
+    // Parse first line for named data fields
     fgets(line, sizeof(line), f);
 
     std::string line_s = std::string(line);
@@ -57,14 +39,35 @@ CSV::CSV(const std::string& target) {
     std::string dataName;
     std::string dataType;
 
+    int nullCounter = 0; // Create unique NULL<number> name for null named fields. (is there ever going to be more than 1?)
+
+    // For each comma separated name of data field
     for (std::string t : Utils::split(line_s, ',')) {
-        std::pair<std::string, std::string> dataAndType = CSV::splitNameAndType(t);
+        std::pair<std::string, std::string> dataAndType;
+
+        // If data type is not give, identify it with unique null name, just in case
+        if (t.size() == 0){
+            dataAndType.first = "NULL" + std::to_string(nullCounter++);
+            dataAndType.second = "";
+        } else {
+            dataAndType = CSV::splitNameAndType(t);        
+        }
 
         this->dataOffsets[dataAndType.first] = i++;
         this->dataTypes[dataAndType.first] = dataAndType.second;
+
+        ++this->numberOfFields;
     }
 
-    i = 0;
+    // Count number of lines, not including first line defining the types
+    while (fgets(line, sizeof(line), f)) {
+        ++this->numberOfLines;
+    }
+
+    rewind(f);
+    fgets(line, sizeof(line), f); // eat first line we've already parsed
+
+    this->data = new char* [this->numberOfFields * this->numberOfLines];
 
     auto writeWord = [&](){
         word[wordLength] = '\0';
@@ -73,6 +76,8 @@ CSV::CSV(const std::string& target) {
         wordLength = 0;
         ++lineOffset;
     };
+
+    i = 0;
 
     // Parse rest of data by line
     while (fgets(line, sizeof(line), f)) {

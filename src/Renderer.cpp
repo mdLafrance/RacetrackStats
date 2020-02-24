@@ -65,40 +65,46 @@ void Renderer::setMainCamera(const std::string& id){
     }
 }
 
-void Renderer::drawLine(const glm::vec3& origin, const glm::vec3& end, const glm::vec4& color) {
-	// Draw a line from origin to end with given color
+void Renderer::drawLine(const glm::vec3& origin, const glm::vec3& end, const glm::vec3& color, bool drawOver) {
+	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
 
-	float vertices[6] = {
-		origin[0], origin[1], origin[2],
-		end[0], end[1], end[2]
-	};
+	Shader* lineShader = this->shaders.at("line");
+	lineShader->bind();
 
-	float triangle[] = {
-		-0.5, 0.5, 0,
-		-0.5, -0.5, 0,
-		0.5, 0, 0
+	float line[6];
+	memcpy(line, &origin[0], 3 * sizeof(float));
+	memcpy(line + 3, &end[0], 3 * sizeof(float));
 
-	};
+	glDisable(GL_CULL_FACE);
 
-	Shader* shader = this->shaders.at("line");
-	shader->bind();
-	shader->setUniformMatrix4fv("MVP", glm::mat4());
+	if (drawOver) glDisable(GL_DEPTH_TEST);
+
+	GLuint lineVBO, lineVAO;
+
+	glGenBuffers(1, &lineVBO);
+	glGenVertexArrays(1, &lineVAO);
+
+	glBindVertexArray(lineVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+
+	glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), line, GL_STREAM_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	lineShader->setUniformMatrix4fv("u_MVP", VP);
+	lineShader->setUniform3fv("u_color", color);
+
+	glDrawArrays(GL_LINES, 0, 2);
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	unsigned int VBO;
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(triangle), triangle, GL_STREAM_DRAW);
+	glDeleteBuffers(1, &lineVBO);
+	glDeleteVertexArrays(1, &lineVAO);
 
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-	glDrawArrays(GL_TRIANGLES, 0, 3);
-
-	glDeleteBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glEnable(GL_CULL_FACE);
+	if (drawOver) glEnable(GL_DEPTH_TEST);
 }
 
 void Renderer::deleteObjects() {
@@ -138,6 +144,11 @@ Renderer::Renderer(GLFWwindow* window) {
 
 	this->resetData();
 
+	float lineWidthBounds[2];
+	glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, lineWidthBounds);
+	this->lineWidthMax = lineWidthBounds[1];
+	glLineWidth(lineWidthBounds[0]);
+
 	glFrontFace(GL_CCW);
 
 	glEnable(GL_CULL_FACE);
@@ -164,7 +175,10 @@ void Renderer::resetData() {
 		std::string(WorldState.projectRoot) + "/resources/shaders/diffuse.vert", 
 		std::string(WorldState.projectRoot) + "/resources/shaders/diffuse.frag"
 	);
-	Shader* lineShader = new Shader("default", "line");
+	Shader* lineShader = new Shader(
+		std::string(WorldState.projectRoot) + "/resources/shaders/line.vert", 
+		std::string(WorldState.projectRoot) + "/resources/shaders/line.frag"
+	);
 
 	Texture* defaultTexture = new Texture("default");
 
@@ -359,6 +373,15 @@ Object* Renderer::newObject(const std::string& name) {
 	return object;
 }
 
+Object* Renderer::getObject(const std::string& name) {
+	if (this->objects.count(name) != 1) {
+		std::cerr << "Object " << name << " is not registered with renderer.";
+		return nullptr;
+	}
+
+	return this->objects.at(name);
+}
+
 void Renderer::tick(const double& dTime) {
 	++this->frameCount;
 
@@ -488,6 +511,10 @@ void Renderer::tick(const double& dTime) {
 			o->mesh->draw();
 		}
 	}
+	
+	this->drawLine(glm::vec3(), glm::vec3(10, 0, 0), glm::vec3(1, 0, 0));
+	this->drawLine(glm::vec3(), glm::vec3(0, 10, 0), glm::vec3(0, 1, 0));
+	this->drawLine(glm::vec3(), glm::vec3(0, 0, 10), glm::vec3(0, 0, 1));
 
 	/*
 		skybox position = mainCamera.position
@@ -498,4 +525,8 @@ void Renderer::tick(const double& dTime) {
 
 	*/
 
+}
+ 
+void Renderer::setLineWidth(const float& w) {
+	if (1 <= w <= this->lineWidthMax) glLineWidth(w);
 }

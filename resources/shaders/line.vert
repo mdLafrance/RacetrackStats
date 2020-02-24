@@ -1,9 +1,11 @@
 #version 330 core
 
-layout(location = 0) in vec3 vPos;
+layout(location = 0) in vec3 in_Pos;
 
-uniform mat4 MVP;
+uniform mat4 u_MVP;
+uniform mediump vec3 u_color;
 
 void main() {
-	gl_Position = MVP * vec4(vPos.x, vPos.y, vPos.z, 1.0);
+	// gl_Position = vec4(in_Pos, 1.0f);
+	gl_Position = u_MVP * vec4(in_Pos.xyz, 1.0);
 };
