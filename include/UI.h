@@ -25,7 +25,7 @@ struct _GuiState {
 	bool cameraSettingsChanged = false;
 	
 	// Render states
-	float FOV;
+	float FOV = 0.0f;
 	float nearClipPlane;
 	float farClipPlane;
 	float brightness;
@@ -50,9 +50,24 @@ struct _GuiState {
 	bool selected_menu_File = false;
 	bool selected_menu_File_Open = false;
 	bool selected_menu_Options = false;
-	bool selected_menu_Options_doShowMap = true;
-	bool selected_menu_Options_doShowFPSCounter = true;
+	bool doShowMap = true;
+	bool doShowFPSCounter = true;
 };
+
+void setGuiOptionsToDefault(_GuiState& state) {
+	state.doShowFPSCounter = true;
+	state.doShowMap = true;
+
+	state.cameraSettingsChanged = true;
+
+	state.nearClipPlane = 1.0f;
+	state.farClipPlane = 1000.0f;
+	state.brightness = 0.0f;
+	state.FOV = 0.0f;
+
+	state.lineWidth = 1.0f;
+	state.lineWidthChanged = true;
+}
 
 ImVec2 addImVec2(const ImVec2& a, const ImVec2& b) { // + operator not defined??
 	return ImVec2(a[0] + b[0], a[1] + b[1]);
@@ -76,6 +91,8 @@ void drawUI(_GuiState& state) {
 		if (ImGui::BeginMenu("File", &state.selected_menu_File)) {
 			ImGui::MenuItem("Open", NULL, &state.selected_menu_File_Open);
 			ImGui::EndMenu();
+			ImGui::Separator();
+			ImGui::Separator();
 		}
 
 		if (ImGui::BeginMenu("Options", &state.selected_menu_Options)) {
@@ -87,8 +104,8 @@ void drawUI(_GuiState& state) {
 
 			ImGui::Text("GUI Options");
 			ImGui::Separator();
-			ImGui::MenuItem("Show Map", NULL, &state.selected_menu_Options_doShowMap);
-			ImGui::MenuItem("Show FPS Counter", NULL, &state.selected_menu_Options_doShowFPSCounter);
+			ImGui::MenuItem("Show Map", NULL, &state.doShowMap);
+			ImGui::MenuItem("Show FPS Counter", NULL, &state.doShowFPSCounter);
 			ImGui::Text("Font Size");
 			ImGui::SameLine(300, 0);
 			ImGui::PushItemWidth(100);
@@ -104,9 +121,10 @@ void drawUI(_GuiState& state) {
 			ImGui::Text("Render Options");
 			ImGui::Separator();
 
-			ImGui::Text("FOV");
+			const float FOVbounds = 1.0f;
+			ImGui::Text("FOV -/+");
 			ImGui::SameLine(300, 0);
-			if (ImGui::InputFloat("##FOV", &state.FOV, 0, 0, "%.2f")) state.cameraSettingsChanged = true;
+			if (ImGui::SliderFloat("##FOV", &state.FOV, -FOVbounds, FOVbounds)) state.cameraSettingsChanged = true;
 
 			ImGui::Text("Near Clip Plane");
 			ImGui::SameLine(300, 0);
@@ -126,6 +144,12 @@ void drawUI(_GuiState& state) {
 				ImGui::SameLine(300, 0);
 				if (ImGui::SliderFloat("##Line Widdth", &state.lineWidth, state.glLineWidthRange[0], Utils::clampFloat(state.glLineWidthRange[1], 1, 10))) state.lineWidthChanged = true;
 			}
+
+			ImGui::Separator();
+			ImGui::Separator();
+
+			ImGui::PushItemWidth(300);
+			if (ImGui::Button("Reset to Defaults")) setGuiOptionsToDefault(state);
 			
 			ImGui::EndMenu();
 		}
@@ -156,7 +180,6 @@ void drawUI(_GuiState& state) {
 			for (int i = 0; i < state.dataFields.size(); i++) {
 				ImGui::Checkbox(state.dataFields[i].c_str(), state.dataFieldsEnabled + i);
 				if (*(state.dataFieldsEnabled + i)) {
-					ImGui::Button("asdf");
 				}
 			}
 		}
@@ -225,7 +248,7 @@ void drawUI(_GuiState& state) {
 	ImGui::End(); // Timeline Panel
 
 	// Overlayed map image
-	if (state.selected_menu_Options_doShowMap) {
+	if (state.doShowMap) {
 		ImVec2 mapDimensions(state.mapTextureDimensions[0], state.mapTextureDimensions[1]); // Add vertical padding for title
 		ImGui::SetNextWindowSize(addImVec2(mapDimensions, ImVec2(state.padding, 0 /*menuBarHeight*/ + state.padding)), 0);
 		ImGui::SetNextWindowPos(ImVec2(X, menuBarHeight), 0, ImVec2(1,0));
@@ -235,7 +258,7 @@ void drawUI(_GuiState& state) {
 	}
 
 	// FPS overlay
-	if (state.selected_menu_Options_doShowFPSCounter) {
+	if (state.doShowFPSCounter) {
 		ImVec2 fpsOverlaySize(state.fontSize * 65, (state.fontSize * 17) + 10);
 		// Generate fps readout text of the form <### fps\0>
 		char fpsReadout[8];

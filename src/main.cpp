@@ -99,8 +99,8 @@ int main(int argc, char** argv) {
 	}
 
 	Renderer* renderer = new Renderer(window);
-	//renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/mosport_low.scene");
-	renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/testingScene_laptop.scene");
+	renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/mosport_low.scene");
+	// renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/testingScene_laptop.scene");
 
 	Transform* rootTransform = new Transform();
 
@@ -127,11 +127,8 @@ int main(int argc, char** argv) {
 
 	// Initialize some default GUI values
 	::GuiState.fontSize = io.FontGlobalScale;
-	::GuiState.fps = 0;
 
-	::GuiState.nearClipPlane = 1;
-	::GuiState.farClipPlane = 1000;
-	::GuiState.FOV = 45.0f;
+	setGuiOptionsToDefault(GuiState);
 
 	glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, ::GuiState.glLineWidthRange);
 
@@ -168,6 +165,7 @@ int main(int argc, char** argv) {
 	// renderer->getMainCamera()->transform->setTranslation(glm::vec3(577.466, -12.166, 6.49934));
 
 	while (!glfwWindowShouldClose(window)) {
+
 		t1 = std::chrono::steady_clock::now();
 
 		// Calculate fps of last frame, pass to gui
@@ -238,7 +236,7 @@ int main(int argc, char** argv) {
 
 		// If camera settings changed, build new view matrix
 		if (GuiState.cameraSettingsChanged) {
-			renderer->getMainCamera()->setPerspectiveProjMatrix(GuiState.FOV, (float)WorldState.windowX/WorldState.windowY, GuiState.nearClipPlane, GuiState.farClipPlane);
+			renderer->getMainCamera()->setPerspectiveProjMatrix(45.0f + GuiState.FOV, (float)WorldState.windowX/WorldState.windowY, GuiState.nearClipPlane, GuiState.farClipPlane);
 			GuiState.cameraSettingsChanged = false;
 		}
 
@@ -257,21 +255,29 @@ int main(int argc, char** argv) {
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-
 		// std::cout << '\r' << vec3ToString(renderer->getMainCamera()->transform->position());
 
 		// Draw renderable elements
 		renderer->tick(dTime);
+		renderer->drawLine(glm::vec3(-50, 50, 50), glm::vec3(50, 0, -50), glm::vec3(1.0f, 0.0f, 1.0f));
 
-		// Draw GUI elements
-		drawUI(GuiState);
+		// Minimized window (0 by 0) causes imgui to crash, currently this is a test for fix
+		int windowSize[2];
+		glfwGetFramebufferSize(window, &windowSize[0], &windowSize[1]);
 
-		// Render dear imgui onto screen
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		if (true){//!(windowSize[0] == 0 || windowSize[1] == 0)) {
+			// std::cout << windowSize[0] << ' ' << windowSize[1] << std::endl;
+			ImGui_ImplOpenGL3_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
+
+			// Draw GUI elements
+			drawUI(GuiState);
+
+			// Render dear imgui onto screen
+			ImGui::Render();
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		}
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
