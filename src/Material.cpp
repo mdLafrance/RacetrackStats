@@ -110,6 +110,9 @@ void Material::bind(){
 	this->shader->setUniform3fv("Kd", this->Kd);
 	this->shader->setUniform3fv("Ks", this->Ks);
 
+	// set Tr
+	glUniform1f(glad_glGetUniformLocation(this->shader->programID(), "Tr"), this->Tr);
+
 	glUniform1i(glad_glGetUniformLocation(this->shader->programID(), "flags"), this->flags);
 
 	if (this->checkFlag(MATERIAL_USE_map_Kd)) {

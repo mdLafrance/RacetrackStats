@@ -99,7 +99,12 @@ int main(int argc, char** argv) {
 	}
 
 	Renderer* renderer = new Renderer(window);
-	renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/mosport_low.scene");
+
+	// Load car, and racetrack
+	// renderer->loadOBJ(std::string(WorldState.projectRoot) + "/resources/models/BMW/BMW_M3_E92.obj");
+	// renderer->loadMaterialLibrary(std::string(WorldState.projectRoot) + "/resources/models/BMW/BMW.mtl");
+
+	//renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/mosport_low.scene");
 	// renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/testingScene_laptop.scene");
 
 	Transform* rootTransform = new Transform();

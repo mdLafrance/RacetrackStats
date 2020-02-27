@@ -18,7 +18,10 @@ struct _GuiState {
 	int padding = 17;
 
 	unsigned int mapTexture;
-	float mapTextureDimensions[2] = { 0,0 };
+	float mapTextureDimensions[2] = { 0, 0 };
+
+	unsigned int playButtonTexture;
+	float playButtonTextureDimensions[2] = { 0, 0 };
 
 	double fps; 
 
@@ -226,7 +229,9 @@ void drawUI(_GuiState& state) {
 
 	// Back and forward buttons
 	ImGui::SetCursorPos(ImVec2(halfX - halfArrowButtonDimensions - arrowButtonOffset, timeLineButtonLocalVerticalAlign + halfDiff));
-	if (ImGui::Button("back", bfDimensions)) state.timelinePosition -= state.tickSkipAmount;
+	ImGui::PushItemWidth(arrowButtonDimensions);
+	ImGui::ArrowButton("back", ImGuiDir_Left);
+	//if (ImGui::Button("back", bfDimensions)) state.timelinePosition -= state.tickSkipAmount;
 
 	ImGui::SetCursorPos(ImVec2(halfX - halfArrowButtonDimensions + arrowButtonOffset, timeLineButtonLocalVerticalAlign + halfDiff));
 	if (ImGui::Button("forward", bfDimensions)) state.timelinePosition += state.tickSkipAmount;
