@@ -81,6 +81,8 @@ namespace OBJ
 
 			currentObject = new OBJMesh(fullName, Utils::getFileInfo(materialLibrary).file + '.' + materialName, fullParentName, target, numOfFaces, numOfPositions, numOfNormals, numOfTexCoords);
 
+                        // Using one chunk of memory to hold all vertex info before copying to VBO for objects
+                        // If the new object uses more space than the last one, grow the buffer.
 			if ((3 * 8 * numOfFaces) > dataSize){
 				delete[] data;
 				dataSize = 3 * 8 * numOfFaces;
@@ -238,7 +240,7 @@ namespace OBJ
 						index[k] = '\0';
 						k = 0;
 
-						faceIndeces.push_back(std::stof(index) - 1);
+						faceIndeces.push_back(std::stof(index) - 1); // Indeces in .obj are 1-indexed, convert to 0-index
 					}
 
 					c = line[++i];
@@ -282,6 +284,8 @@ unsigned int OBJMesh::getNumberOfFaces() {
 }
 
 void OBJMesh::generateBuffers(float* data) {
+        // TODO: use EBO instead?
+
 	// Generate and bind VAO for this mesh
 	glGenVertexArrays(1, &this->VAO);
 	glBindVertexArray(this->VAO);
@@ -315,7 +319,7 @@ void OBJMesh::bind() {
 }
 
 int OBJMesh::getApproxBytes() {
-	return (sizeof(float) * (3 * (numOfPositions + numOfNormals)) + (2 * numOfTexCoords));
+	return (sizeof(float) * (3 * (numOfPositions + numOfNormals)) + (2 * numOfTexCoords)); // TODO: this is outdated
 }
 
 void OBJMesh::draw() {

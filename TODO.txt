@@ -1,0 +1,14 @@
+known bugs:
+-renderer doesn't free all memory on destroy or load new scene
+-alpha
+-imgui minimize window crash
+-spec doesn't work on diffuse shader
+
+TODO:
+-fix alpha
+-skybox
+-match gps coordinates
+-fix transform child offset
+-config file definition 
+-vector options for values (need transform fix first)
+-ui buttons

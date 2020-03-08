@@ -12,11 +12,17 @@
 
 static const char DIRECTORY_SEPARATOR = '/';
 
+static int __log_level__ = 0;
+
 namespace Utils 
 {
 	static const float PI = 3.14159265359;
 	static const float DEG2RAD = 0.0174533;
 	static const float RAD2DEG = 57.2958;
+
+	const unsigned int LogLevel_Diagnostic = 0; // Log everything
+	const unsigned int LogLevel_Debug = 1; // Log extra details pertaining to debugging information 
+	const unsigned int LogLevel_Runtime = 2; // Log only things relevant to the user experience at runtime
 
 	typedef struct { // D:/foo/bar/baz.py
 		std::string directory; // D:/foo/bar
@@ -43,6 +49,11 @@ namespace Utils
 
 	// Opengl Callbacks
 	void glfwErrorCallbackFunction(int ecode, const char* info);
+
+	// Logging utility
+	inline void log(const std::string& message, const int& logLevel = 0);
+
+	void setLogLevel(const unsigned int& level);
 
 	// Utility class to time lengths of functions 
 	class StopWatch {
