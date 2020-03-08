@@ -14,24 +14,24 @@ extern _WorldState WorldState;
 struct _GuiState {
 	// Global states
 	bool sceneOpen = false;
-	float fontSize;
+	float fontSize = 1.0f;
 	int padding = 17;
 
-	unsigned int mapTexture;
+	unsigned int mapTexture = 0;
 	float mapTextureDimensions[2] = { 0, 0 };
 
-	unsigned int playButtonTexture;
+	unsigned int playButtonTexture = 0;
 	float playButtonTextureDimensions[2] = { 0, 0 };
 
-	double fps; 
+	double fps = 0.0; 
 
 	bool cameraSettingsChanged = false;
 	
 	// Render states
 	float FOV = 0.0f;
-	float nearClipPlane;
-	float farClipPlane;
-	float brightness;
+	float nearClipPlane = 0.0f;
+	float farClipPlane = 100.0f;
+	float brightness = 0.0f;
 
 	bool lineWidthChanged = false;
 	float lineWidth = 1;
@@ -40,8 +40,8 @@ struct _GuiState {
 	// Cached Data fields
 	bool* dataFieldsEnabled = nullptr; // for some reason, bool vector returns proxy reference in [] operator in stl
 	std::vector<std::string> dataFields;
-	int numberOfDataTypes;
-	int numberOfTimePoints;
+	int numberOfDataTypes = 0;
+	int numberOfTimePoints = 0;
 
     // Gui states
     int timelinePosition = 0;
