@@ -134,6 +134,8 @@ void Renderer::deleteObjects() {
 }
 
 Renderer::Renderer(GLFWwindow* window) {
+	std::cout << "Initializing renderer..." << std::endl << std::endl;
+
 	this->window = window;
 
 	glfwMakeContextCurrent(window);
@@ -212,7 +214,7 @@ void Renderer::loadScene(const std::string& target) {
 
 	Utils::StopWatch timer;
 
-	std::cout << "Loading Scene " << target << "..." << std::endl;
+	std::cout << std::endl << "Loading Scene " << target << "..." << std::endl;
 
 	this->scene.name = Utils::getFileInfo(target).file;
 	this->scene.path = target;
@@ -334,7 +336,8 @@ void Renderer::loadScene(const std::string& target) {
 }
 
 void Renderer::loadMaterialLibrary(const std::string& target) {
-	std::cout << "Loading material library " << target << std::endl;
+	std::cout << std::endl << "Loading material library " << target << std::endl << std::endl;
+
 	Utils::FileInfo fi = Utils::getFileInfo(target);
 
 	std::map<std::string, Material*> materials = Material::load(target);
@@ -346,7 +349,7 @@ void Renderer::loadMaterialLibrary(const std::string& target) {
 }
 
 void Renderer::loadOBJ(const std::string& target){
-	std::cout << "Loading OBJ file " << target << std::endl;
+	std::cout << std::endl << "Loading OBJ file " << target << std::endl << std::endl;
 
 	std::map<std::string, OBJMesh*> meshes = OBJ::load(target);
 

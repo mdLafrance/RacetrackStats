@@ -138,18 +138,14 @@ namespace Utils
 		std::cerr << "--------------------------------------------------------" << std::endl;
 	}
 
-	inline void log(const std::string& message, const int& logLevel){
-		if (__log_level__ <= logLevel) std::cout << message << std::endl;
+	void log(const std::string& message, const unsigned char& logLevel){
+		if (logLevel & __log_flags__) std::cout << message << std::endl;
 	}
 
-	void setLogLevel(const unsigned int& level) {
-		if (level < 0){
-			std::cerr << "Illeagal log level set: " << level << std::endl;
-		} else {
-			__log_level__ = level;
-		}
+	void setLogFlags(const unsigned char& flags){
+		::__log_flags__ = flags;
 	}
-	
+
 	void StopWatch::start() {
 		this->origin = std::chrono::steady_clock::now();
 		this->latest = std::chrono::steady_clock::now();

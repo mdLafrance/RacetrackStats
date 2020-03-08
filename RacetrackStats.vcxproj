@@ -22,6 +22,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{3D1ECF03-B0A7-45B4-B8B2-3B0D5DE2CF77}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -66,6 +67,7 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\include;$(ProjectDir)imgui;$(ProjectDir)include;D:\Hacking\c++\3rdParty\glfw\include;$(IncludePath)</IncludePath>
     <SourcePath>$(ProjectDir)src\3rdParty;$(ProjectDir)src;$(SourcePath)</SourcePath>
+    <OutDir>$(ProjectDir)Builds\$(PlatformTarget)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
@@ -73,6 +75,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>C:\Users\maxto\OneDrive\Documents\Hacking\libraries\glfw\include;$(ProjectDir)imgui;$(ProjectDir)include;D:\Hacking\c++\3rdParty\glfw\include;$(IncludePath)</IncludePath>
     <SourcePath>$(ProjectDir)src\3rdParty;$(ProjectDir)src;$(SourcePath)</SourcePath>
+    <OutDir>$(ProjectDir)Builds\$(PlatformTarget)</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
