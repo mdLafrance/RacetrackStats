@@ -99,6 +99,24 @@ namespace Utils
 		return f.tellg();
 	}
 
+	long getLines(const std::string& target){
+		FILE* f = fopen(target.c_str(), "r");
+
+		if (!f){
+			return 0;
+		}
+
+		char line[1024];
+
+		long count = 0;
+
+		while (fgets(line, sizeof(line), f)) ++count;
+
+		fclose(f);
+
+		return count;
+	}
+
 	int stringCount(char* s, const char& c){
 		int count = 0;
 

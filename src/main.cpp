@@ -42,8 +42,10 @@
 #include <CSV.h>
 #include <UI.h>
 
+// State of the GUI
 _GuiState GuiState;
 
+// State of the scene, used by the renderer
 _WorldState WorldState = { 
 	WINDOW_DEFAULT_X,    // Starting window width
 	WINDOW_DEFAULT_Y,    // Starting window height
@@ -52,9 +54,12 @@ _WorldState WorldState = {
 	nullptr				 // (string) path to root of the mesh and texture data for mosport
 };
 
+// Internal state variables
 static CSV* currentData;
 static bool frameSizeChanged = false;
+static bool doStopLoadingThread = false;
 
+// Handler for shortcuts used to navigate ui
 void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	// Spacebar to play/pause
 	if (key ==  GLFW_KEY_SPACE && action == GLFW_PRESS) {
@@ -66,7 +71,40 @@ void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int
 	if (key ==  GLFW_KEY_RIGHT && action == GLFW_PRESS) GuiState.timelinePosition += GuiState.tickSkipAmount;
 }
 
+// void runLoadingBar(const std::string& name, const float* progress){
+// 	GLFWwindow* window = glfwCreateWindow(400, 500, "TEST WINDOW", NULL, NULL);
+
+// 	IMGUI_CHECKVERSION();
+// 	ImGui::CreateContext();
+// 	ImGuiIO& io = ImGui::GetIO(); (void)io;
+// 	ImGui::StyleColorsDark();
+// 	ImGui_ImplGlfw_InitForOpenGL(window, true);
+// 	ImGui_ImplOpenGL3_Init("#version 330");
+
+// 	while (*progress <= 0.99f && !doStopLoadingThread) {
+// 		ImGui_ImplOpenGL3_NewFrame();
+// 		ImGui_ImplGlfw_NewFrame();
+// 		ImGui::NewFrame();
+
+// 		ImGui::Begin(("Loading " + name).c_str());
+// 		ImGui::Text(std::to_string(*progress).c_str());
+// 		ImGui::End();
+
+// 		// Render dear imgui onto screen
+// 		ImGui::Render();
+// 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+// 		glfwPollEvents();
+// 		glfwSwapBuffers(window);
+// 	}
+
+// 	glfwDestroyWindow(window);
+// }
+
 int main(int argc, char** argv) {
+	std::string executableDirectory = Utils::getFileInfo(*(argv)).directory;
+	std::cout << "Launching racetracks stats... (" << executableDirectory << ")" << std::endl << std::endl;
+
 	// Init Context
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -81,14 +119,39 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 
+	glfwMakeContextCurrent(window);
+
+	// Initialize glad
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+		std::cerr << "Failed to initialize GLAD\n";
+	}
+
+	// Initial opengl settings
+	glFrontFace(GL_CCW);
+
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// Resize window just sets a flag, which is checked in loop
 	auto windowResizeCallbackFunction = [](GLFWwindow* window, int x, int y) {
 		frameSizeChanged = true;
 	};
 
-	// Initialize renderer
+	// Set glfw callbacks
+	glfwSetKeyCallback(window, keyPressCallback);
+	glfwSetWindowSizeCallback(window, windowResizeCallbackFunction);
+	glfwSetErrorCallback(Utils::glfwErrorCallbackFunction);
+
 	bool onMSI = std::getenv("MSI") != nullptr;
 
 	// For personal convenience when working, this is defined on one of my machines
+	// TODO: In final, this should be some relative path to the execuatable
 	if (onMSI) {
 		::WorldState.projectRoot = "D:/Hacking/RacetrackStats";
 		::WorldState.trackDataRoot = "D:/Hacking/RacetrackStats";
@@ -98,26 +161,11 @@ int main(int argc, char** argv) {
 		::WorldState.trackDataRoot = "C:/Users/maxto/OneDrive/Documents/mosport";
 	}
 
+	// ::WorldState.projectRoot = executableDirectory.c_str();
+	// ::WorldState.trackDataRoot = (executableDirectory + "/Mosport").c_str();
+
+	// Initialize renderer
 	Renderer* renderer = new Renderer(window);
-
-	// Load car, and racetrack
-	// renderer->loadOBJ(std::string(WorldState.projectRoot) + "/resources/models/BMW/BMW_M3_E92.obj");
-	// renderer->loadMaterialLibrary(std::string(WorldState.projectRoot) + "/resources/models/BMW/BMW.mtl");
-
-	//renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/mosport_low.scene");
-	// renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/testingScene_laptop.scene");
-
-	Transform* rootTransform = new Transform();
-
-	Transform* tempTransform;
-
-	// TODO: maybe overhaul object->mesh relationship, made that while learning
-	// for (std::pair<std::string, Object*> p : renderer->objects) {
-	// 	if (p.first.rfind("BMW_M3_E92.", 0) == 0) { // If startswith bmw prefix
-	// 		tempTransform = p.second->transform;
-	// 		tempTransform->setParent(rootTransform);
-	// 	}
-	// }
 
 	// Initialize imgui
 	IMGUI_CHECKVERSION();
@@ -127,14 +175,10 @@ int main(int argc, char** argv) {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 330");
 
+	// Set up some initial GUI data
 	io.FontGlobalScale = 1.3;
-	// done imgui
-
-	// Initialize some default GUI values
 	::GuiState.fontSize = io.FontGlobalScale;
-
 	setGuiOptionsToDefault(GuiState);
-
 	glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, ::GuiState.glLineWidthRange);
 
 	// Load track map texture
@@ -145,36 +189,53 @@ int main(int argc, char** argv) {
 
 	glViewport(0, WorldState.windowY / 2, WorldState.windowX, WorldState.windowY);
 
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	// Draw GUI elements
+	drawUI(GuiState);
+
+	// Render imgui onto screen
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	glfwSwapBuffers(window);
+
+	// Load Mosport Scene
+	doStopLoadingThread = false;
+
+	// std::thread loadingBarThread(runLoadingBar, "SCENE!", &renderer->progress);
+
+	renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/testingScene.scene");
+
+	doStopLoadingThread = false;
+
+	//
 	// Initialize variables that will fluctuate over the runtime of the scene
+	//
 
 	// To accomodate for brightness slider, kind of just for fun
 	float originalAmbientLight[3];
 	memcpy(originalAmbientLight, WorldState.ambientLight, 3 * sizeof(float));
 
+	// Used to time deltaTime since last frame
 	std::chrono::time_point<std::chrono::steady_clock> t1, t2;
 
 	double dTime = 0;
 	double seconds0 = glfwGetTime();
 
-	// Need to aggregate frame increase for playing over multiple frames, since can only tick in int amounts
+	// Used to calculate timeline playing
 	float tickTotal = 0;
 
-	// If user hasn't ticked forward the playback, dont need to redraw
-	int previousTick = -1;
-
-	// Set glfw callbacks
-	glfwSetKeyCallback(window, keyPressCallback);
-	glfwSetWindowSizeCallback(window, windowResizeCallbackFunction);
-	glfwSetErrorCallback(Utils::glfwErrorCallbackFunction);
-
-	// renderer->getMainCamera()->transform->setTranslation(glm::vec3(577.466, -12.166, 6.49934));
+	//
+	// Main loop
+	// 
 
 	while (!glfwWindowShouldClose(window)) {
-
 		t1 = std::chrono::steady_clock::now();
 
 		// Calculate fps of last frame, pass to gui
-		if ((glfwGetTime() - seconds0) > 0.1) {
+		if ((glfwGetTime() - seconds0) > 0.1) { // Dont need to do this every frame, instead only every .1 seconds
 			GuiState.fps = 1/dTime;
 			seconds0 = glfwGetTime();
 		}
@@ -185,11 +246,14 @@ int main(int argc, char** argv) {
 
 		// If load new scene clicked
 		if (GuiState.selected_menu_File_Open) {
+			// Reset GUI values to track data fields
 			if (GuiState.dataFieldsEnabled != nullptr) delete[] GuiState.dataFieldsEnabled;
 			if (currentData != nullptr) delete currentData;
 
+			// Load CSV data
 			currentData = new CSV(std::string(WorldState.projectRoot) + "/resources/laps/mosport1.csv");
 
+			// Update GUI to match the parameters of the new CSV file
 			GuiState.numberOfDataTypes = currentData->getNumberOfDataTypes();
 			GuiState.numberOfTimePoints = currentData->getNumberOfTimePoints();
 			GuiState.dataFields = currentData->getOrderedData();
@@ -200,9 +264,9 @@ int main(int argc, char** argv) {
 			memset(GuiState.dataFieldsEnabled, 0, GuiState.numberOfDataTypes);
 		}
 
-		// If timeline is set to 'play', add to the tick total (described above) and increment the timeline position
+		// If timeline is set to 'play', add to the tick total and increment the timeline position
 		if (GuiState.isPlaying) {
-			tickTotal += abs(GuiState.playbackSpeed) * dTime; // sign agnostic to allow for backwards playing
+			tickTotal += abs(GuiState.playbackSpeed) * dTime; // abs value to allow for backwards playing
 
 			while (tickTotal > 1){
 				GuiState.timelinePosition += Utils::signInt(GuiState.playbackSpeed);
@@ -221,13 +285,14 @@ int main(int argc, char** argv) {
 			tickTotal = 0;
 		}
 
+		// Update line width if changed
 		if (GuiState.lineWidthChanged) {
 			renderer->setLineWidth(GuiState.lineWidth);
 			GuiState.lineWidthChanged = false;
 		}
 
 		//
-		// Handle resize of window, and update to camera settings through ui
+		// Handle resize of window, and update to camera settings through ui, both of need a new camera view matrix
 		//
 
 		// If user dragged window size around
@@ -239,7 +304,7 @@ int main(int argc, char** argv) {
 			frameSizeChanged = false;
 		}
 
-		// If camera settings changed, build new view matrix
+		// If camera settings changed, build new view matrix to reflect these changes
 		if (GuiState.cameraSettingsChanged) {
 			renderer->getMainCamera()->setPerspectiveProjMatrix(45.0f + GuiState.FOV, (float)WorldState.windowX/WorldState.windowY, GuiState.nearClipPlane, GuiState.farClipPlane);
 			GuiState.cameraSettingsChanged = false;
@@ -247,47 +312,35 @@ int main(int argc, char** argv) {
 
 		// Adjust brightness based on brightness slider
 		WorldState.ambientLight[0] = originalAmbientLight[0] + GuiState.brightness;
-
-		renderer->getMainCamera()->transform->setParent(rootTransform);
 		WorldState.ambientLight[1] = originalAmbientLight[1] + GuiState.brightness;
 		WorldState.ambientLight[2] = originalAmbientLight[2] + GuiState.brightness;
 
 		// Update ui font size
 		io.FontGlobalScale = GuiState.fontSize;
 
-		// done gui handling
+		// Draw renderable elements
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// std::cout << '\r' << vec3ToString(renderer->getMainCamera()->transform->position());
-
-		// Draw renderable elements
-		renderer->tick(dTime);
-		renderer->drawLine(glm::vec3(-50, 50, 50), glm::vec3(50, 0, -50), glm::vec3(1.0f, 0.0f, 1.0f));
-
-		// Minimized window (0 by 0) causes imgui to crash, currently this is a test for fix
-		int windowSize[2];
-		glfwGetFramebufferSize(window, &windowSize[0], &windowSize[1]);
-
-		if (true){//!(windowSize[0] == 0 || windowSize[1] == 0)) {
-			// std::cout << windowSize[0] << ' ' << windowSize[1] << std::endl;
-			ImGui_ImplOpenGL3_NewFrame();
-			ImGui_ImplGlfw_NewFrame();
-			ImGui::NewFrame();
-
-			// Draw GUI elements
-			drawUI(GuiState);
-
-			// Render dear imgui onto screen
-			ImGui::Render();
-			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		if (!renderer->loading){
+			renderer->tick(dTime);
 		}
+
+		// Draw GUI elements
+ 		ImGui_ImplOpenGL3_NewFrame();
+ 		ImGui_ImplGlfw_NewFrame();
+ 		ImGui::NewFrame();
+
+		 drawUI(GuiState);
+
+ 		ImGui::Render();
+ 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		// Current frame finished
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
-
-		// Current frame finished
 
 		t2 = std::chrono::steady_clock::now();
 		dTime = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000000.0f; // Microsecond conversion into fraction of second
@@ -295,10 +348,13 @@ int main(int argc, char** argv) {
 
 	// Cleanup
 
-	delete renderer;
+	delete renderer; // Deletes internal scene data
 
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
+
+	glfwDestroyWindow(window);
+
 	return 0;
 }

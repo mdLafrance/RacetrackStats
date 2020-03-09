@@ -138,29 +138,13 @@ Renderer::Renderer(GLFWwindow* window) {
 
 	this->window = window;
 
-	glfwMakeContextCurrent(window);
-
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		std::cerr << "Failed to initialize GLAD\n";
-	}
-
 	this->resetData();
 
+	// Get line width parameters from opengl
 	float lineWidthBounds[2];
 	glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, lineWidthBounds);
 	this->lineWidthMax = lineWidthBounds[1];
 	glLineWidth(lineWidthBounds[0]);
-
-	glFrontFace(GL_CCW);
-
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	std::cout << "Renderer initialized." << std::endl;
 }
@@ -212,6 +196,8 @@ void Renderer::loadScene(const std::string& target) {
 		return;
 	}
 
+	this->loading = true;
+
 	Utils::StopWatch timer;
 
 	std::cout << std::endl << "Loading Scene " << target << "..." << std::endl;
@@ -220,11 +206,16 @@ void Renderer::loadScene(const std::string& target) {
 	this->scene.path = target;
 	this->scene.files = std::vector<std::string>();
 
+	int lines = Utils::getLines(target);
 	std::string line;
+	this->progress = 0.0f;
+	float progressStep = 1.0f / lines;
 
 	timer.start();
 
 	while (std::getline(f, line)) {
+		this->progress += progressStep;
+
 		if (line == "" || line[0] == '#') continue;
 
 		std::vector<std::string> tokens = Utils::split(line, ' ');
@@ -333,10 +324,14 @@ void Renderer::loadScene(const std::string& target) {
 	}
 
 	std::cout << "Finished loading scene " << this->scene.name << " (" << timer.lap_s() << ")" << std::endl;
+
+	this->loading = false;
 }
 
 void Renderer::loadMaterialLibrary(const std::string& target) {
 	std::cout << std::endl << "Loading material library " << target << std::endl << std::endl;
+
+	this->loading = true;
 
 	Utils::FileInfo fi = Utils::getFileInfo(target);
 
@@ -346,16 +341,22 @@ void Renderer::loadMaterialLibrary(const std::string& target) {
 		p.second->shader = this->shaders.at("diffuse");
 		this->registerMaterial(p.first, p.second);
 	}
+
+	this->loading = false;
 }
 
 void Renderer::loadOBJ(const std::string& target){
 	std::cout << std::endl << "Loading OBJ file " << target << std::endl << std::endl;
+
+	this->loading = true;
 
 	std::map<std::string, OBJMesh*> meshes = OBJ::load(target);
 
 	for (auto p : meshes){
 		this->registerMesh(p.first, p.second);
 	}
+
+	this->loading = false;
 }
 
 Object* Renderer::newObject(const std::string& name) {
@@ -513,6 +514,8 @@ void Renderer::tick(const double& dTime) {
 		}
 	}
 	
+	// Draw coordinate axes (for testing)
+	// TODO: remove
 	this->drawLine(glm::vec3(), glm::vec3(10, 0, 0), glm::vec3(1, 0, 0));
 	this->drawLine(glm::vec3(), glm::vec3(0, 10, 0), glm::vec3(0, 1, 0));
 	this->drawLine(glm::vec3(), glm::vec3(0, 0, 10), glm::vec3(0, 0, 1));

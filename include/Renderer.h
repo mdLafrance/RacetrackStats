@@ -65,6 +65,9 @@ class Renderer {
 	float lineWidthMax = 1;
 
 public:
+	float progress = 0.0f; // Used to store loading progress for various operations so that it can be visible to other threads running loading bars
+	bool loading = false; // If the renderer is busy loading, is set to true
+
 	std::map<std::string, Object*> objects;
 
 	void loadScene(const std::string& target);

@@ -49,6 +49,7 @@ namespace Utils
 	// File utility
 	Utils::FileInfo getFileInfo(const std::string& target);
 	long getFileSize(const std::string& target);
+	long getLines(const std::string& taret);
 
 	// Opengl Callbacks
 	void glfwErrorCallbackFunction(int ecode, const char* info);
