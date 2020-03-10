@@ -187,16 +187,14 @@ int main(int argc, char** argv) {
 	::GuiState.mapTexture = mapTexture->getID();
 	mapTexture->getWidthHeight(::GuiState.mapTextureDimensions[0], ::GuiState.mapTextureDimensions[1]);
 
+	// Setup renderer to only draw in top half of screen
 	glViewport(0, WorldState.windowY / 2, WorldState.windowX, WorldState.windowY);
 
+	// Draw one frame of GUI to look clean while loading
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
-
-	// Draw GUI elements
 	drawUI(GuiState);
-
-	// Render imgui onto screen
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	glfwSwapBuffers(window);
@@ -208,7 +206,7 @@ int main(int argc, char** argv) {
 
 	renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/testingScene.scene");
 
-	doStopLoadingThread = false;
+	doStopLoadingThread = true;
 
 	//
 	// Initialize variables that will fluctuate over the runtime of the scene

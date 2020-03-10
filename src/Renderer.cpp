@@ -390,16 +390,8 @@ void Renderer::tick(const double& dTime) {
 	float translation[3] = { 0,0,0 };
 	float rotation[2] = { 0,0 };
 
-	float translateSpeed = 1;
-	float rotationSpeed = 0.05f;
-
-	if (!std::getenv("MSI")) {
-		translateSpeed = 40;
-		rotationSpeed = 0.5f;
-	}
-
-	translateSpeed *= dTime;
-	rotationSpeed *= dTime;
+	float translateSpeed = dTime * 100;
+	float rotationSpeed = dTime * 1.0f;
 
 	// TRANSLATION
 	if (glfwGetKey(this->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {

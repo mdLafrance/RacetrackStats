@@ -131,6 +131,7 @@
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\CSV.cpp" />
+    <ClCompile Include="src\CubeMap.cpp" />
     <ClCompile Include="src\Light.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Material.cpp" />
@@ -152,6 +153,7 @@
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\CSV.h" />
+    <ClInclude Include="include\CubeMap.h" />
     <ClInclude Include="include\glad\glad.h" />
     <ClInclude Include="include\glm\common.hpp" />
     <ClInclude Include="include\glm\detail\compute_common.hpp" />
