@@ -1,23 +1,9 @@
 #include <Utils.h>
 
+// TODO: some of these could stand to get cleaned up a bit
+
 namespace Utils
 {
-	int clampInt(const int& x, const int& min, const int& max) {
-		if (x < min) return min;
-		if (x > max) return max;
-		return x;
-	}
-
-	float clampFloat(const float& x, const float& min, const float& max) {
-		if (x < min) return min;
-		if (x > max) return max;
-		return x;
-	}
-
-	int signInt(const int& x) {
-		return x >= 0 ? 1 : -1;
-	}
-
 	std::vector<std::string> split(const std::string& s, char delimiter) {
 		std::vector<std::string> splitString;
 
@@ -131,8 +117,6 @@ namespace Utils
 	std::string trimWhitespace(const std::string& s){
 		int firstCharacter = 0;
 		int lastCharacter = s.size();
-
-		char changes = 0; // 1, first changed, 2, last changed, 3 both changed
 
 		for (int i = 0; i < s.size(); i++){
 			if (s[i] != ' ') break;

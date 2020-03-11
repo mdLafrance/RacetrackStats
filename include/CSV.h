@@ -16,11 +16,12 @@ class CSV {
     std::map<std::string, std::string> dataTypes;
 
 public:
-    static std::pair<std::string, std::string> splitNameAndType(const std::string& line);
+    static std::pair<std::string, std::string> splitNameAndType(const std::string& line); // Utility function
 
-    std::vector<std::string> getOrderedData() const;
+    std::vector<std::string> getOrderedData() const; // Get vector of types in order of appearance in file
 
-    std::string getData(const std::string& type, const int& line) const;
+    // Get a single value of a type at a time point
+    std::string getData(const std::string& type, const int& line) const; // ex. getData("Speed", 2); gets speed value at time point 2
     std::string getData(const int& index, const int& line) const;
 
     // TODO: These buffer functions could probably be faster if the data was packed in terms of type instead of by line
@@ -30,13 +31,13 @@ public:
     // Same, except convert char representations into floats as we fill buffer
     int getBatchDataAsFloat(const std::string& type, const int& start, const int& end, float* dataBuffer);
 
-    std::string getMetric(const std::string& type);
+    std::string getMetric(const std::string& type); // ex. Speed in the file could be defined as <Speed [m/s]>. getMetric("Speed") returns "[m/s]"
 
     int getNumberOfDataTypes() const;
     int getNumberOfTimePoints() const;
 
     bool hasData(const std::string& type);
 
-    CSV(const std::string& targt);
+    CSV(const std::string& targt); // Load a given .csv file 
     ~CSV();
 };

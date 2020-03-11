@@ -2,7 +2,7 @@
 
 void Light::buildMatrix() {
 	/*
-		glm builds column-major matrices, so supply the appropriate columns outlined in resources/shaders/spec
+		glm builds column-major matrices, so supply the appropriate columns as defined in Light.h
 	*/
 	this->matrix = glm::mat3(
 		this->color,
@@ -12,7 +12,7 @@ void Light::buildMatrix() {
 }
 
 glm::mat3 Light::getMatrix() {
-	// NOTE: Matrix instead gets built when values are changed, since this function is run every draw
+	// NOTE: Matrix instead gets rebuilt when values are changed, since this function is run very frequently
 	return this->matrix;
 }
 

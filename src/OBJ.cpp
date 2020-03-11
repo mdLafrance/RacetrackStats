@@ -1,15 +1,15 @@
 #include <OBJ.h>
 
-inline void getFirstWord(const char* s, char* dest){
-	int i = 0;
+// inline void getFirstWord(const char* s, char* dest){
+// 	int i = 0;
 
-	while (s[i] != ' ' && s[i] != '\0'){
-		*(dest + i) = s[i];
-		i += 1;
-	}
+// 	while (s[i] != ' ' && s[i] != '\0'){
+// 		*(dest + i) = s[i];
+// 		i += 1;
+// 	}
 
-	*(dest+i) = '\0';
-}
+// 	*(dest+i) = '\0';
+// }
 
 namespace OBJ
 {
@@ -81,8 +81,8 @@ namespace OBJ
 
 			currentObject = new OBJMesh(fullName, Utils::getFileInfo(materialLibrary).file + '.' + materialName, fullParentName, target, numOfFaces, numOfPositions, numOfNormals, numOfTexCoords);
 
-                        // Using one chunk of memory to hold all vertex info before copying to VBO for objects
-                        // If the new object uses more space than the last one, grow the buffer.
+            // Using one chunk of memory to hold all vertex info before copying to VBO for objects
+            // If the new object uses more space than the last one, grow the buffer.
 			if ((3 * 8 * numOfFaces) > dataSize){
 				delete[] data;
 				dataSize = 3 * 8 * numOfFaces;
@@ -108,6 +108,7 @@ namespace OBJ
 				*(data + (8 * i) + 7) = texCoords[(2 * currentTexCoordIndex) + 1];
 			}
 
+			// Generate VBO from the current data
 			currentObject->generateBuffers(data);
 
 			// Add generated object to map
@@ -174,7 +175,7 @@ namespace OBJ
 				int s = tokens.size();
 				if (s > 2) {
 					groupParent = tokens[s-2]; // tokens[-2]
-					std::cout << "Parent! for " << groupName << " : " << groupParent << std::endl;
+					std::cout << "Parent for " << groupName << " : " << groupParent << std::endl;
 				} 
 
 				continue;
@@ -284,7 +285,7 @@ unsigned int OBJMesh::getNumberOfFaces() {
 }
 
 void OBJMesh::generateBuffers(float* data) {
-        // TODO: use EBO instead?
+	// TODO: use EBO instead?
 
 	// Generate and bind VAO for this mesh
 	glGenVertexArrays(1, &this->VAO);
@@ -319,7 +320,8 @@ void OBJMesh::bind() {
 }
 
 int OBJMesh::getApproxBytes() {
-	return (sizeof(float) * (3 * (numOfPositions + numOfNormals)) + (2 * numOfTexCoords)); // TODO: this is outdated
+	// TODO: this is outdated
+	return (sizeof(float) * (3 * (numOfPositions + numOfNormals)) + (2 * numOfTexCoords)); 
 }
 
 void OBJMesh::draw() {
@@ -333,6 +335,7 @@ void OBJMesh::draw() {
 }
 
 OBJMesh::OBJMesh(const std::string& meshName, const std::string& materialName, const std::string& parent, const std::string& origin, const int& numberOfFaces, const int& numberOfPositions, const int& numberOfNormals, const int& numberOfTexCoords) {
+	// TODO: Constructor needs to be changed
 	this->meshName = meshName;
 	this->defaultMaterialName = materialName;
 	this->defaultParent = parent;

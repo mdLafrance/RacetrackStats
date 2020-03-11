@@ -14,13 +14,7 @@
 
 #include <Utils.h>
 
-class OBJMesh;
-
-namespace OBJ
-{
-	std::map<std::string, OBJMesh*> load(const std::string& target);
-	//OBJData load(const std::string& target);
-}
+// TODO: workflow for objs changed, this class needs to be cleaned up
 
 class OBJMesh {
 	std::string meshName; // Name of the mesh
@@ -61,3 +55,8 @@ public:
 	OBJMesh(const std::string& meshName, const std::string& materialName, const std::string& parent, const std::string& origin, const int& numberOfFaces, const int& numberOfPositions, const int& numberOfNormals, const int& numberOfTexCoords);
 	~OBJMesh();
 };
+
+namespace OBJ
+{
+	std::map<std::string, OBJMesh*> load(const std::string& target);
+}

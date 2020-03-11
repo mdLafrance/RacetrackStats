@@ -24,11 +24,12 @@ public:
 
 	glm::mat4 projectionViewMatrix();
 
-	void setPerspectiveProjMatrix(const float& fov, const float& aspect, const float& zMin, const float& zMax);
+	void setPerspectiveProjMatrix(const float& fov, const float& aspect, const float& zMin, const float& zMax); // Used to update camera if window size changes
 
 	// Perpective camera
 	Camera(const float& fov, const float& aspect, const float& zMin, const float& zMax);
 	// Orthographic camera
 	Camera(const float& xMin, const float& xMax, const float& yMin, const float& yMax, const float& zMin, const float& zMax);
+
 	~Camera();
 };

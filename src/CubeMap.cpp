@@ -1,5 +1,7 @@
 #include <CubeMap.h>
 
+// UNDER CONSTRUCTION
+
 void CubeMap::bind(){
     glBindTexture(GL_TEXTURE_CUBE_MAP, this->cubeMapID);
 }

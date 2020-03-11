@@ -9,11 +9,11 @@
 #include <Utils.h>
 
 class Texture {
+	std::string name;
+
 	int width;
 	int height;
 	int nrChannels;
-
-	std::string name;
 
 	unsigned int ID;
 

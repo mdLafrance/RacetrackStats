@@ -2,6 +2,8 @@
 
 #include <Texture.h>
 
+// Still in development
+
 class CubeMap {
     unsigned int cubeMapID;
 

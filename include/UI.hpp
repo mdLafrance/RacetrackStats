@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <algorithm>
 
 #include <imgui.h>
 #include <WorldState.h>
@@ -145,7 +146,7 @@ void drawUI(_GuiState& state) {
 			if (state.glLineWidthRange[1] > 1) {
 				ImGui::Text("Line Width");
 				ImGui::SameLine(300, 0);
-				if (ImGui::SliderFloat("##Line Widdth", &state.lineWidth, state.glLineWidthRange[0], Utils::clampFloat(state.glLineWidthRange[1], 1, 10))) state.lineWidthChanged = true;
+				if (ImGui::SliderFloat("##Line Widdth", &state.lineWidth, state.glLineWidthRange[0], Utils::clamp(state.glLineWidthRange[1], 1.0f, 10.0f))) state.lineWidthChanged = true;
 			}
 
 			ImGui::Separator();
@@ -213,7 +214,7 @@ void drawUI(_GuiState& state) {
 	ImVec2 bfDimensions = ImVec2(arrowButtonDimensions, arrowButtonDimensions); // back forward
 
 	// Play Button
-	// TODO: replace with image
+	// TODO: replace with button images
 	std::string buttonText = state.isPlaying ? "Pause" : "Play";
 
 	ImGui::SetCursorPos(ImVec2((X - playButtonDimensions)/2, timeLineButtonLocalVerticalAlign));
@@ -223,7 +224,7 @@ void drawUI(_GuiState& state) {
 		}
 		else {
 			state.isPlaying = true;
-			state.timelinePosition += Utils::signInt(state.playbackSpeed);
+			state.timelinePosition += Utils::sign(state.playbackSpeed);
 		}
 	}
 
@@ -236,7 +237,7 @@ void drawUI(_GuiState& state) {
 	ImGui::SetCursorPos(ImVec2(halfX - halfArrowButtonDimensions + arrowButtonOffset, timeLineButtonLocalVerticalAlign + halfDiff));
 	if (ImGui::Button("forward", bfDimensions)) state.timelinePosition += state.tickSkipAmount;
 
-	state.timelinePosition = Utils::clampInt(state.timelinePosition, 0, state.numberOfTimePoints);
+	state.timelinePosition = Utils::clamp(state.timelinePosition, 0, state.numberOfTimePoints);
 
 	const int timelineParametersOffset = 20;
 
@@ -248,7 +249,7 @@ void drawUI(_GuiState& state) {
 	ImGui::PushItemWidth(90);
 	ImGui::InputInt(" Tick skip amount", &state.tickSkipAmount);
 
-	state.tickSkipAmount = Utils::clampInt(state.tickSkipAmount, 0, 10000000); // arbitrarily high
+	state.tickSkipAmount = Utils::clamp(state.tickSkipAmount, 0, 10000000); // arbitrarily high
 
 	ImGui::End(); // Timeline Panel
 

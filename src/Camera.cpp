@@ -1,7 +1,6 @@
 #include <Camera.h>
 
-CameraType Camera::getType()
-{
+CameraType Camera::getType() {
 	return this->type;
 }
 
@@ -41,6 +40,7 @@ Camera::Camera(const float& fov, const float& aspect, const float& zMin, const f
 
 Camera::Camera(const float& xMin, const float& xMax, const float& yMin, const float& yMax, const float& zMin, const float& zMax) {
 	// Perspective for orthographic camera 
+
 	this->type = CameraType::Orthographic;
 
 	this->proj = glm::ortho(xMin, xMax, yMin, yMax, zMin, zMax);

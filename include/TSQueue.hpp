@@ -1,13 +1,6 @@
 #pragma once
 
-/*
-    Thread Safe Queue class.
-
-    Quick and dirty queue class which is thread-safe wrt reading and writing.
-    Used to feed data to and from worker threads.
-
-    Max Lafrance
-*/
+// Thread Safe Queue class, in case i ever get around to doing parallel loading haha
 
 #include <queue>
 #include <mutex>
@@ -19,7 +12,6 @@ class TSQueue {
     std::mutex* lock;
 
 public:
-    
     void push(const T& item);
 
     T pop();

@@ -5,6 +5,8 @@
 #include <glm/gtc/matrix_access.hpp>
 #include <glm/gtx/transform.hpp>
 
+// TODO: internals of this need some work
+
 class Transform {
 	glm::mat4 matrix;
 

@@ -36,11 +36,12 @@
 
 #include <Renderer.h>
 #include <Material.h>
-#include <Utils.h>
 #include <WorldState.h>
 #include <Light.h>
 #include <CSV.h>
-#include <UI.h>
+#include <Utils.h>
+
+#include <UI.hpp>
 
 // State of the GUI
 _GuiState GuiState;
@@ -161,9 +162,6 @@ int main(int argc, char** argv) {
 		::WorldState.trackDataRoot = "C:/Users/maxto/OneDrive/Documents/mosport";
 	}
 
-	// ::WorldState.projectRoot = executableDirectory.c_str();
-	// ::WorldState.trackDataRoot = (executableDirectory + "/Mosport").c_str();
-
 	// Initialize renderer
 	Renderer* renderer = new Renderer(window);
 
@@ -181,11 +179,10 @@ int main(int argc, char** argv) {
 	setGuiOptionsToDefault(GuiState);
 	glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, ::GuiState.glLineWidthRange);
 
-	// Load track map texture
-	Texture* mapTexture = new Texture(std::string(WorldState.trackDataRoot) + "/ui/outline.png");
-
-	::GuiState.mapTexture = mapTexture->getID();
-	mapTexture->getWidthHeight(::GuiState.mapTextureDimensions[0], ::GuiState.mapTextureDimensions[1]);
+	// Load track map texture to GUI
+	// Texture* mapTexture = new Texture(std::string(WorldState.projectRoot) + "/resources/ui/map.png");
+	// ::GuiState.mapTexture = mapTexture->getID();
+	// mapTexture->getWidthHeight(::GuiState.mapTextureDimensions[0], ::GuiState.mapTextureDimensions[1]);
 
 	// Setup renderer to only draw in top half of screen
 	glViewport(0, WorldState.windowY / 2, WorldState.windowX, WorldState.windowY);
@@ -201,11 +198,8 @@ int main(int argc, char** argv) {
 
 	// Load Mosport Scene
 	doStopLoadingThread = false;
-
 	// std::thread loadingBarThread(runLoadingBar, "SCENE!", &renderer->progress);
-
-	renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/testingScene.scene");
-
+	renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/mosport_low.scene");
 	doStopLoadingThread = true;
 
 	//
@@ -267,7 +261,7 @@ int main(int argc, char** argv) {
 			tickTotal += abs(GuiState.playbackSpeed) * dTime; // abs value to allow for backwards playing
 
 			while (tickTotal > 1){
-				GuiState.timelinePosition += Utils::signInt(GuiState.playbackSpeed);
+				GuiState.timelinePosition += Utils::sign(GuiState.playbackSpeed);
 				--tickTotal;
 				// just for testing
 				for (int i = 0; i < GuiState.numberOfDataTypes; i++){
