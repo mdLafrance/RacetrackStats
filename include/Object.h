@@ -6,6 +6,8 @@
 #include <Material.h>
 #include <Transform.h>
 
+// A struct to associate meshes with their textures and transforms
+
 struct Object {
 	std::string name;
 

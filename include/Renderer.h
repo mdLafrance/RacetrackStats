@@ -28,7 +28,7 @@
 // Global world state instantiated in main.cpp
 extern _WorldState WorldState;
 
-// Convenince function for diagnostics
+// Convenince function
 std::string vec3ToString(const glm::vec3& v);
 
 struct Scene {
@@ -56,13 +56,13 @@ class Renderer {
 	Light lights[MAX_LIGHT_COUNT];
 	glm::mat3 lightMatrices[MAX_LIGHT_COUNT];
 
-	void resetData();
-	void deleteObjects();
-
 	long int frameCount;
 
 	float lineWidth;
 	float lineWidthMax = 1;
+
+	void resetData();
+	void deleteObjects();
 
 public:
 	float progress = 0.0f; // Used to store loading progress for various operations so that it can be visible to other threads running loading bars
@@ -90,9 +90,10 @@ public:
 	// drawOver=true will cause the line to draw on top of all other scene elements.
 	void drawLine(const glm::vec3& origin, const glm::vec3& end, const glm::vec3& color, bool drawOver=true);
 
-	void tick(const double& dTime);
-
 	void setLineWidth(const float& w);
+
+	// Render the next frame
+	void tick(const double& dTime);
 	
 	Renderer(GLFWwindow* window);
 	~Renderer();

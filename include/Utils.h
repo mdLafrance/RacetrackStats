@@ -14,6 +14,8 @@ static const char DIRECTORY_SEPARATOR = '/';
 
 static unsigned char __log_flags__ = 0;
 
+// Centralized utility functions
+
 namespace Utils 
 {
 	static const float PI = 3.14159265359;
@@ -23,20 +25,30 @@ namespace Utils
 	const unsigned char LogLevel_Debug   = 1 << 0; // Log extra details pertaining to debugging information 
 	const unsigned char LogLevel_Runtime = 1 << 1; // Log only things relevant to the user experience at runtime
 
-	typedef struct { // D:/foo/bar/baz.py
+	struct FileInfo { // D:/foo/bar/baz.py
 		std::string directory; // D:/foo/bar
 		std::string file;      // baz
 		std::string extension; // py
-	} FileInfo;
+	};
 
 	// Logging utility
+	// TODO: unused & untested
 	void log(const std::string& message, const unsigned char& logLevel = 0);
 	void setLogFlags(const unsigned char& flags);
 
-	// Misc utility
-	int clampInt(const int& x, const int& min, const int& max);
-	float clampFloat(const float& x, const float& min, const float& max);
-	int signInt(const int& x);
+	// Numerical utility
+	// these are not in .cpp because of template shenanigans
+	template <typename T>
+	T clamp(const T& x, const T& min, const T& max) {
+		if (x < min) return min;
+		if (x > max) return max;
+		return x;
+	}
+
+	template <typename T>
+	int sign(const T& x) {
+		return x >= 0 ? 1 : -1;
+	}
 
 	// String manipulation utility
 	std::vector<std::string> split(const std::string& s, char delimiter);

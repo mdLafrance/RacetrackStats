@@ -108,6 +108,7 @@ void Renderer::drawLine(const glm::vec3& origin, const glm::vec3& end, const glm
 }
 
 void Renderer::deleteObjects() {
+	// TODO: this doesn't quite work
 	for (auto k : this->textures) {
 		delete k.second;
 	}
@@ -151,14 +152,17 @@ Renderer::Renderer(GLFWwindow* window) {
 
 void Renderer::resetData() {
 	// Create and register default assets.
-	// Default is persp cam
+
+	// Default camera is perspective camera
 	Camera* defaultCam = new Camera(45.0f, 1, 0, 2000);
 
 	Shader* defaultShader = new Shader("default", "default");
+
 	Shader* diffuseShader = new Shader(
 		std::string(WorldState.projectRoot) + "/resources/shaders/diffuse.vert", 
 		std::string(WorldState.projectRoot) + "/resources/shaders/diffuse.frag"
 	);
+
 	Shader* lineShader = new Shader(
 		std::string(WorldState.projectRoot) + "/resources/shaders/line.vert", 
 		std::string(WorldState.projectRoot) + "/resources/shaders/line.frag"
@@ -169,10 +173,10 @@ void Renderer::resetData() {
 	Material* defaultMaterial = new Material("default");
 	defaultMaterial->shader = defaultShader;
 
-	this->registerCamera("default", defaultCam);
 	this->registerShader("default", defaultShader);
 	this->registerShader("diffuse", diffuseShader);
 	this->registerShader("line", lineShader);
+	this->registerCamera("default", defaultCam);
 	this->registerTexture("default", defaultTexture);
 	this->registerMaterial("default", defaultMaterial);
 
@@ -335,7 +339,7 @@ void Renderer::loadMaterialLibrary(const std::string& target) {
 
 	Utils::FileInfo fi = Utils::getFileInfo(target);
 
-	std::map<std::string, Material*> materials = Material::load(target);
+	std::map<std::string, Material*> materials = MTL::load(target);
 
 	for (auto p : materials) {
 		p.second->shader = this->shaders.at("diffuse");
@@ -385,6 +389,8 @@ Object* Renderer::getObject(const std::string& name) {
 }
 
 void Renderer::tick(const double& dTime) {
+	// NOTE: translateion rotation controls are just for testings, not to be included in future builds
+
 	++this->frameCount;
 
 	float translation[3] = { 0,0,0 };

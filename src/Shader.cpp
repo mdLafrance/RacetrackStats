@@ -1,5 +1,6 @@
 #include <Shader.h>
 
+// Default shaders
 const char* vShaderSource =
 "#version 330 core\n"
 "layout(location = 0) in vec3 vPos;\n"
@@ -74,7 +75,7 @@ Shader::Shader(const std::string& vertexShaderTarget, const std::string& fragmen
 	bool vertexCompiled, fragmentCompiled, linkSuccessful;
 
 	int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	std::cout << "Loading vertex shader (" << vertexShader << "): " << vertexShaderTarget << std::endl;
+	std::cout << "Loading vertex shader (ID: " << vertexShader << "): " << vertexShaderTarget << std::endl;
 
 	if (vertexShaderTarget == "default") {
 		vs_source = vShaderSource;
@@ -103,7 +104,7 @@ Shader::Shader(const std::string& vertexShaderTarget, const std::string& fragmen
 
 	int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
-	std::cout << "Loading fragment shader (" << fragmentShader << "): " << fragmentShaderTarget << std::endl;
+	std::cout << "Loading fragment shader (ID: " << fragmentShader << "): " << fragmentShaderTarget << std::endl;
 
 	if (fragmentShaderTarget == "default") {
 		fs_source = fShaderSourceBasic;
@@ -132,7 +133,7 @@ Shader::Shader(const std::string& vertexShaderTarget, const std::string& fragmen
 
 	this->shaderProgram = glCreateProgram();
 
-	std::cout << "Creating shader program (" << this->shaderProgram << ")" << std::endl;
+	std::cout << "Creating shader program (ID: " << this->shaderProgram << ")" << std::endl;
 
 	if (vertexCompiled && fragmentCompiled) {
 		glAttachShader(this->shaderProgram, vertexShader);

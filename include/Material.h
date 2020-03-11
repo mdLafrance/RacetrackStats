@@ -26,8 +26,8 @@
 #define MATERIAL_USE_Ns       1 << 6
 #define MATERIAL_USE_Tr       1 << 7
 
-
 struct Material {
+
 	std::string name; // Name of material
 	std::string origin; // Path to material library this material originated from
 
@@ -54,8 +54,11 @@ struct Material {
 
 	void setMVP(const glm::mat4& mvp);
 
-	static std::map<std::string, Material*> load(const std::string& target);
-
 	Material(const std::string& name);
 	~Material();
 }; 
+
+namespace MTL
+{
+	std::map<std::string, Material*> load(const std::string& target);
+}

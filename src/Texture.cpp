@@ -1,5 +1,7 @@
 #include <Texture.h>
 
+// TODO: using stbi because fairly easy to load pngs. For future, use more flexible library
+
 void Texture::bind() {
 	glBindTexture(GL_TEXTURE_2D, this->ID);
 }
@@ -53,7 +55,7 @@ Texture::Texture(const std::string& target) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, this->data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, this->data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 		std::cout << "Loaded Texture: " << fname << std::endl;
 	}

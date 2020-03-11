@@ -1,7 +1,7 @@
 #include <CSV.h>
 
 CSV::CSV(const std::string& target) {
-    Utils::StopWatch sw;
+    Utils::StopWatch stopwatch;
 
     FILE* f = fopen(target.c_str(), "r");
 
@@ -16,7 +16,7 @@ CSV::CSV(const std::string& target) {
 
     std::cout << "Loading CSV file: " << target << std::endl;
 
-    sw.start();
+    stopwatch.start();
 
     char line[2048];
 
@@ -45,7 +45,7 @@ CSV::CSV(const std::string& target) {
     for (std::string t : Utils::split(line_s, ',')) {
         std::pair<std::string, std::string> dataAndType;
 
-        // If data type is not give, identify it with unique null name, just in case
+        // If data type is not given, identify it with unique null name, just in case
         if (t.size() == 0){
             dataAndType.first = "NULL" + std::to_string(nullCounter++);
             dataAndType.second = "";
@@ -69,6 +69,7 @@ CSV::CSV(const std::string& target) {
 
     this->data = new char* [this->numberOfFields * this->numberOfLines];
 
+    // Copy the word that was being recorded into the data buffer
     auto writeWord = [&](){
         word[wordLength] = '\0';
         *(this->data + lineOffset) = new char[wordLength+1];
@@ -91,6 +92,9 @@ CSV::CSV(const std::string& target) {
 
         int wordCount = 0;
 
+        // The next loop cycles over the line recording characters
+        // If a ',' is hit, this indicates the end of the last word, so save that one to the data buffer if it's not empty
+
         while (c != '\0' && c != '\n') {
             if (c == ',') {
                 if (wordLength == 0) {
@@ -105,7 +109,7 @@ nextword:
             c = line[++i];
         }
 
-        // Last word
+        // Last word in line
         if (wordLength == 0) {
             *(this->data + lineOffset++) = nullptr;
         }
@@ -118,7 +122,7 @@ nextword:
 
     fclose(f);
     
-    std::cout << "Loaded " << this->numberOfFields << " data fields over " << this->numberOfLines-1 << " time points. " << " (" << sw.lap_s() << ")" << std::endl;
+    std::cout << "Loaded " << this->numberOfFields << " data fields over " << this->numberOfLines-1 << " time points. " << " (" << stopwatch.lap_s() << ")" << std::endl;
 }
 
 CSV::~CSV(){
