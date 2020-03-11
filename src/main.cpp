@@ -155,7 +155,7 @@ int main(int argc, char** argv) {
 	// TODO: In final, this should be some relative path to the execuatable
 	if (onMSI) {
 		::WorldState.projectRoot = "D:/Hacking/RacetrackStats";
-		::WorldState.trackDataRoot = "D:/Hacking/RacetrackStats";
+		::WorldState.trackDataRoot = "D:/Hacking/RacetrackStats/Mosport";
 	}
 	else {
 		::WorldState.projectRoot = "C:/Users/maxto/OneDrive/Documents/Hacking/RacetrackStats";
@@ -199,7 +199,7 @@ int main(int argc, char** argv) {
 	// Load Mosport Scene
 	doStopLoadingThread = false;
 	// std::thread loadingBarThread(runLoadingBar, "SCENE!", &renderer->progress);
-	renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/mosport_low.scene");
+	renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/mosport_med.scene");
 	doStopLoadingThread = true;
 
 	//

@@ -52,6 +52,10 @@ void main() {
 		diffuse_alpha = tex.a;
 	}
 
+	if (diffuse_alpha == 0.0f){
+		discard;
+	}
+
 	if ((flags & MATERIAL_USE_map_Ks) != 0){
 		specular = vec3(texture(map_Ks, v_texCoord));
 	} else {
@@ -59,7 +63,7 @@ void main() {
 	}
 
 	if ((flags & MATERIAL_USE_map_norm) != 0){
-		N = normalize(vec3(texture(map_norm, v_texCoord))); // Maybe this needs to be converted to vcs in vert shader as well?
+		N = normalize(vec3(texture(map_norm, v_texCoord)));
 	} else {
 		N = normalize(v_norm);
 	}
