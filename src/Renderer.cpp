@@ -270,20 +270,27 @@ void Renderer::loadScene(const std::string& target) {
 		}
 		// Line is just path to some file to be included in the scene
 		else { 
-			Utils::FileInfo fi = Utils::getFileInfo(line);
+			std::string fullFileName = "";
+			fullFileName += WorldState.trackDataRoot ;
+			fullFileName += '/' ;
+			fullFileName += line;
+
+			std::cout << "Loading " << fullFileName << std::endl;
+
+			Utils::FileInfo fi = Utils::getFileInfo(fullFileName);
 
 			if (fi.extension == "mtl"){ // Load mtl library file
-				this->scene.files.push_back(line);
-				this->loadMaterialLibrary(line);
+				this->scene.files.push_back(fullFileName);
+				this->loadMaterialLibrary(fullFileName);
 			} else if (fi.extension == "obj") { // Load obj file
-				this->scene.files.push_back(line);
-				this->loadOBJ(line);
+				this->scene.files.push_back(fullFileName);
+				this->loadOBJ(fullFileName);
 			} else if (fi.extension == "vert") { // Load vertex shader
 				std::cout << "Loading vertex shader...";
 			} else if (fi.extension == "frag") { // Load fragment shader
 				std::cout << "Loading fragment shader...";
 			} else {
-				std::cerr << "Unsupported file type " << fi.extension << " for file " << line << std::endl;
+				std::cerr << "Unsupported file type " << fi.extension << " for file " << fullFileName << std::endl;
 			}
 		}
 	}
