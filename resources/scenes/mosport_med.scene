@@ -1,4 +1,4 @@
-# Low res mosport track for smaller machines
+# Medium quality mosport track
 
 # Meshes
 jr_mosport.obj
@@ -21,7 +21,7 @@ mosport_people.mtl
 mosport_crew.mtl
 
 # Scene ambient light (r g b)
-ambient 0.3 0.3 0.35
+ambient 0.43 0.43 0.4
 
 # Lights for the scene
 # i = intensity

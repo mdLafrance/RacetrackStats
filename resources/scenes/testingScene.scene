@@ -1,12 +1,12 @@
 name Testing Scene Laptop
 
-D:/Hacking/RacetrackStats/testingResources/teapot.obj
-D:/Hacking/RacetrackStats/testingResources/cube.mtl
+testing/teapot.obj
+testing/cube.mtl
 
-D:/Hacking/RacetrackStats/testingResources/cube.obj
+testing/cube.obj
 
-D:/Hacking/RacetrackStats/testingResources/forest_low.obj
-D:/Hacking/RacetrackStats/testingResources/forest_low.mtl
+testing/forest_low.obj
+testing/forest_low.mtl
 
 ambient 0.06 0.05 0.04
 

@@ -415,6 +415,7 @@
     <ClInclude Include="include\Transform.h" />
     <ClInclude Include="include\TSQueue.hpp" />
     <ClInclude Include="include\UI.h" />
+    <ClInclude Include="include\UI.hpp" />
     <ClInclude Include="include\Utils.h" />
     <ClInclude Include="include\WorldState.h" />
     <ClInclude Include="imgui\imgui.h" />

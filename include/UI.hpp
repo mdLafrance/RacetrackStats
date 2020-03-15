@@ -170,11 +170,11 @@ void drawUI(_GuiState& state) {
     if (state.sceneOpen) {
         if (ImGui::CollapsingHeader("Display Data Types")) {
             // 'All' and 'None' buttons
-            if (ImGui::Button("All")) {
-                memset(state.dataFieldsEnabled, 1, state.dataFields.size());
-            }
+            // if (ImGui::Button("All")) {
+            //     memset(state.dataFieldsEnabled, 1, state.dataFields.size());
+            // }
 
-            ImGui::SameLine(0, 10);
+            // ImGui::SameLine(0, 10);
 
             if (ImGui::Button("None")) {
                 memset(state.dataFieldsEnabled, 0, state.dataFields.size());

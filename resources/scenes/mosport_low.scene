@@ -3,7 +3,7 @@
 # Meshes
 jr_mosport.obj
 mosport_horizon.obj
-mosport_vehicles.obj
+#mosport_vehicles.obj
 mosport_objects.obj
 mosport_layers.obj
 mosport_trees.obj
@@ -11,13 +11,13 @@ mosport_trees.obj
 # Materials
 mtl_low/jr_mosport.mtl
 mtl_low/mosport_horizon.mtl
-mtl_low/mosport_vehicles.mtl
+#mtl_low/mosport_vehicles.mtl
 mtl_low/mosport_objects.mtl
 mtl_low/mosport_layers.mtl
 mtl_low/mosport_trees.mtl
 
 # Scene ambient light (r g b)
-ambient 0.3 0.3 0.35
+ambient 0.43 0.43 0.4
 
 # Lights for the scene
 light directional -i 2.5 -v -2 -10 -5 -c 0.65 0.6 0.6 

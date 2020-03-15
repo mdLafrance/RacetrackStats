@@ -1,4 +1,4 @@
-#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION // Needed for stbi image loading
 
 #define WINDOW_TITLE "Racetrack Stats"
 
@@ -60,12 +60,10 @@ static CSV* currentData;
 static bool frameSizeChanged = false;
 static bool doStopLoadingThread = false;
 
-// Handler for shortcuts used to navigate ui
+// Handler for shortcuts used to navigate the ui
 void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	// Spacebar to play/pause
-	if (key ==  GLFW_KEY_SPACE && action == GLFW_PRESS) {
-		GuiState.isPlaying = !GuiState.isPlaying;
-	}
+	if (key ==  GLFW_KEY_SPACE && action == GLFW_PRESS) GuiState.isPlaying = !GuiState.isPlaying;
 
 	// Arrow keys to nudge timeline
 	if (key ==  GLFW_KEY_LEFT && action == GLFW_PRESS) GuiState.timelinePosition -= GuiState.tickSkipAmount;
@@ -159,8 +157,12 @@ int main(int argc, char** argv) {
 	}
 	else {
 		::WorldState.projectRoot = "C:/Users/maxto/OneDrive/Documents/Hacking/RacetrackStats";
-		::WorldState.trackDataRoot = "C:/Users/maxto/OneDrive/Documents/mosport";
+		::WorldState.trackDataRoot = "C:/Users/maxto/OneDrive/Documents/Mosport";
 	}
+
+	// If on a different machine, set these parameters here
+	// ::WorldState.projectRoot = 
+	// ::WorldState.trackDataRoot = 
 
 	// Initialize renderer
 	Renderer* renderer = new Renderer(window);
@@ -199,7 +201,7 @@ int main(int argc, char** argv) {
 	// Load Mosport Scene
 	doStopLoadingThread = false;
 	// std::thread loadingBarThread(runLoadingBar, "SCENE!", &renderer->progress);
-	renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/mosport_med.scene");
+	renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/mosport_low.scene");
 	doStopLoadingThread = true;
 
 	//
@@ -227,9 +229,10 @@ int main(int argc, char** argv) {
 		t1 = std::chrono::steady_clock::now();
 
 		// Calculate fps of last frame, pass to gui
-		if ((glfwGetTime() - seconds0) > 0.1) { // Dont need to do this every frame, instead only every .1 seconds
+		float glfwTime = glfwGetTime();
+		if ((glfwTime - seconds0) > 0.1) { // Dont need to do this every frame, instead only every .1 seconds
 			GuiState.fps = 1/dTime;
-			seconds0 = glfwGetTime();
+			seconds0 = glfwTime;
 		}
 
 		//
@@ -237,12 +240,14 @@ int main(int argc, char** argv) {
 		//
 
 		// If load new scene clicked
+		// TODO: This should open a file dialog
 		if (GuiState.selected_menu_File_Open) {
 			// Reset GUI values to track data fields
 			if (GuiState.dataFieldsEnabled != nullptr) delete[] GuiState.dataFieldsEnabled;
 			if (currentData != nullptr) delete currentData;
 
 			// Load CSV data
+			// TODO: make this selected by a file dialog
 			currentData = new CSV(std::string(WorldState.projectRoot) + "/resources/laps/mosport1.csv");
 
 			// Update GUI to match the parameters of the new CSV file
@@ -284,7 +289,7 @@ int main(int argc, char** argv) {
 		}
 
 		//
-		// Handle resize of window, and update to camera settings through ui, both of need a new camera view matrix
+		// Handle resize of window, and update to camera settings through ui, both of which need a new camera view matrix
 		//
 
 		// If user dragged window size around
@@ -312,10 +317,9 @@ int main(int argc, char** argv) {
 
 		// Draw renderable elements
 
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 		if (!renderer->loading){
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			renderer->tick(dTime);
 		}
 
@@ -324,7 +328,7 @@ int main(int argc, char** argv) {
  		ImGui_ImplGlfw_NewFrame();
  		ImGui::NewFrame();
 
-		 drawUI(GuiState);
+		drawUI(GuiState);
 
  		ImGui::Render();
  		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
