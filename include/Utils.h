@@ -2,6 +2,13 @@
 
 #include <stdio.h>
 
+// The dirent.h header is supplied on POSIX machines, using a third party one in windows (used to browse filesystem)
+#ifdef _WIN32
+#include <dirent/dirent.h>
+#else
+#include <dirent.h>
+#endif // _WIN32
+
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -62,6 +69,7 @@ namespace Utils
 	Utils::FileInfo getFileInfo(const std::string& target);
 	long getFileSize(const std::string& target);
 	long getLines(const std::string& taret);
+	std::vector<std::string> getFilesInDirectory(const char* target);
 
 	// Opengl Callbacks
 	void glfwErrorCallbackFunction(int ecode, const char* info);

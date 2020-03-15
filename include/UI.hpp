@@ -78,6 +78,10 @@ ImVec2 addImVec2(const ImVec2& a, const ImVec2& b) { // + operator not defined??
 }
 
 void drawUI(_GuiState& state) {
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
 	// Main menu drop down bar
 	int menuBarHeight = state.fontSize * 10 + 12; // eyeballing this a bit lol
 
@@ -277,5 +281,91 @@ void drawUI(_GuiState& state) {
 		ImGui::Begin("FPS", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
 		ImGui::Text(fpsReadout);
 		ImGui::End(); // FPS
+	}	
+	
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+#define SCENE_SELECT_WINDOW_DEFAULT_X 450
+#define SCENE_SELECT_WINDOW_DEFAULT_Y 300
+
+std::string runSceneSelectWindow(GLFWwindow* window, const std::string& sceneDirectory, bool& cancelProgram) {
+	// Get all scene files in target directory
+	std::vector<std::string> files = Utils::getFilesInDirectory(sceneDirectory.c_str());
+	std::vector<std::string> scenes;
+
+	std::string selectedScene;
+
+	for (auto f : files) {
+		if (Utils::hasEnding(f, "scene")) {
+			scenes.push_back(f);
+		}
 	}
+
+	int selectedItem = 0;
+
+	const char** scenes_cstr = new const char* [scenes.size()];
+
+	for (int i = 0; i < scenes.size(); i++){
+		*(scenes_cstr + i) = scenes[i].c_str();
+	}
+
+	int originalWindowSize[2];
+	glfwGetWindowSize(window, &originalWindowSize[0], &originalWindowSize[1]);
+
+	glfwSetWindowSize(window, SCENE_SELECT_WINDOW_DEFAULT_X, SCENE_SELECT_WINDOW_DEFAULT_Y);
+
+	bool doBreak = false;
+
+	while (!doBreak) {
+		if (glfwWindowShouldClose(window)) {
+			cancelProgram = true;
+			return "";
+		}
+
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		ImGui::SetNextWindowPos(ImVec2());
+		ImGui::SetNextWindowSize(ImVec2(SCENE_SELECT_WINDOW_DEFAULT_X, SCENE_SELECT_WINDOW_DEFAULT_Y));
+		ImGui::Begin("LoadScene", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+
+		ImGui::Spacing();
+		ImGui::Text("Select Scene To Load");
+
+		ImGui::PushItemWidth(SCENE_SELECT_WINDOW_DEFAULT_X - 15);
+		ImGui::ListBox("##Scenes", &selectedItem, scenes_cstr, 3);
+
+		if (ImGui::Button("Load")){
+			std::cout << "User selected " << *(scenes_cstr + selectedItem)  << std::endl;
+			selectedScene = *(scenes_cstr + selectedItem);
+			doBreak = true;
+		}
+		
+		ImGui::SameLine();
+
+		if (ImGui::Button("Cancel")) {
+			glfwSetWindowShouldClose(window, true);
+		}
+
+		ImGui::End();
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		glfwPollEvents();
+		glfwSwapBuffers(window);
+	}
+
+	// done
+
+	delete[] scenes_cstr;
+
+	glfwSetWindowSize(window, originalWindowSize[0], originalWindowSize[1]);
+
+	return selectedScene;
 }

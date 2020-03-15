@@ -9,10 +9,7 @@
 // #endif // DLL_EXPORT
 
 #define WINDOW_DEFAULT_X 1000
-#define WINDOW_DEFAULT_Y 1000
-
-#define RENDER_DEFAULT_X 1000
-#define RENDER_DEFAULT_Y 1000
+#define WINDOW_DEFAULT_Y 850
 
 #include <math.h>
 
@@ -101,7 +98,7 @@ void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int
 // }
 
 int main(int argc, char** argv) {
-	std::string executableDirectory = Utils::getFileInfo(*(argv)).directory;
+	std::string executableDirectory = Utils::getFileInfo(*argv).directory;
 	std::cout << "Launching racetracks stats... (" << executableDirectory << ")" << std::endl << std::endl;
 
 	// Init Context
@@ -186,22 +183,27 @@ int main(int argc, char** argv) {
 	// ::GuiState.mapTexture = mapTexture->getID();
 	// mapTexture->getWidthHeight(::GuiState.mapTextureDimensions[0], ::GuiState.mapTextureDimensions[1]);
 
+	// Run window to let user select the scene they wish to load
+	bool userCancelledProgram = false;
+	std::string selectedScene = runSceneSelectWindow(window, std::string(WorldState.projectRoot) + "/resources/scenes", userCancelledProgram);
+	if (userCancelledProgram) {
+		goto end_program;
+	}
+
+	glfwSetWindowPos(window, 40, 40); // Not necessary, just makes the window appear in a consistent spot
+
 	// Setup renderer to only draw in top half of screen
 	glViewport(0, WorldState.windowY / 2, WorldState.windowX, WorldState.windowY);
 
 	// Draw one frame of GUI to look clean while loading
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-	ImGui::NewFrame();
 	drawUI(GuiState);
-	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 	glfwSwapBuffers(window);
 
 	// Load Mosport Scene
 	doStopLoadingThread = false;
 	// std::thread loadingBarThread(runLoadingBar, "SCENE!", &renderer->progress);
-	renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/mosport_low.scene");
+	renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/" + selectedScene);
 	doStopLoadingThread = true;
 
 	//
@@ -324,14 +326,7 @@ int main(int argc, char** argv) {
 		}
 
 		// Draw GUI elements
- 		ImGui_ImplOpenGL3_NewFrame();
- 		ImGui_ImplGlfw_NewFrame();
- 		ImGui::NewFrame();
-
 		drawUI(GuiState);
-
- 		ImGui::Render();
- 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		// Current frame finished
 
@@ -342,6 +337,7 @@ int main(int argc, char** argv) {
 		dTime = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000000.0f; // Microsecond conversion into fraction of second
 	}
 
+end_program:
 	// Cleanup
 
 	delete renderer; // Deletes internal scene data

@@ -103,6 +103,32 @@ namespace Utils
 		return count;
 	}
 
+	std::vector<std::string> getFilesInDirectory(const char* target) {
+		std::vector<std::string> files;
+
+		struct dirent* ent;
+		DIR* dir = opendir(target);
+
+		if (dir != NULL) {
+			ent = readdir(dir);
+
+			while (ent != NULL) {
+				if (ent->d_type == DT_REG) {
+					files.push_back(ent->d_name);
+				}
+
+				ent = readdir(dir);
+			}
+
+			closedir(dir);
+		}
+		else {
+			std::cerr << "Couldn't open directory " << target << std::endl;
+		}
+
+		return files;
+	}
+
 	int stringCount(char* s, const char& c){
 		int count = 0;
 
