@@ -67,45 +67,17 @@ void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int
 	if (key ==  GLFW_KEY_RIGHT && action == GLFW_PRESS) GuiState.timelinePosition += GuiState.tickSkipAmount;
 }
 
-// void runLoadingBar(const std::string& name, const float* progress){
-// 	GLFWwindow* window = glfwCreateWindow(400, 500, "TEST WINDOW", NULL, NULL);
-
-// 	IMGUI_CHECKVERSION();
-// 	ImGui::CreateContext();
-// 	ImGuiIO& io = ImGui::GetIO(); (void)io;
-// 	ImGui::StyleColorsDark();
-// 	ImGui_ImplGlfw_InitForOpenGL(window, true);
-// 	ImGui_ImplOpenGL3_Init("#version 330");
-
-// 	while (*progress <= 0.99f && !doStopLoadingThread) {
-// 		ImGui_ImplOpenGL3_NewFrame();
-// 		ImGui_ImplGlfw_NewFrame();
-// 		ImGui::NewFrame();
-
-// 		ImGui::Begin(("Loading " + name).c_str());
-// 		ImGui::Text(std::to_string(*progress).c_str());
-// 		ImGui::End();
-
-// 		// Render dear imgui onto screen
-// 		ImGui::Render();
-// 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-// 		glfwPollEvents();
-// 		glfwSwapBuffers(window);
-// 	}
-
-// 	glfwDestroyWindow(window);
-// }
-
 int main(int argc, char** argv) {
 	std::string executableDirectory = Utils::getFileInfo(*argv).directory;
 	std::cout << "Launching racetracks stats... (" << executableDirectory << ")" << std::endl << std::endl;
 
 	// Init Context
 	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+	// This crashes Multithread ImGui for some reason
+	// glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	// glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	// glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	GLFWwindow* window = glfwCreateWindow(WINDOW_DEFAULT_X, WINDOW_DEFAULT_Y, WINDOW_TITLE, NULL, NULL);
 
@@ -161,12 +133,10 @@ int main(int argc, char** argv) {
 	// ::WorldState.projectRoot = 
 	// ::WorldState.trackDataRoot = 
 
-	// Initialize renderer
-	Renderer* renderer = new Renderer(window);
-
 	// Initialize imgui
 	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
+	ImGuiContext* imguiContext = ImGui::CreateContext();
+	ImGui::SetCurrentContext(imguiContext);
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	ImGui::StyleColorsDark();
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -186,9 +156,16 @@ int main(int argc, char** argv) {
 	// Run window to let user select the scene they wish to load
 	bool userCancelledProgram = false;
 	std::string selectedScene = runSceneSelectWindow(window, std::string(WorldState.projectRoot) + "/resources/scenes", userCancelledProgram);
+
+	// If user closed the select window or clicked the cancel button, go right to clean up stage
 	if (userCancelledProgram) {
 		goto end_program;
 	}
+
+	std::cout << "User selected " << selectedScene << std::endl;
+
+	// Initialize renderer
+	Renderer* renderer = new Renderer(window);
 
 	glfwSetWindowPos(window, 40, 40); // Not necessary, just makes the window appear in a consistent spot
 
@@ -201,10 +178,7 @@ int main(int argc, char** argv) {
 	glfwSwapBuffers(window);
 
 	// Load Mosport Scene
-	doStopLoadingThread = false;
-	// std::thread loadingBarThread(runLoadingBar, "SCENE!", &renderer->progress);
 	renderer->loadScene(std::string(WorldState.projectRoot) + "/resources/scenes/" + selectedScene);
-	doStopLoadingThread = true;
 
 	//
 	// Initialize variables that will fluctuate over the runtime of the scene
@@ -337,10 +311,10 @@ int main(int argc, char** argv) {
 		dTime = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000000.0f; // Microsecond conversion into fraction of second
 	}
 
+	delete renderer; // Deletes internal scene data
+
 end_program:
 	// Cleanup
-
-	delete renderer; // Deletes internal scene data
 
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();

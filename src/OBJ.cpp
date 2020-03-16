@@ -79,15 +79,7 @@ namespace OBJ
 
 			std::cout << "Writing vertex data for " << groupName << " (" << numOfFaces << " tris, ";
 
-			currentObject = new OBJMesh(fullName, Utils::getFileInfo(materialLibrary).file + '.' + materialName, fullParentName, target, numOfFaces, numOfPositions, numOfNormals, numOfTexCoords);
-
-            // Using one chunk of memory to hold all vertex info before copying to VBO for objects
-            // If the new object uses more space than the last one, grow the buffer.
-			if ((3 * 8 * numOfFaces) > dataSize){
-				delete[] data;
-				dataSize = 3 * 8 * numOfFaces;
-				data = new float[dataSize];
-			}
+			float* data = new float[3 * 8 * numOfFaces];
 
 			for (int i = 0; i < 3 * numOfFaces; i++) {
 				// add position triplet for each face
@@ -108,8 +100,14 @@ namespace OBJ
 				*(data + (8 * i) + 7) = texCoords[(2 * currentTexCoordIndex) + 1];
 			}
 
-			// Generate VBO from the current data
-			currentObject->generateBuffers(data);
+			currentObject = new OBJMesh(
+				fullName, 
+				Utils::getFileInfo(materialLibrary).file + '.' + materialName, 
+				fullParentName, 
+				target,
+				numOfFaces,
+				data
+			);
 
 			// Add generated object to map
 			meshes[fullName] = currentObject;
@@ -231,6 +229,7 @@ namespace OBJ
 				char c = line[i];
 				char index[128];
 
+				// Find all face indeces separated by non numeric characters
 				while (c != '\n' && c != '\0') {
 					if (isdigit(c)){
 						while (isdigit(c)){
@@ -260,8 +259,6 @@ nextline:
 
 		fclose(f);
 
-		delete[] data;
-
 		std::cout << "Finished loading file " << target << " (" << total.lap_s() << ")" << std::endl;
 
 		return meshes;
@@ -284,7 +281,7 @@ unsigned int OBJMesh::getNumberOfFaces() {
 	return this->numberOfFaces;
 }
 
-void OBJMesh::generateBuffers(float* data) {
+void OBJMesh::generateBuffers() {
 	// TODO: use EBO instead?
 
 	// Generate and bind VAO for this mesh
@@ -295,7 +292,7 @@ void OBJMesh::generateBuffers(float* data) {
 	int lenOfVBO = sizeof(float) * 3 * 8 * this->numberOfFaces;
 	glGenBuffers(1, &this->VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-	glBufferData(GL_ARRAY_BUFFER, lenOfVBO, data, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, lenOfVBO, this->vertexData, GL_STATIC_DRAW);
 
 	int vertexSize = 8 * sizeof(float);
 	// Enable pointer for vertex positions
@@ -313,18 +310,21 @@ void OBJMesh::generateBuffers(float* data) {
 	// Clear binds
 	glBindVertexArray(0); 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// At this point, no need for vertex data any longer since it is already saved in the VAO
+	delete[] this->vertexData;
+	this->vertexData = nullptr;
+
+	this->loaded = true;
 }
 
 void OBJMesh::bind() {
 	glBindVertexArray(this->VAO);
 }
 
-int OBJMesh::getApproxBytes() {
-	// TODO: this is outdated
-	return (sizeof(float) * (3 * (numOfPositions + numOfNormals)) + (2 * numOfTexCoords)); 
-}
-
 void OBJMesh::draw() {
+	if (!this->loaded) this->generateBuffers();
+
 	glBindVertexArray(this->VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
 	
@@ -334,21 +334,22 @@ void OBJMesh::draw() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-OBJMesh::OBJMesh(const std::string& meshName, const std::string& materialName, const std::string& parent, const std::string& origin, const int& numberOfFaces, const int& numberOfPositions, const int& numberOfNormals, const int& numberOfTexCoords) {
-	// TODO: Constructor needs to be changed
+OBJMesh::OBJMesh(const std::string& meshName, const std::string& materialName, const std::string& parent, const std::string& origin, const int& numberOfTriangles, float* data) {
 	this->meshName = meshName;
 	this->defaultMaterialName = materialName;
 	this->defaultParent = parent;
 	this->origin = origin;
 
-	this->numberOfFaces = numberOfFaces;
-
-	this->numOfPositions = numberOfNormals;
-	this->numOfNormals   = numberOfNormals;
-	this->numOfTexCoords = numberOfTexCoords;
+	this->numberOfFaces = numberOfTriangles;
+	this->vertexData = data;
 }
 
 OBJMesh::~OBJMesh() {
 	glDeleteBuffers(1, &this->VBO);
 	glDeleteVertexArrays(1, &this->VAO);
+
+	// If for some reason vertex data was not 'transferred' into VAO, delete it now
+	if (!(this->vertexData == nullptr)){
+		delete[] this->vertexData;
+	}
 }

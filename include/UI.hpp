@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <iostream>
 
 #include <imgui.h>
 #include <WorldState.h>
@@ -288,7 +289,7 @@ void drawUI(_GuiState& state) {
 }
 
 #define SCENE_SELECT_WINDOW_DEFAULT_X 450
-#define SCENE_SELECT_WINDOW_DEFAULT_Y 300
+#define SCENE_SELECT_WINDOW_DEFAULT_Y 180
 
 std::string runSceneSelectWindow(GLFWwindow* window, const std::string& sceneDirectory, bool& cancelProgram) {
 	// Get all scene files in target directory
@@ -297,20 +298,25 @@ std::string runSceneSelectWindow(GLFWwindow* window, const std::string& sceneDir
 
 	std::string selectedScene;
 
+	// Filter files found for files ending in scene
+	int nameLength;
 	for (auto f : files) {
 		if (Utils::hasEnding(f, "scene")) {
-			scenes.push_back(f);
+			nameLength = f.size();
+			scenes.push_back(f.substr(0, nameLength - 6)); // Chop .scene extention from name (will add back in on return)
 		}
 	}
 
 	int selectedItem = 0;
 
+	// Set up data for ImGui to be able to use
 	const char** scenes_cstr = new const char* [scenes.size()];
 
 	for (int i = 0; i < scenes.size(); i++){
 		*(scenes_cstr + i) = scenes[i].c_str();
 	}
 
+	// Cache default size of window so we can set it back at the end
 	int originalWindowSize[2];
 	glfwGetWindowSize(window, &originalWindowSize[0], &originalWindowSize[1]);
 
@@ -338,17 +344,18 @@ std::string runSceneSelectWindow(GLFWwindow* window, const std::string& sceneDir
 		ImGui::Text("Select Scene To Load");
 
 		ImGui::PushItemWidth(SCENE_SELECT_WINDOW_DEFAULT_X - 15);
-		ImGui::ListBox("##Scenes", &selectedItem, scenes_cstr, 3);
+		ImGui::ListBox("##Scenes", &selectedItem, scenes_cstr, scenes.size(), 5);
 
-		if (ImGui::Button("Load")){
-			std::cout << "User selected " << *(scenes_cstr + selectedItem)  << std::endl;
+		static ImVec2 buttonDimensions((SCENE_SELECT_WINDOW_DEFAULT_X - 25)/2, 25);
+
+		if (ImGui::Button("Load", buttonDimensions)){
 			selectedScene = *(scenes_cstr + selectedItem);
-			doBreak = true;
+			doBreak = true; // Can't just break immediately because ImGui needs to run the subsequent cleanup functions for this frame
 		}
 		
-		ImGui::SameLine();
+		ImGui::SameLine(0, 10);
 
-		if (ImGui::Button("Cancel")) {
+		if (ImGui::Button("Cancel", buttonDimensions)) {
 			glfwSetWindowShouldClose(window, true);
 		}
 
@@ -367,5 +374,5 @@ std::string runSceneSelectWindow(GLFWwindow* window, const std::string& sceneDir
 
 	glfwSetWindowSize(window, originalWindowSize[0], originalWindowSize[1]);
 
-	return selectedScene;
+	return selectedScene + ".scene";
 }
