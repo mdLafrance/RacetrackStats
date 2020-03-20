@@ -324,11 +324,41 @@ std::string runSceneSelectWindow(GLFWwindow* window, const std::string& sceneDir
 
 	bool doBreak = false;
 
+	float lastPress = 0.0f;
+
 	while (!doBreak) {
+		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS){
+			glfwSetWindowShouldClose(window, true);
+		}
+
 		if (glfwWindowShouldClose(window)) {
 			cancelProgram = true;
 			return "";
 		}
+
+		// Enter should load the selected scene
+		if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS){
+			selectedScene = *(scenes_cstr + selectedItem);
+			break;
+		}	
+
+		// Arrow keys should seek through the list
+		// This is to make sure the user can't trigger the up and down keys every frame
+		if (glfwGetTime() - lastPress > 0.1){
+			lastPress = glfwGetTime();
+
+			if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
+				selectedItem = Utils::clamp(++selectedItem, 0, (int)scenes.size() - 1);
+			}
+
+			if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
+				selectedItem = Utils::clamp(--selectedItem, 0, (int)scenes.size() - 1);
+			}
+		}
+
+		int windowX, windowY;
+
+		glfwGetWindowSize(window, &windowX, &windowY);
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -337,16 +367,16 @@ std::string runSceneSelectWindow(GLFWwindow* window, const std::string& sceneDir
 		ImGui::NewFrame();
 
 		ImGui::SetNextWindowPos(ImVec2());
-		ImGui::SetNextWindowSize(ImVec2(SCENE_SELECT_WINDOW_DEFAULT_X, SCENE_SELECT_WINDOW_DEFAULT_Y));
+		ImGui::SetNextWindowSize(ImVec2(windowX, windowY));
 		ImGui::Begin("LoadScene", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
 		ImGui::Spacing();
 		ImGui::Text("Select Scene To Load");
 
-		ImGui::PushItemWidth(SCENE_SELECT_WINDOW_DEFAULT_X - 15);
+		ImGui::PushItemWidth(windowX - 15);
 		ImGui::ListBox("##Scenes", &selectedItem, scenes_cstr, scenes.size(), 5);
 
-		static ImVec2 buttonDimensions((SCENE_SELECT_WINDOW_DEFAULT_X - 25)/2, 25);
+		static ImVec2 buttonDimensions((windowX - 25)/2, 25);
 
 		if (ImGui::Button("Load", buttonDimensions)){
 			selectedScene = *(scenes_cstr + selectedItem);

@@ -52,6 +52,15 @@ void Renderer::registerCamera(const std::string& id, Camera* camera){
     }
 }
 
+void Renderer::registerSkybox(const std::string& id, Skybox* skybox){
+    if (this->skyboxes.count(id) == 0){
+        this->skyboxes[id] = skybox;
+		std::cout << "Registered Skybox " << id << std::endl;
+    } else {
+        std::cerr << "Skybox " << id << " already registered." << std::endl;
+    }
+}
+
 Camera* Renderer::getMainCamera() {
 	return this->mainCamera;
 }
@@ -62,6 +71,15 @@ void Renderer::setMainCamera(const std::string& id){
     }
     catch (const std::out_of_range& oor) {
         std::cerr << "Camera " << id << " not registered" << std::endl;
+    }
+}
+
+void Renderer::setSkybox(const std::string& id){
+    try {
+        this->skybox = this->skyboxes.at(id);
+    }
+    catch (const std::out_of_range& oor) {
+        std::cerr << "Skybox " << id << " not registered" << std::endl;
     }
 }
 
@@ -168,19 +186,28 @@ void Renderer::resetData() {
 		std::string(WorldState.projectRoot) + "/resources/shaders/line.frag"
 	);
 
+	Shader* skyboxShader = new Shader(
+		std::string(WorldState.projectRoot) + "/resources/shaders/skybox.vert", 
+		std::string(WorldState.projectRoot) + "/resources/shaders/skybox.frag"
+	);
+
 	Texture* defaultTexture = new Texture("default");
 
 	Material* defaultMaterial = new Material("default");
 	defaultMaterial->shader = defaultShader;
 
-	this->registerShader("default", defaultShader);
 	this->registerShader("diffuse", diffuseShader);
 	this->registerShader("line", lineShader);
+	this->registerShader("skybox", skyboxShader);
+	this->registerShader("default", defaultShader);
+
 	this->registerCamera("default", defaultCam);
 	this->registerTexture("default", defaultTexture);
 	this->registerMaterial("default", defaultMaterial);
 
 	this->setMainCamera("default");
+
+	this->skybox = nullptr;
 
 	this->numOfLights = 0;
 
@@ -361,10 +388,10 @@ void Renderer::loadOBJ(const std::string& target){
 
 	this->loading = true;
 
-	std::map<std::string, OBJMesh*> meshes = OBJ::load(target);
+	std::vector<OBJMesh*> meshes = OBJ::load(target);
 
-	for (auto p : meshes){
-		this->registerMesh(p.first, p.second);
+	for (OBJMesh* mesh : meshes){
+		this->registerMesh(mesh->getMeshName(), mesh);
 	}
 
 	this->loading = false;
@@ -524,6 +551,12 @@ void Renderer::tick(const double& dTime) {
 	this->drawLine(glm::vec3(), glm::vec3(10, 0, 0), glm::vec3(1, 0, 0));
 	this->drawLine(glm::vec3(), glm::vec3(0, 10, 0), glm::vec3(0, 1, 0));
 	this->drawLine(glm::vec3(), glm::vec3(0, 0, 10), glm::vec3(0, 0, 1));
+
+	if (this->skybox != nullptr){
+		std::cout << "Skybox is " << this->skybox << std::endl;
+		this->shaders.at("skybox")->bind();
+		this->skybox->draw();
+	}
 
 	/*
 		skybox position = mainCamera.position

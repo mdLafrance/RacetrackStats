@@ -13,14 +13,14 @@
 
 namespace OBJ
 {
-	std::map<std::string, OBJMesh*> load(const std::string& target) {
+	std::vector<OBJMesh*> load(const std::string& target) {
 		FILE* f;
 
 		f = fopen(target.c_str(), "r");
 
 		if (!f) {
 			std::cerr << "Couldn't Open File " << target << " For OBJ Loading" << std::endl;
-			return std::map<std::string, OBJMesh*>();
+			return std::vector<OBJMesh*>();
 		}
 
 		Utils::StopWatch writeVertex, readData, total;
@@ -59,7 +59,7 @@ namespace OBJ
 		int currentNormalIndex;
 		int currentTexCoordIndex;
 
-		std::map<std::string, OBJMesh*> meshes;
+		std::vector<OBJMesh*> meshes;
 
 		// Dummy values
 		int dataSize = 1;
@@ -110,7 +110,7 @@ namespace OBJ
 			);
 
 			// Add generated object to map
-			meshes[fullName] = currentObject;
+			meshes.push_back(currentObject);
 
 			// Cleanup for next mesh
 

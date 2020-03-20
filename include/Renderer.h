@@ -20,6 +20,7 @@
 #include <Object.h>
 #include <Light.h>
 #include <WorldState.h>
+#include <Skybox.h>
 
 #include <TSQueue.hpp>
 
@@ -44,11 +45,7 @@ class Renderer {
 
 	Camera* mainCamera;
 
-	std::map<std::string, Texture*> textures;
-	std::map<std::string, Shader*> shaders;
-	std::map<std::string, OBJMesh*> meshes;
-	std::map<std::string, Material*> materials;
-	std::map<std::string, Camera*> cameras;
+	Skybox* skybox;
 
 	Scene scene;
 
@@ -65,6 +62,13 @@ class Renderer {
 	void deleteObjects();
 
 public:
+	std::map<std::string, Texture*> textures;
+	std::map<std::string, Shader*> shaders;
+	std::map<std::string, OBJMesh*> meshes;
+	std::map<std::string, Material*> materials;
+	std::map<std::string, Camera*> cameras;
+	std::map<std::string, Skybox*> skyboxes;
+
 	float progress = 0.0f; // Used to store loading progress for various operations so that it can be visible to other threads running loading bars
 	bool loading = false; // If the renderer is busy loading, is set to true
 
@@ -79,6 +83,7 @@ public:
 	void registerMesh(const std::string& id, OBJMesh* mesh);
 	void registerMaterial(const std::string& id, Material* material);
 	void registerCamera(const std::string& id, Camera* camera);
+	void registerSkybox(const std::string& id, Skybox* skybox);
 
 	Object* newObject(const std::string& name);
 	Object* getObject(const std::string& name);
@@ -86,10 +91,11 @@ public:
 	Camera* getMainCamera();
 	void setMainCamera(const std::string& id);
 
+	void setSkybox(const std::string& name);
+
 	// Draw a line of <color> from <origin> to <end> (in world space).
 	// drawOver=true will cause the line to draw on top of all other scene elements.
 	void drawLine(const glm::vec3& origin, const glm::vec3& end, const glm::vec3& color, bool drawOver=true);
-
 	void setLineWidth(const float& w);
 
 	// Render the next frame

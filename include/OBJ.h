@@ -50,5 +50,5 @@ public:
 
 namespace OBJ
 {
-	std::map<std::string, OBJMesh*> load(const std::string& target);
+	std::vector<OBJMesh*> load(const std::string& target);
 }

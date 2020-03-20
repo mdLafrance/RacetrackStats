@@ -4,7 +4,12 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
 #include <stb/stb_image.h>
+
+#ifndef STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#endif // STBI_IMAGE_IMPLEMENTATION
 
 #include <Utils.h>
 

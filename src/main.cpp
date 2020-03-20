@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
 	}
 	else {
 		::WorldState.projectRoot = "C:/Users/maxto/OneDrive/Documents/Hacking/RacetrackStats";
-		::WorldState.trackDataRoot = "C:/Users/maxto/OneDrive/Documents/Mosport";
+		::WorldState.trackDataRoot = "C:/Users/maxto/OneDrive/Documents/Hacking/RacetrackStats/Mosport";
 	}
 
 	// If on a different machine, set these parameters here
@@ -293,11 +293,9 @@ int main(int argc, char** argv) {
 
 		// Draw renderable elements
 
-		if (!renderer->loading){
-			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			renderer->tick(dTime);
-		}
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		renderer->tick(dTime);
 
 		// Draw GUI elements
 		drawUI(GuiState);
