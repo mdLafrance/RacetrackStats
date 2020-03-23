@@ -2,8 +2,9 @@
 Debug/
 x64/
 include/glm/out/
-models/
 Mosport/
 Builds/
+resources/.mayaSwatches/
+testingResources/
 
 imgui.ini

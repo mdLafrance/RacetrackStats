@@ -196,6 +196,17 @@ void Renderer::resetData() {
 	Material* defaultMaterial = new Material("default");
 	defaultMaterial->shader = defaultShader;
 
+	std::vector<std::string> skyboxFaces = {
+		std::string(WorldState.projectRoot) + "/resources/textures/default_skybox+X.png",
+		std::string(WorldState.projectRoot) + "/resources/textures/default_skybox-X.png",
+		std::string(WorldState.projectRoot) + "/resources/textures/default_skybox+Y.png",
+		std::string(WorldState.projectRoot) + "/resources/textures/default_skybox-Y.png",
+		std::string(WorldState.projectRoot) + "/resources/textures/default_skybox+Z.png",
+		std::string(WorldState.projectRoot) + "/resources/textures/default_skybox-Z.png",
+	};
+
+	Skybox* defaultSkybox = new Skybox(skyboxFaces);
+
 	this->registerShader("diffuse", diffuseShader);
 	this->registerShader("line", lineShader);
 	this->registerShader("skybox", skyboxShader);
@@ -204,10 +215,10 @@ void Renderer::resetData() {
 	this->registerCamera("default", defaultCam);
 	this->registerTexture("default", defaultTexture);
 	this->registerMaterial("default", defaultMaterial);
+	this->registerSkybox("default", defaultSkybox);
 
 	this->setMainCamera("default");
-
-	this->skybox = nullptr;
+	this->setSkybox("default");
 
 	this->numOfLights = 0;
 
@@ -548,14 +559,21 @@ void Renderer::tick(const double& dTime) {
 	
 	// Draw coordinate axes (for testing)
 	// TODO: remove
-	this->drawLine(glm::vec3(), glm::vec3(10, 0, 0), glm::vec3(1, 0, 0));
-	this->drawLine(glm::vec3(), glm::vec3(0, 10, 0), glm::vec3(0, 1, 0));
-	this->drawLine(glm::vec3(), glm::vec3(0, 0, 10), glm::vec3(0, 0, 1));
+	// this->drawLine(glm::vec3(), glm::vec3(10, 0, 0), glm::vec3(1, 0, 0));
+	// this->drawLine(glm::vec3(), glm::vec3(0, 10, 0), glm::vec3(0, 1, 0));
+	// this->drawLine(glm::vec3(), glm::vec3(0, 0, 10), glm::vec3(0, 0, 1));
 
 	if (this->skybox != nullptr){
-		std::cout << "Skybox is " << this->skybox << std::endl;
-		this->shaders.at("skybox")->bind();
+		glDisable(GL_CULL_FACE);
+
+		Shader* skyboxShader = this->shaders.at("skybox");
+
+		skyboxShader->bind();
+		skyboxShader->setUniformMatrix4fv("MVP", VP);
+
 		this->skybox->draw();
+
+		glEnable(GL_CULL_FACE);
 	}
 
 	/*

@@ -309,7 +309,7 @@ std::string runSceneSelectWindow(GLFWwindow* window, const std::string& sceneDir
 
 	int selectedItem = 0;
 
-	// Set up data for ImGui to be able to use
+	// Make a list of c style strings for ImGui to be able to use
 	const char** scenes_cstr = new const char* [scenes.size()];
 
 	for (int i = 0; i < scenes.size(); i++){
@@ -343,7 +343,7 @@ std::string runSceneSelectWindow(GLFWwindow* window, const std::string& sceneDir
 		}	
 
 		// Arrow keys should seek through the list
-		// This is to make sure the user can't trigger the up and down keys every frame
+		// NOTE: This if guard is to make sure the user can't trigger the up and down keys every frame
 		if (glfwGetTime() - lastPress > 0.1){
 			lastPress = glfwGetTime();
 
