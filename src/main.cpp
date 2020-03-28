@@ -13,6 +13,11 @@
 
 #include <math.h>
 
+#include <assert.h>
+
+// TODO: Uncomment this for release
+// #define NDEBUG 
+
 #include <cstdlib>
 #include <vector>
 #include <fstream>
@@ -53,28 +58,43 @@ _WorldState WorldState = {
 };
 
 // Internal state variables
+static char* exeLocation;
+static char* trackDataLocation;
+
 static CSV* currentData;
+
 static bool frameSizeChanged = false;
+
 static bool doStopLoadingThread = false;
+
+static ImGuiIO* imguiIO;
 
 // Handler for shortcuts used to navigate the ui
 void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	// Escape to close the program
+	// TODO: remove in final?
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
+
 	// Spacebar to play/pause
 	if (key ==  GLFW_KEY_SPACE && action == GLFW_PRESS) GuiState.isPlaying = !GuiState.isPlaying;
 
 	// Arrow keys to nudge timeline
-	if (key ==  GLFW_KEY_LEFT && action == GLFW_PRESS) GuiState.timelinePosition -= GuiState.tickSkipAmount;
-	if (key ==  GLFW_KEY_RIGHT && action == GLFW_PRESS) GuiState.timelinePosition += GuiState.tickSkipAmount;
+	if (key ==  GLFW_KEY_LEFT && action == GLFW_PRESS) GuiState.timelinePosition = Utils::clamp(GuiState.timelinePosition - GuiState.tickSkipAmount, 0, GuiState.numberOfTimePoints);
+	if (key ==  GLFW_KEY_RIGHT && action == GLFW_PRESS) GuiState.timelinePosition = Utils::clamp(GuiState.timelinePosition + GuiState.tickSkipAmount, 0, GuiState.numberOfTimePoints);
 }
 
 int main(int argc, char** argv) {
 	std::string executableDirectory = Utils::getFileInfo(*argv).directory;
 	std::cout << "Launching racetracks stats... (" << executableDirectory << ")" << std::endl << std::endl;
 
+	 //
+	// Initialize glfw and opengl
+	//
+
 	// Init Context
 	glfwInit();
 
-	// This crashes Multithread ImGui for some reason
+	// NOTE: This crashes Multithread ImGui for some reason
 	// glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	// glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	// glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -133,25 +153,41 @@ int main(int argc, char** argv) {
 	// ::WorldState.projectRoot = 
 	// ::WorldState.trackDataRoot = 
 
+	//
 	// Initialize imgui
+	//
+
 	IMGUI_CHECKVERSION();
 	ImGuiContext* imguiContext = ImGui::CreateContext();
 	ImGui::SetCurrentContext(imguiContext);
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	ImGui::StyleColorsDark();
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 330");
 
 	// Set up some initial GUI data
-	io.FontGlobalScale = 1.3;
-	::GuiState.fontSize = io.FontGlobalScale;
+	// ::GuiState.io = &ImGui::GetIO();
+	imguiIO = &ImGui::GetIO();
+	imguiIO->FontGlobalScale = 1.3;
+
+	// ::GuiState.io->FontGlobalScale = 1.3;
 	setGuiOptionsToDefault(GuiState);
 	glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, ::GuiState.glLineWidthRange);
 
 	// Load track map texture to GUI
-	// Texture* mapTexture = new Texture(std::string(WorldState.projectRoot) + "/resources/ui/map.png");
-	// ::GuiState.mapTexture = mapTexture->getID();
-	// mapTexture->getWidthHeight(::GuiState.mapTextureDimensions[0], ::GuiState.mapTextureDimensions[1]);
+	::GuiState.mapTexture = new Texture(std::string(WorldState.projectRoot) + "/resources/ui/map.png");
+
+	// Load the texures used for the timeline control buttons
+	*(::GuiState.playButtonTextures + 0) = new Texture(std::string(WorldState.projectRoot) + "/resources/ui/play_button.png");
+	*(::GuiState.playButtonTextures + 1) = new Texture(std::string(WorldState.projectRoot) + "/resources/ui/play_button_hovered.png");
+	*(::GuiState.playButtonTextures + 2) = new Texture(std::string(WorldState.projectRoot) + "/resources/ui/play_button_pressed.png");
+
+	*(::GuiState.pauseButtonTextures + 0) = new Texture(std::string(WorldState.projectRoot) + "/resources/ui/pause_button.png");
+	*(::GuiState.pauseButtonTextures + 1) = new Texture(std::string(WorldState.projectRoot) + "/resources/ui/pause_button_hovered.png");
+	*(::GuiState.pauseButtonTextures + 2) = new Texture(std::string(WorldState.projectRoot) + "/resources/ui/pause_button_pressed.png");
+
+	*(::GuiState.skipButtonTextures + 0) = new Texture(std::string(WorldState.projectRoot) + "/resources/ui/skip_button.png");
+	*(::GuiState.skipButtonTextures + 1) = new Texture(std::string(WorldState.projectRoot) + "/resources/ui/skip_button_hovered.png");
+	*(::GuiState.skipButtonTextures + 2) = new Texture(std::string(WorldState.projectRoot) + "/resources/ui/skip_button_pressed.png");
 
 	// Run window to let user select the scene they wish to load
 	bool userCancelledProgram = false;
@@ -288,11 +324,7 @@ int main(int argc, char** argv) {
 		WorldState.ambientLight[1] = originalAmbientLight[1] + GuiState.brightness;
 		WorldState.ambientLight[2] = originalAmbientLight[2] + GuiState.brightness;
 
-		// Update ui font size
-		io.FontGlobalScale = GuiState.fontSize;
-
 		// Draw renderable elements
-
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		renderer->tick(dTime);
@@ -312,6 +344,7 @@ int main(int argc, char** argv) {
 	delete renderer; // Deletes internal scene data
 
 end_program:
+
 	// Cleanup
 
 	ImGui_ImplOpenGL3_Shutdown();

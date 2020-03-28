@@ -6,6 +6,8 @@
 #include <iostream>
 
 #include <imgui.h>
+
+#include <Texture.h>
 #include <WorldState.h>
 #include <Utils.h>
 
@@ -13,17 +15,20 @@
 
 extern _WorldState WorldState;
 
+extern ImGuiIO* imguiIO; // Set in main, handle to the io structure set by imgui (collects mouse clicks etc.)
+
 struct _GuiState {
 	// Global states
 	bool sceneOpen = false;
-	float fontSize = 1.0f;
 	int padding = 17;
 
-	unsigned int mapTexture = 0;
-	float mapTextureDimensions[2] = { 0, 0 };
+	Texture* mapTexture;
 
-	unsigned int playButtonTexture = 0;
-	float playButtonTextureDimensions[2] = { 0, 0 };
+	// Textures for the custom buttons; play/pause button, skip buttons
+	// [Normal, Hovered, Clicked]
+	Texture* playButtonTextures[3];
+	Texture* pauseButtonTextures[3];
+	Texture* skipButtonTextures[3];
 
 	double fps = 0.0; 
 
@@ -57,6 +62,16 @@ struct _GuiState {
 	bool selected_menu_Options = false;
 	bool doShowMap = true;
 	bool doShowFPSCounter = true;
+
+	~_GuiState() {
+		delete mapTexture;
+		
+		for (int i = 0; i < 3; i++) { // Can't delete[] since the arrays aren't on heap
+			delete *(playButtonTextures + i);
+			delete *(pauseButtonTextures + i);
+			delete *(skipButtonTextures + i);
+		}
+	}
 };
 
 void setGuiOptionsToDefault(_GuiState& state) {
@@ -65,7 +80,7 @@ void setGuiOptionsToDefault(_GuiState& state) {
 
 	state.cameraSettingsChanged = true;
 
-	state.nearClipPlane = 1.0f;
+	state.nearClipPlane = 0.5f;
 	state.farClipPlane = 1000.0f;
 	state.brightness = 0.0f;
 	state.FOV = 0.0f;
@@ -74,8 +89,56 @@ void setGuiOptionsToDefault(_GuiState& state) {
 	state.lineWidthChanged = true;
 }
 
+std::string imVec2ToString(const ImVec2& v) { // ostream<< operator not defined??
+	char s[32];
+	sprintf(s, "[%.3f, %.3f]", v.x, v.y);
+	return std::string(s);
+}
+
 ImVec2 addImVec2(const ImVec2& a, const ImVec2& b) { // + operator not defined??
 	return ImVec2(a[0] + b[0], a[1] + b[1]);
+}
+
+// NOTE: Bug within ImGui causes multiple ImageButtons to not receive any clicks (documented bug)
+// So just made an ImageButton where this... doesn't happen
+bool ImageButton2(Texture** textures, const ImVec2& cursorPos, const ImVec2& buttonSize, const bool& flipTexture = false) {
+	/*
+		Draw an image, and handle mouse click on this texture to mimic image button
+		-textures should be the pointer to an array of 3 textures in order of 'Normal', 'Hovered', and 'Clicked' appearance.
+		-Cursor Pos is the top left of the button in global app coordinates
+		-Button size and flip texture fairly straight forward
+
+		Usage is the same as ImGui::ImageButton
+	*/
+	assert(textures != nullptr);
+
+	enum ButtonState { Normal = 0, Hovered = 1, Clicked = 2 };
+
+	ImVec2 mousePos = ImGui::GetMousePos();
+
+	ImVec2 boundsX(cursorPos[0], cursorPos[0] + buttonSize[0]);
+	ImVec2 boundsY(cursorPos[1], cursorPos[1] + buttonSize[1]);
+
+	ButtonState bs;
+
+	// std::cout << imVec2ToString(boundsX) << " : " << imVec2ToString(boundsY) << " <- " << imVec2ToString(mousePos) << std::endl; // For debugging, reads out the bounds and mouse pos
+
+	if ((boundsX[0] <= mousePos[0] && mousePos[0] <= boundsX[1]) && (boundsY[0] <= mousePos[1] && mousePos[1] <= boundsY[1])) { // If mouse within bounds of button
+		if (imguiIO->MouseDown[0]) { // If left click is being held
+			bs = Clicked;
+		}
+		else {
+			bs = Hovered;
+		}
+	}
+	else { // Not hovered
+		bs = Normal;
+	}
+
+	// Create image with correct button image
+	ImGui::Image((void*)(*(textures + (int)bs))->getID(), buttonSize, ImVec2(), flipTexture ? ImVec2(-1,-1) : ImVec2(1, 1));
+
+	return (bs == Clicked) && ImGui::IsMouseClicked(0, false); // Is the mouse clicking on the button, and did the click happen this frame?
 }
 
 void drawUI(_GuiState& state) {
@@ -84,13 +147,18 @@ void drawUI(_GuiState& state) {
 	ImGui::NewFrame();
 
 	// Main menu drop down bar
-	int menuBarHeight = state.fontSize * 10 + 12; // eyeballing this a bit lol
+	int menuBarHeight = imguiIO->FontGlobalScale * 10 + 12; // eyeballing this a bit lol
 
 	int X, Y, halfX, halfY;
 	X = WorldState.windowX;
 	Y = WorldState.windowY;
 	halfX = X / 2;
 	halfY = Y / 2;
+
+	int w, h; // Used to hold various button and image widths and heights later on
+
+	// NOTE: Spent time looking for the right style element color for this, but ended up just eyedropping the color
+	ImVec4 bgColor = ImVec4(0.056, 0.056, 0.056, 1.0f);// ImGui::GetStyleColorVec4(ImGuiCol_TitleBg); // Cache background color for use with the icon buttons later
 
 	// Reset necessary states
 	state.selected_menu_File_Open = false;
@@ -118,9 +186,9 @@ void drawUI(_GuiState& state) {
 			ImGui::Text("Font Size");
 			ImGui::SameLine(300, 0);
 			ImGui::PushItemWidth(100);
-			ImGui::InputFloat("##Font size", &state.fontSize, 0, 0, "%.1f");
-			
-			state.fontSize = state.fontSize > 3 ? 3 : state.fontSize; // things start getting weird above 3 font lol
+			ImGui::InputFloat("##Font size", &imguiIO->FontGlobalScale, 0, 0, "%.1f");
+
+			imguiIO->FontGlobalScale = imguiIO->FontGlobalScale > 3 ? 3 : imguiIO->FontGlobalScale; // things start getting weird above 3 font lol
 
 			ImGui::Separator();
 			ImGui::Separator();
@@ -135,9 +203,9 @@ void drawUI(_GuiState& state) {
 			ImGui::SameLine(300, 0);
 			if (ImGui::SliderFloat("##FOV", &state.FOV, -FOVbounds, FOVbounds)) state.cameraSettingsChanged = true;
 
-			ImGui::Text("Near Clip Plane");
-			ImGui::SameLine(300, 0);
-			if (ImGui::InputFloat("##Near Clip Plane", &state.nearClipPlane, 0, 0, "%.2f")) state.cameraSettingsChanged = true;
+			// ImGui::Text("Near Clip Plane");
+			// ImGui::SameLine(300, 0);
+			// if (ImGui::InputFloat("##Near Clip Plane", &state.nearClipPlane, 0, 0, "%.2f")) state.cameraSettingsChanged = true;
 
 			ImGui::Text("Far Clip Plane");
 			ImGui::SameLine(300, 0);
@@ -159,7 +227,7 @@ void drawUI(_GuiState& state) {
 
 			ImGui::PushItemWidth(300);
 			if (ImGui::Button("Reset to Defaults")) setGuiOptionsToDefault(state);
-			
+
 			ImGui::EndMenu();
 		}
 
@@ -172,20 +240,21 @@ void drawUI(_GuiState& state) {
 	ImGui::Begin("Data", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
 	// Dropdown to enable or disable data type display
-    if (state.sceneOpen) {
-        if (ImGui::CollapsingHeader("Display Data Types")) {
-            // 'All' and 'None' buttons
-            // if (ImGui::Button("All")) {
-            //     memset(state.dataFieldsEnabled, 1, state.dataFields.size());
-            // }
+	if (state.sceneOpen) {
+		if (ImGui::CollapsingHeader("Display Data Types")) {
+			// 'All' and 'None' buttons
 
-            // ImGui::SameLine(0, 10);
+			// if (ImGui::Button("All")) {
+			//     memset(state.dataFieldsEnabled, 1, state.dataFields.size());
+			// }
 
-            if (ImGui::Button("None")) {
-                memset(state.dataFieldsEnabled, 0, state.dataFields.size());
-            }
+			// ImGui::SameLine(0, 10);
 
-            // Add all toggles for data types
+			if (ImGui::Button("None")) {
+				memset(state.dataFieldsEnabled, 0, state.dataFields.size());
+			}
+
+			// Add all toggles for data types
 			for (int i = 0; i < state.dataFields.size(); i++) {
 				ImGui::Checkbox(state.dataFields[i].c_str(), state.dataFieldsEnabled + i);
 				if (*(state.dataFieldsEnabled + i)) {
@@ -197,14 +266,33 @@ void drawUI(_GuiState& state) {
 	ImGui::End(); // Data Panel
 
 	// Timeline panel
+	static ImVec2 timelinePanelPosition(0, Y - UI_DEFAULT_TIMELINE_CONTROLS_HEIGHT); // This is needed to convert from local to world pixel coordinates
+
 	ImGui::SetNextWindowSize(ImVec2(X, UI_DEFAULT_TIMELINE_CONTROLS_HEIGHT));
-	ImGui::SetNextWindowPos(ImVec2(0, Y - UI_DEFAULT_TIMELINE_CONTROLS_HEIGHT), 0, ImVec2(0, 0));
+	ImGui::SetNextWindowPos(timelinePanelPosition, 0, ImVec2(0, 0));
 	ImGui::Begin("Timeline Panel", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
 	ImGui::PushItemWidth(X - state.padding);
 	ImGui::SliderInt("##Timeline", &state.timelinePosition, 0, state.numberOfTimePoints);
 
+	//
+	// Timeline control buttons
+	//
+
+	int buttonState = 0; // 0 is normal, 1 is hovered, 2 is pressed and hovered. 
+	Texture* buttonTexture;
+
+	// Determine the right color for the button
+
 	// Params for timeline controllers
+	bool mouseButtonIsPressed = imguiIO->MouseDown[0]; // Continuous signal
+	bool mouseButtonPressedThisFrame = ImGui::IsMouseClicked(0, false); // Only registers on first frame pressed
+
+	ImVec2 mousePos = ImGui::GetMousePos();
+
+	ImVec2 boundsX, boundsY, cursorPos;
+
+	// Following values are used to calculate the shapes and positions of the buttons
 	const int playButtonDimensions = 50;
 	const int arrowButtonDimensions = 40;
 	const int halfArrowButtonDimensions = arrowButtonDimensions / 2;
@@ -213,38 +301,57 @@ void drawUI(_GuiState& state) {
 
 	const int arrowButtonOffset = 60;
 
-	int timeLineButtonLocalVerticalAlign = UI_DEFAULT_TIMELINE_CONTROLS_HEIGHT / 2 - 10;
+	const int timeLineButtonLocalVerticalAlign = UI_DEFAULT_TIMELINE_CONTROLS_HEIGHT / 2 - 10;
 
 	ImVec2 pbDimensions = ImVec2(playButtonDimensions, playButtonDimensions); // play button
 	ImVec2 bfDimensions = ImVec2(arrowButtonDimensions, arrowButtonDimensions); // back forward
 
+	//
 	// Play Button
-	// TODO: replace with button images
-	std::string buttonText = state.isPlaying ? "Pause" : "Play";
+	//
+ 
+	Texture** ppButton = state.isPlaying ? state.pauseButtonTextures : state.playButtonTextures; //pause/play button, which texture set should be used?
 
-	ImGui::SetCursorPos(ImVec2((X - playButtonDimensions)/2, timeLineButtonLocalVerticalAlign));
-	if (ImGui::Button(buttonText.c_str(), pbDimensions)) {
+	// Cursor is where ImGui will draw the item
+	cursorPos = {(float) (X - playButtonDimensions) / 2, (float)timeLineButtonLocalVerticalAlign };
+	ImGui::SetCursorPos(cursorPos);
+
+	// NOTE: need to add the position of the parent panel to convert into 'global' app pixel coordinates, since cursor is in 'local' panel window coordinates
+	if (ImageButton2(ppButton, addImVec2(cursorPos, timelinePanelPosition), pbDimensions, false)) {
+		// Flip the button to other state
 		if (state.isPlaying) {
 			state.isPlaying = false;
 		}
 		else {
 			state.isPlaying = true;
-			state.timelinePosition += Utils::sign(state.playbackSpeed);
+			state.timelinePosition += Utils::sign(state.playbackSpeed); // Increment the timeline on the frame when the play button is pressed
 		}
 	}
 
+	//
 	// Back and forward buttons
-	ImGui::SetCursorPos(ImVec2(halfX - halfArrowButtonDimensions - arrowButtonOffset, timeLineButtonLocalVerticalAlign + halfDiff));
-	ImGui::PushItemWidth(arrowButtonDimensions);
-	ImGui::ArrowButton("back", ImGuiDir_Left);
-	//if (ImGui::Button("back", bfDimensions)) state.timelinePosition -= state.tickSkipAmount;
+	//
 
-	ImGui::SetCursorPos(ImVec2(halfX - halfArrowButtonDimensions + arrowButtonOffset, timeLineButtonLocalVerticalAlign + halfDiff));
-	if (ImGui::Button("forward", bfDimensions)) state.timelinePosition += state.tickSkipAmount;
+	// Back Button
+	cursorPos = {(float) halfX - halfArrowButtonDimensions - arrowButtonOffset, (float) timeLineButtonLocalVerticalAlign + halfDiff };
+	ImGui::SetCursorPos(cursorPos);
 
+	if (ImageButton2(state.skipButtonTextures, addImVec2(cursorPos, timelinePanelPosition), bfDimensions, true)) state.timelinePosition -= state.tickSkipAmount;
+
+	// // Forward button
+	cursorPos = {(float) halfX - halfArrowButtonDimensions + arrowButtonOffset, (float) timeLineButtonLocalVerticalAlign + halfDiff };
+	ImGui::SetCursorPos(cursorPos);
+
+	if (ImageButton2(state.skipButtonTextures, addImVec2(cursorPos, timelinePanelPosition), bfDimensions)) state.timelinePosition += state.tickSkipAmount;
+
+	// Clamp timeline within bounds
 	state.timelinePosition = Utils::clamp(state.timelinePosition, 0, state.numberOfTimePoints);
 
 	const int timelineParametersOffset = 20;
+
+	//
+	// Other timeline parameter controllers
+	//
 
 	// Playback speed, and frame skip fields
 	ImGui::SetCursorPos(ImVec2(timelineParametersOffset, UI_DEFAULT_TIMELINE_CONTROLS_HEIGHT * 0.4));
@@ -254,23 +361,31 @@ void drawUI(_GuiState& state) {
 	ImGui::PushItemWidth(90);
 	ImGui::InputInt(" Tick skip amount", &state.tickSkipAmount);
 
-	state.tickSkipAmount = Utils::clamp(state.tickSkipAmount, 0, 10000000); // arbitrarily high
+	state.tickSkipAmount = Utils::clamp(state.tickSkipAmount, 0, 10000000); // Mathf.infinity?
 
 	ImGui::End(); // Timeline Panel
 
 	// Overlayed map image
+	static float mapSize = 200.0f; // TODO: make this ui slider?
+
+	state.mapTexture->getWidthHeight(&w, &h);
+
+	float maxMapScaleDimension = max(w, h);
+
+	ImVec2 mapDimensions = ImVec2(mapSize * w / maxMapScaleDimension, mapSize * h / maxMapScaleDimension);
+
 	if (state.doShowMap) {
-		ImVec2 mapDimensions(state.mapTextureDimensions[0], state.mapTextureDimensions[1]); // Add vertical padding for title
+		// mapDimensions = ImVec2(state.mapTextureDimensions[0], state.mapTextureDimensions[1]);
 		ImGui::SetNextWindowSize(addImVec2(mapDimensions, ImVec2(state.padding, 0 /*menuBarHeight*/ + state.padding)), 0);
 		ImGui::SetNextWindowPos(ImVec2(X, menuBarHeight), 0, ImVec2(1,0));
 		ImGui::Begin("Map", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
-		ImGui::Image((void*)state.mapTexture, mapDimensions);
+		ImGui::Image((void*)state.mapTexture->getID(), mapDimensions);
 		ImGui::End(); // Map
 	}
 
 	// FPS overlay
 	if (state.doShowFPSCounter) {
-		ImVec2 fpsOverlaySize(state.fontSize * 65, (state.fontSize * 17) + 10);
+		ImVec2 fpsOverlaySize(imguiIO->FontGlobalScale * 65, (imguiIO->FontGlobalScale * 17) + 10);
 		// Generate fps readout text of the form <### fps\0>
 		char fpsReadout[8];
 		int fpsInt = (int)state.fps;
