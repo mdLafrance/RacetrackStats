@@ -75,9 +75,6 @@
     <ClCompile Include="imgui\imgui_impl_glfw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\CubeMap.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Skybox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -900,9 +897,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\UI.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\CubeMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\UI.hpp">
@@ -3205,6 +3199,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\dirent\dirent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Skybox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

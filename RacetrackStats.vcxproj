@@ -1172,6 +1172,7 @@
     <ClInclude Include="include\Object.h" />
     <ClInclude Include="include\Renderer.h" />
     <ClInclude Include="include\Shader.h" />
+    <ClInclude Include="include\Skybox.h" />
     <ClInclude Include="include\SOIL\image_DXT.h" />
     <ClInclude Include="include\SOIL\image_helper.h" />
     <ClInclude Include="include\SOIL\SOIL.h" />

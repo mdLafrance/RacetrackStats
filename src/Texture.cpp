@@ -15,12 +15,12 @@ unsigned int Texture::getID() {
 	return this->ID;
 }
 
-void Texture::getWidthHeight(float& w, float& h) {
-	w = this->width;
-	h = this->height;
+void Texture::getWidthHeight(int* const w, int* const h) {
+	*w = this->width;
+	*h = this->height;
 }
 
-Texture::Texture(const std::string& target) {
+Texture::Texture(const std::string& target, const bool& alphaChannel, const bool& flipVertical, int* const w, int* const h) {
 	if (target == "default") {
 		this->width = 0;
 		this->height = 0;
@@ -40,7 +40,7 @@ Texture::Texture(const std::string& target) {
 		fname = target;
 	}
 
-	stbi_set_flip_vertically_on_load(true);
+	stbi_set_flip_vertically_on_load(flipVertical);
 
 	this->data = stbi_load(fname.c_str(), &this->width, &this->height, &this->nrChannels, STBI_rgb_alpha);
 
@@ -55,7 +55,7 @@ Texture::Texture(const std::string& target) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, this->data);
+		glTexImage2D(GL_TEXTURE_2D, 0, alphaChannel ? GL_RGBA : GL_RGB, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, this->data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 		std::cout << "Loaded Texture: " << fname << std::endl;
 	}
@@ -65,6 +65,9 @@ Texture::Texture(const std::string& target) {
 
 	stbi_image_free(this->data);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	if (!(w == nullptr)) *w = this->width;
+	if (!(h == nullptr)) *h = this->height;
 }
 
 Texture::~Texture() {

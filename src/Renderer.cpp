@@ -521,6 +521,25 @@ void Renderer::tick(const double& dTime) {
 
 	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
 
+	// Combine MV with the position transform matrix of the camera, to center the cube on the screen
+	glm::mat4 cameraPositionTransform = glm::translate(VP, this->mainCamera->transform->position());
+
+	if (this->skybox != nullptr){
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_DEPTH_TEST);
+
+		Shader* skyboxShader = this->shaders.at("skybox");
+
+		skyboxShader->bind();
+
+		skyboxShader->setUniformMatrix4fv("MVP", cameraPositionTransform);
+
+		this->skybox->draw();
+
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
+	}
+
 	std::map<std::string, std::vector<Object*>> materialMapping;
 
 	Object* o;
@@ -559,22 +578,9 @@ void Renderer::tick(const double& dTime) {
 	
 	// Draw coordinate axes (for testing)
 	// TODO: remove
-	// this->drawLine(glm::vec3(), glm::vec3(10, 0, 0), glm::vec3(1, 0, 0));
-	// this->drawLine(glm::vec3(), glm::vec3(0, 10, 0), glm::vec3(0, 1, 0));
-	// this->drawLine(glm::vec3(), glm::vec3(0, 0, 10), glm::vec3(0, 0, 1));
-
-	if (this->skybox != nullptr){
-		glDisable(GL_CULL_FACE);
-
-		Shader* skyboxShader = this->shaders.at("skybox");
-
-		skyboxShader->bind();
-		skyboxShader->setUniformMatrix4fv("MVP", VP);
-
-		this->skybox->draw();
-
-		glEnable(GL_CULL_FACE);
-	}
+	this->drawLine(glm::vec3(), glm::vec3(10, 0, 0), glm::vec3(1, 0, 0)); // start, end, colour
+	this->drawLine(glm::vec3(), glm::vec3(0, 10, 0), glm::vec3(0, 1, 0));
+	this->drawLine(glm::vec3(), glm::vec3(0, 0, 10), glm::vec3(0, 0, 1));
 
 	/*
 		skybox position = mainCamera.position
@@ -584,7 +590,6 @@ void Renderer::tick(const double& dTime) {
 		*set gl_Position in shader = pos with z=1
 
 	*/
-
 }
  
 void Renderer::setLineWidth(const float& w) {

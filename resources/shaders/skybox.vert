@@ -8,6 +8,6 @@ uniform mat4 MVP;
 void main()
 {
     TexCoords = in_pos;
-    vec4 outPos = MVP * vec4(in_pos, 1.0f);
-    gl_Position = outPos;
+	vec4 pos =  MVP * vec4(in_pos, 1.0f);
+    gl_Position = pos;
 }  

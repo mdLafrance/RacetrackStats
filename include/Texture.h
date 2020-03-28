@@ -16,9 +16,10 @@
 class Texture {
 	std::string name;
 
+	int nrChannels;
+
 	int width;
 	int height;
-	int nrChannels;
 
 	unsigned int ID;
 
@@ -29,8 +30,8 @@ public:
 
 	std::string getName();
 	unsigned int getID();
-	void getWidthHeight(float& w, float& h);
+	void getWidthHeight(int* const w, int* const h);
 
-	Texture(const std::string& target);
+	Texture(const std::string& target, const bool& alphaChannel = true, const bool& flipVertical = true, int* const w = nullptr, int* const height = nullptr);
 	~Texture();
 };
