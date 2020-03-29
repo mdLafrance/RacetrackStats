@@ -1,20 +1,20 @@
 # Low res mosport track for smaller machines
 
 # Meshes
-jr_mosport.obj
-mosport_horizon.obj
-#mosport_vehicles.obj
-mosport_objects.obj
-mosport_layers.obj
-mosport_trees.obj
+mesh jr_mosport.obj
+mesh mosport_horizon.obj
+mesh mosport_vehicles.obj
+mesh mosport_objects.obj
+mesh mosport_layers.obj
+mesh mosport_trees.obj
 
 # Materials
-mtl_low/jr_mosport.mtl
-mtl_low/mosport_horizon.mtl
-#mtl_low/mosport_vehicles.mtl
-mtl_low/mosport_objects.mtl
-mtl_low/mosport_layers.mtl
-mtl_low/mosport_trees.mtl
+material mtl_low/jr_mosport.mtl
+material mtl_low/mosport_horizon.mtl
+material mtl_low/mosport_vehicles.mtl
+material mtl_low/mosport_objects.mtl
+material -t mtl_low/mosport_layers.mtl
+material -t mtl_low/mosport_trees.mtl
 
 # Scene ambient light (r g b)
 ambient 0.43 0.43 0.4

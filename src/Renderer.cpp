@@ -19,7 +19,7 @@ void Renderer::registerTexture(const std::string& id, Texture* texture){
 void Renderer::registerShader(const std::string& id, Shader* shader){
     if (this->shaders.count(id) == 0){
         this->shaders[id] = shader;
-		std::cout << "Registered Shader " << id << std::endl;
+		std::cout << "Registered Shader " << id << " (ID: " << shader->programID() << ")" << std::endl;
     } else {
         std::cerr << "Shader " << id << " already registered." << std::endl;
     }
@@ -37,7 +37,7 @@ void Renderer::registerMesh(const std::string& id, OBJMesh* mesh){
 void Renderer::registerMaterial(const std::string& id, Material* material){
     if (this->materials.count(id) == 0){
         this->materials[id] = material;
-		std::cout << "Registered Material " << id << std::endl;
+		std::cout << "Registered Material " << id << " (shader: " << material->shader->programID() << ")" << std::endl;
     } else {
         std::cerr << "Material " << id << " already registered." << std::endl;
     }
@@ -253,9 +253,13 @@ void Renderer::loadScene(const std::string& target) {
 	this->progress = 0.0f;
 	float progressStep = 1.0f / lines;
 
+	int lineNumber = 0;
+
 	timer.start();
 
 	while (std::getline(f, line)) {
+		++lineNumber;
+
 		this->progress += progressStep;
 
 		if (line == "" || line[0] == '#') continue;
@@ -305,35 +309,58 @@ void Renderer::loadScene(const std::string& target) {
 
 			this->lights[this->numOfLights++] = light;
 		}
+
+		// Define ambient light for the scene (rgb)
 		else if (lineType == "ambient") {
 			::WorldState.ambientLight[0] = std::atof(tokens[1].c_str());
 			::WorldState.ambientLight[1] = std::atof(tokens[2].c_str());
 			::WorldState.ambientLight[2] = std::atof(tokens[3].c_str());
 		}
-		// Line is just path to some file to be included in the scene
-		else { 
-			std::string fullFileName = "";
-			fullFileName += WorldState.trackDataRoot ;
-			fullFileName += '/' ;
-			fullFileName += line;
+
+		// Define a mesh to be loaded into the scene (only obj for now)
+		else if (lineType == "mesh") {
+			std::string fullFileName = std::string(WorldState.trackDataRoot)+ "/" + tokens[tokens.size() - 1]; // last item in the line is the name of the mat file
 
 			std::cout << "Loading " << fullFileName << std::endl;
 
-			Utils::FileInfo fi = Utils::getFileInfo(fullFileName);
+			std::vector<OBJMesh*> meshes = OBJ::load(fullFileName);
 
-			if (fi.extension == "mtl"){ // Load mtl library file
-				this->scene.files.push_back(fullFileName);
-				this->loadMaterialLibrary(fullFileName);
-			} else if (fi.extension == "obj") { // Load obj file
-				this->scene.files.push_back(fullFileName);
-				this->loadOBJ(fullFileName);
-			} else if (fi.extension == "vert") { // Load vertex shader
-				std::cout << "Loading vertex shader...";
-			} else if (fi.extension == "frag") { // Load fragment shader
-				std::cout << "Loading fragment shader...";
-			} else {
-				std::cerr << "Unsupported file type " << fi.extension << " for file " << fullFileName << std::endl;
+			for (OBJMesh* m : meshes) {
+				this->registerMesh(m->getMeshName(), m);
 			}
+		}
+
+		// Define a material file to be loaded into the scene
+		else if (lineType == "material"){
+			std::string fullFileName = std::string(WorldState.trackDataRoot)+ "/" + tokens[tokens.size() - 1]; // last item in the line is the name of the mat file
+
+			// Determine if the material is to be loaded with any flags
+			uint32_t materialFlags = 0;
+
+	 		if (tokens.size() > 2) { // more than 'material foo/bar/material.mtl' indicates flags are present on the line
+				std::vector<std::string> flags(tokens.begin() + 1, tokens.end() - 1);
+
+				for (std::string flag : flags) { // In case more flags in the future (ex half res textures, no mipmaps etc.)
+					if (flag == "-t") { // Material has transparency
+						materialFlags |= MATERIAL_TRANSPARENT;
+					}
+				}
+			}
+
+			std::cout << "Loading " << fullFileName << std::endl;
+
+			std::vector<Material*> materials = MTL::load(fullFileName);
+
+			for (Material* m : materials) {
+				m->addFlag(materialFlags);
+				m->shader = this->shaders.at("diffuse");
+				
+				this->registerMaterial(m->name, m);
+			}
+		}
+
+		else {
+			std::cerr << "ERROR: Unsupported definition (line " << lineNumber << ") : " << line << std::endl;
 		}
 	}
 
@@ -373,37 +400,6 @@ void Renderer::loadScene(const std::string& target) {
 	}
 
 	std::cout << "Finished loading scene " << this->scene.name << " (" << timer.lap_s() << ")" << std::endl;
-
-	this->loading = false;
-}
-
-void Renderer::loadMaterialLibrary(const std::string& target) {
-	std::cout << std::endl << "Loading material library " << target << std::endl << std::endl;
-
-	this->loading = true;
-
-	Utils::FileInfo fi = Utils::getFileInfo(target);
-
-	std::map<std::string, Material*> materials = MTL::load(target);
-
-	for (auto p : materials) {
-		p.second->shader = this->shaders.at("diffuse");
-		this->registerMaterial(p.first, p.second);
-	}
-
-	this->loading = false;
-}
-
-void Renderer::loadOBJ(const std::string& target){
-	std::cout << std::endl << "Loading OBJ file " << target << std::endl << std::endl;
-
-	this->loading = true;
-
-	std::vector<OBJMesh*> meshes = OBJ::load(target);
-
-	for (OBJMesh* mesh : meshes){
-		this->registerMesh(mesh->getMeshName(), mesh);
-	}
 
 	this->loading = false;
 }
@@ -481,7 +477,7 @@ void Renderer::tick(const double& dTime) {
 		rotation[0] = -rotationSpeed;
 	}
 
-	// Get gpu-friendly matrix representation for lights 
+	// Get matrix representation for lights 
 	for (int i = 0; i < this->numOfLights; i++) {
 		*(this->lightMatrices + i) = (this->lights + i)->getMatrix();
 	}

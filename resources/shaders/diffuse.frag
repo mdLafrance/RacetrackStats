@@ -4,6 +4,7 @@
 #define MATERIAL_USE_map_Kd   1
 #define MATERIAL_USE_map_Ks   1 << 1
 #define MATERIAL_USE_map_norm 1 << 2
+#define MATERIAL_TRANSPARENT  1 << 3
 
 // Uniforms
 uniform mat4 MV;
@@ -52,8 +53,13 @@ void main() {
 		diffuse_alpha = tex.a;
 	}
 
-	if (diffuse_alpha == 0.0f){
-		discard;
+	// If material is defined to be transparent
+	if ((flags & MATERIAL_TRANSPARENT) != 0) {
+		if (diffuse_alpha <= 0.01f){
+			discard;
+		}
+	} else {
+		diffuse_alpha = 1.0f;
 	}
 
 	if ((flags & MATERIAL_USE_map_Ks) != 0){

@@ -1,0 +1,6 @@
+name Trees
+
+mesh mosport_trees.obj
+material mosport_trees.mtl
+
+ambient 0.5 0.5 0.5

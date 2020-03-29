@@ -20,14 +20,9 @@
 #define MATERIAL_USE_map_Kd   1
 #define MATERIAL_USE_map_Ks   1 << 1
 #define MATERIAL_USE_map_norm 1 << 2
-#define MATERIAL_USE_Ka       1 << 3
-#define MATERIAL_USE_Kd       1 << 4
-#define MATERIAL_USE_Ks       1 << 5
-#define MATERIAL_USE_Ns       1 << 6
-#define MATERIAL_USE_Tr       1 << 7
+#define MATERIAL_TRANSPARENT  1 << 3
 
 struct Material {
-
 	std::string name; // Name of material
 	std::string origin; // Path to material library this material originated from
 
@@ -60,5 +55,5 @@ struct Material {
 
 namespace MTL
 {
-	std::map<std::string, Material*> load(const std::string& target);
+	std::vector<Material*> load(const std::string& target);
 }

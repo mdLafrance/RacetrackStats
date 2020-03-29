@@ -2,10 +2,10 @@
 
 namespace MTL 
 {
-	std::map<std::string, Material*> load(const std::string& target) {
+	std::vector<Material*> load(const std::string& target) {
 		// TODO: might switch this to faster c-style file reading, but mtl files are usually small so this is on the backburner
 
-		std::map<std::string, Material*> materials;
+		std::vector<Material*> materials;
 
 		std::string line;
 		std::vector<std::string> tokens;
@@ -33,7 +33,7 @@ namespace MTL
 				if (lineType == "newmtl") {
 					// If a new material is encountered while one is being recorded, finish the current one.
 					if (current) {
-						materials[current->name] = current;
+						materials.push_back(current);
 					}
 					current = new Material(fi.file + '.' + tokens[1]);
 					std::cout << "Generating Material " << current->name << std::endl;
@@ -55,39 +55,33 @@ namespace MTL
 				
 				} else if (lineType == "Ka") { // Ambient 
 					current->Ka = glm::vec3(std::atof(tokens[1].c_str()), std::atof(tokens[2].c_str()), std::atof(tokens[3].c_str()));
-					current->addFlag(MATERIAL_USE_Ka);
 				
 				} else if (lineType == "Kd"){ // Diffuse
 					current->Kd = glm::vec3(std::atof(tokens[1].c_str()), std::atof(tokens[2].c_str()), std::atof(tokens[3].c_str()));
-					current->addFlag(MATERIAL_USE_Kd);
 				
 				} else if (lineType == "Ks"){ // Specular color
 					current->Ks = glm::vec3(std::atof(tokens[1].c_str()), std::atof(tokens[2].c_str()), std::atof(tokens[3].c_str()));
-					current->addFlag(MATERIAL_USE_Ks);
 				
 				} else if (lineType == "Ns"){ // Specular exp
 					current->Ns = std::atof(lineBack.c_str());
-					current->addFlag(MATERIAL_USE_Ns);
 				
 				} else if (lineType == "Tr"){ // Transparency value, 1 is transparent
 					current->Tr = std::atof(lineBack.c_str());
-					current->addFlag(MATERIAL_USE_Tr);
 
 				} else if (lineType == "d"){ // Equivalent transparency value, Tr is inverse of d
 					current->Tr = 1 - std::atof(lineBack.c_str());
-					current->addFlag(MATERIAL_USE_Tr);
 				}
 			}
 		} else {
 			std::cerr << "Couldn't open .mtl file: " << target << std::endl;
-			return std::map<std::string, Material*>();
+			return std::vector<Material*>();
 		}
 
 		f.close();
 
 		// Save last material
 		if (current != nullptr) {
-			materials[current->name] = current;
+			materials.push_back(current);
 		}
 
 		return materials;
@@ -159,6 +153,7 @@ Material::Material(const std::string& name) {
 }
 
 Material::~Material() {
+	delete this->map_Kd;
+	delete this->map_Ks;
+	delete this->norm;
 }
-
-

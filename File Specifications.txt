@@ -1,0 +1,50 @@
+=========================================================
+.scene files
+=========================================================
+Scene files define the objects, textures, and lights for a scene. Each line in the file defines some facet of the scene (described below)
+Lines can start with '#', and will be ignored
+
+<name> : indicates the name of the scene
+ex. "name Mosport Low Resolution Scene"
+
+<mesh> : Indicates some mesh file to be loaded into the scene.
+ex. "mesh mosport_trees.obj"
+
+<material> : Indicates a mtl library to be loaded for some matching mesh.
+ex. "material -t mosport_trees.mtl"
+
+<ambient> : Defines ambient light to be used in the scene, followed by rgb values for the ambient light (between 0-1)
+ex. "ambient 0.2 0.2 0.2"
+
+<light> : Defines a light to be used in the scene (can be more than one). Followed immediately by either 'directional' or 'point' (only directional is implemented atm).
+-i defines the intensity (any floating point value)
+-v defines the direction vector of the light
+-c defines the rgb color of the light (between 0 and 1)
+ex. light directional -i 2.5 -v -2 -10 -5 -c 0.65 0.6 0.6
+
+Example .scene file:
+
+# Low res mosport track for smaller machines
+name Mosport (Low)
+
+# Meshes
+mesh jr_mosport.obj
+mesh mosport_horizon.obj
+mesh mosport_vehicles.obj
+mesh mosport_objects.obj
+mesh mosport_layers.obj
+mesh mosport_trees.obj
+
+# Materials
+material mtl_low/jr_mosport.mtl
+material mtl_low/mosport_horizon.mtl
+material mtl_low/mosport_vehicles.mtl
+material mtl_low/mosport_objects.mtl
+material -t mtl_low/mosport_layers.mtl
+material -t mtl_low/mosport_trees.mtl
+
+# Scene ambient light (r g b)
+ambient 0.43 0.43 0.4
+
+# Lights for the scene
+light directional -i 2.5 -v -2 -10 -5 -c 0.65 0.6 0.6 

@@ -266,7 +266,7 @@ void drawUI(_GuiState& state) {
 	ImGui::End(); // Data Panel
 
 	// Timeline panel
-	static ImVec2 timelinePanelPosition(0, Y - UI_DEFAULT_TIMELINE_CONTROLS_HEIGHT); // This is needed to convert from local to world pixel coordinates
+	ImVec2 timelinePanelPosition(0, Y - UI_DEFAULT_TIMELINE_CONTROLS_HEIGHT);
 
 	ImGui::SetNextWindowSize(ImVec2(X, UI_DEFAULT_TIMELINE_CONTROLS_HEIGHT));
 	ImGui::SetNextWindowPos(timelinePanelPosition, 0, ImVec2(0, 0));

@@ -3608,5 +3608,6 @@
     <None Include="include\glm\gtx\wrap.inl">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="resources\scenes\trees.scene" />
   </ItemGroup>
 </Project>
