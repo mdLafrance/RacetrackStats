@@ -65,7 +65,10 @@ enum GlfwClientApi
     GlfwClientApi_OpenGL,
     GlfwClientApi_Vulkan
 };
-static GLFWwindow*          g_Window = NULL;    // Main window
+
+// NOTE: I'm hacking this a bit, its in the header now, and driven by the app
+// static GLFWwindow*          g_Window;    // Main window
+
 static GlfwClientApi        g_ClientApi = GlfwClientApi_Unknown;
 static double               g_Time = 0.0;
 static bool                 g_MouseJustPressed[5] = { false, false, false, false, false };

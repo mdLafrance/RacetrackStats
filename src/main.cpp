@@ -5,7 +5,7 @@
 // #ifdef MAKE_DLL
 // 	#define DLL_EXPORT __declspec(dllexport)
 // #else 
-// 	#define DLL_EXPORT // No effect from macro
+// 	#define DLL_EXPORT ""
 // #endif // DLL_EXPORT
 
 #define WINDOW_DEFAULT_X 1000
@@ -35,6 +35,7 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <imgui_internal.h>
 
 #include <portable-file-dialogs.h> // 3rd party header library that creates system dialogs
 
@@ -69,7 +70,7 @@ static bool frameSizeChanged = false;
 
 ImGuiIO* imguiIO;
 
-static ImGuiIO* imguiIO;
+GLFWwindow* g_Window = NULL; // Hacked the glfw implementation of ImGui a bit
 
 // Handler for shortcuts used to navigate the ui
 void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -90,9 +91,169 @@ void cleanup() {
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
 }
+
+void createWindow(GLFWwindow* parentWindow, ImGuiContext* parentContext) {
+	GLFWwindow* window = glfwCreateWindow(300, 200, "ASDF", NULL, NULL);
+
+	glfwMakeContextCurrent(window);
+
+	ImGui_ImplGlfw_InitForOpenGL(window, false);
+
+	ImGuiContext* imguiContext = ImGui::CreateContext(parentContext->Font->ContainerAtlas);
+
+	ImGui::SetCurrentContext(imguiContext);
+
+	// ImGui_ImplOpenGL3_Init("#version 330");
+
+	std::cout << "New Window Created!" << std::endl;
+
+	while (!glfwWindowShouldClose(window)) {
+		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
+
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		ImGui::Begin("TEST!");
+		ImGui::Button("asdf");
+		ImGui::End();
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		glfwSwapBuffers(window);
+		// glfwSwapBuffers(parentWindow);
+		glfwPollEvents();
+	}
+
+	glfwDestroyWindow(window);
+
+	// imguiContext->IO = ImGuiIO(); // destroying the context destoys the shared io state... for some reason, so make a dummy IO handle
+	ImGui::DestroyContext(imguiContext);
+
+	glfwMakeContextCurrent(parentWindow);
+
+	ImGui::SetCurrentContext(parentContext);
+	ImGui_ImplGlfw_InitForOpenGL(parentWindow, false);
+
+	std::cout << "New Window Destroyed..." << std::endl;
+}
+
 int main(int argc, char** argv) {
-	std::string executableDirectory = Utils::getFileInfo(*argv).directory;
-	std::cout << "Launching racetracks stats... (" << executableDirectory << ")" << std::endl << std::endl;
+
+	glfwInit();	
+
+	GLFWwindow* window1 = glfwCreateWindow(400, 400, "WINDOW 1", NULL, NULL);
+	GLFWwindow* window2 = glfwCreateWindow(400, 400, "WINDOW 2", NULL, NULL);
+
+	// WINDOW 1
+	glfwMakeContextCurrent(window1);
+	
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+		std::cerr << "Failed to initialize GLAD\n";
+	}
+
+	ImGuiContext* ctx1 = ImGui::CreateContext();
+	ImGui::SetCurrentContext(ctx1);
+	ImGuiIO& IO1 = ImGui::GetIO();
+
+	ImGui_ImplGlfw_InitForOpenGL(window1, false);
+	ImGui_ImplOpenGL3_Init("#version 330");
+
+	ImGui::SetCurrentContext(NULL);
+
+	// WINDOW 2
+	glfwMakeContextCurrent(window2);
+	
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+		std::cerr << "Failed to initialize GLAD\n";
+	}
+
+	ImGuiContext* ctx2 = ImGui::CreateContext();
+	ImGui::SetCurrentContext(ctx2);
+	ImGuiIO& IO2 = ImGui::GetIO();
+
+	ImGui_ImplGlfw_InitForOpenGL(window2, false);
+	ImGui_ImplOpenGL3_Init("#version 330");
+
+	ImGui::SetCurrentContext(NULL);
+
+	// std::cout << "Made contexts: 1: " << ctx1 << ", 2: " << ctx2 << std::endl;
+
+	while (!(glfwWindowShouldClose(window2) && glfwWindowShouldClose(window2))) {
+
+		// if (glfwGetKey(window1, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+		// 	glfwSetWindowShouldClose(window1, true);
+		// 	glfwDestroyWindow(window1);
+		// }
+
+		if (glfwGetKey(window2, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+			glfwSetWindowShouldClose(window2, true);
+			glfwDestroyWindow(window2);
+		}
+
+		if (!glfwWindowShouldClose(window1)) {
+			// Window 1
+			glfwMakeContextCurrent(window1);
+			ImGui::SetCurrentContext(ctx1);
+
+			g_Window = window1;
+
+			ImGui_ImplOpenGL3_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
+
+			ImGui::SetNextWindowPos(ImVec2(0, 0));
+			ImGui::Begin("WINDOW 1");
+			ImGui::Button("asdf");
+			ImGui::End();
+
+			ImGui::Render();
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+			glfwSwapBuffers(window1);
+
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
+
+		if (!(ctx2->IO.Fonts->IsBuilt())) {
+			ctx2->IO.Fonts = ctx1->IO.Fonts;
+		}
+
+		if (!glfwWindowShouldClose(window2)) {
+			// Window 2
+			glfwMakeContextCurrent(window2);
+			ImGui::SetCurrentContext(ctx2);
+
+			g_Window = window2;
+
+			ImGui_ImplOpenGL3_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
+
+			ImGui::SetNextWindowPos(ImVec2(0, 0));
+			ImGui::Begin("WINDOW 2");
+			ImGui::Button("fdasfasdff");
+			ImGui::End();
+
+			ImGui::Render();
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+			glfwSwapBuffers(window2);
+
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
+
+		glfwPollEvents();
+	}
+
+	return 0;
+
+
+	exeLocation = Utils::getFileInfo(*argv).directory.c_str();
+	std::cout << "Launching racetracks stats... (" << exeLocation << ")" << std::endl << std::endl;
 
 	 //
 	// Initialize glfw and opengl
@@ -245,7 +406,13 @@ int main(int argc, char** argv) {
 	// Main loop
 	// 
 
+	bool windowDoStop = false;
+
 	while (!glfwWindowShouldClose(window)) {
+		if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
+			createWindow(window, imguiContext);
+		}
+
 		t1 = std::chrono::steady_clock::now();
 
 		// Calculate fps of last frame, pass to gui
@@ -268,23 +435,23 @@ int main(int argc, char** argv) {
 			// Returned list is empty if user cancelled window, else it contains what the user selected
 
 			if (choice.size() != 0) { 
-			// Reset GUI values to track data fields
-			if (GuiState.dataFieldsEnabled != nullptr) delete[] GuiState.dataFieldsEnabled;
-			if (currentData != nullptr) delete currentData;
+				// Reset GUI values to track data fields
+				if (GuiState.dataFieldsEnabled != nullptr) delete[] GuiState.dataFieldsEnabled;
+				if (currentData != nullptr) delete currentData;
 
-			// Load CSV data
+				// Load CSV data
 				currentData = new CSV(choice[0]);
 
-			// Update GUI to match the parameters of the new CSV file
-			GuiState.numberOfDataTypes = currentData->getNumberOfDataTypes();
-			GuiState.numberOfTimePoints = currentData->getNumberOfTimePoints();
-			GuiState.dataFields = currentData->getOrderedData();
-			GuiState.dataFieldsEnabled = new bool[GuiState.numberOfDataTypes];
-			GuiState.sceneOpen = true;
+				// Update GUI to match the parameters of the new CSV file
+				GuiState.numberOfDataTypes = currentData->getNumberOfDataTypes();
+				GuiState.numberOfTimePoints = currentData->getNumberOfTimePoints();
+				GuiState.dataFields = currentData->getOrderedData();
+				GuiState.dataFieldsEnabled = new bool[GuiState.numberOfDataTypes];
+				GuiState.sceneOpen = true;
 
-			// Start off with all data disabled
-			memset(GuiState.dataFieldsEnabled, 0, GuiState.numberOfDataTypes);
-		}
+				// Start off with all data disabled
+				memset(GuiState.dataFieldsEnabled, 0, GuiState.numberOfDataTypes);
+			}
 		}
 
 		// If timeline is set to 'play', add to the tick total and increment the timeline position
@@ -323,11 +490,11 @@ int main(int argc, char** argv) {
 			glfwGetFramebufferSize(window, &::WorldState.windowX, &::WorldState.windowY);
 
 			if ((::WorldState.windowX > 1) && (::WorldState.windowY > 1)) { // Minimized window triggers this, causing crash when trying to calculate mv matrix for 0 size window
-			glViewport(0, WorldState.windowY / 2, WorldState.windowX, WorldState.windowY);
+				glViewport(0, WorldState.windowY / 2, WorldState.windowX, WorldState.windowY);
 
-			GuiState.cameraSettingsChanged = true; // force new perpective matrix
-			frameSizeChanged = false;
-		}
+				GuiState.cameraSettingsChanged = true; // force new perpective matrix
+				frameSizeChanged = false;
+			}
 		}
 
 		// If camera settings changed, build new view matrix to reflect these changes
