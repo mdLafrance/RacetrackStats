@@ -1170,6 +1170,7 @@
     <ClInclude Include="include\Material.h" />
     <ClInclude Include="include\OBJ.h" />
     <ClInclude Include="include\Object.h" />
+    <ClInclude Include="include\portable-file-dialogs.h" />
     <ClInclude Include="include\Renderer.h" />
     <ClInclude Include="include\Shader.h" />
     <ClInclude Include="include\Skybox.h" />

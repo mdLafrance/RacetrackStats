@@ -36,6 +36,8 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
+#include <portable-file-dialogs.h> // 3rd party header library that creates system dialogs
+
 #include <Renderer.h>
 #include <Material.h>
 #include <WorldState.h>
@@ -58,14 +60,14 @@ _WorldState WorldState = {
 };
 
 // Internal state variables
-static char* exeLocation;
-static char* trackDataLocation;
+const static char* exeLocation;
+const static char* trackDataLocation;
 
 static CSV* currentData;
 
 static bool frameSizeChanged = false;
 
-static bool doStopLoadingThread = false;
+ImGuiIO* imguiIO;
 
 static ImGuiIO* imguiIO;
 
@@ -83,6 +85,11 @@ void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int
 	if (key ==  GLFW_KEY_RIGHT && action == GLFW_PRESS) GuiState.timelinePosition = Utils::clamp(GuiState.timelinePosition + GuiState.tickSkipAmount, 0, GuiState.numberOfTimePoints);
 }
 
+void cleanup() {
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+}
 int main(int argc, char** argv) {
 	std::string executableDirectory = Utils::getFileInfo(*argv).directory;
 	std::cout << "Launching racetracks stats... (" << executableDirectory << ")" << std::endl << std::endl;
@@ -195,7 +202,8 @@ int main(int argc, char** argv) {
 
 	// If user closed the select window or clicked the cancel button, go right to clean up stage
 	if (userCancelledProgram) {
-		goto end_program;
+		cleanup();
+		return 0;
 	}
 
 	std::cout << "User selected " << selectedScene << std::endl;
@@ -252,15 +260,20 @@ int main(int argc, char** argv) {
 		//
 
 		// If load new scene clicked
-		// TODO: This should open a file dialog
 		if (GuiState.selected_menu_File_Open) {
+			// Launch open file dialog
+			pfd::open_file fd = pfd::open_file::open_file("Open CSV File", "", {"All Files", "*.csv" }, false);
+			std::vector<std::string> choice = fd.result();
+
+			// Returned list is empty if user cancelled window, else it contains what the user selected
+
+			if (choice.size() != 0) { 
 			// Reset GUI values to track data fields
 			if (GuiState.dataFieldsEnabled != nullptr) delete[] GuiState.dataFieldsEnabled;
 			if (currentData != nullptr) delete currentData;
 
 			// Load CSV data
-			// TODO: make this selected by a file dialog
-			currentData = new CSV(std::string(WorldState.projectRoot) + "/resources/laps/mosport1.csv");
+				currentData = new CSV(choice[0]);
 
 			// Update GUI to match the parameters of the new CSV file
 			GuiState.numberOfDataTypes = currentData->getNumberOfDataTypes();
@@ -272,6 +285,7 @@ int main(int argc, char** argv) {
 			// Start off with all data disabled
 			memset(GuiState.dataFieldsEnabled, 0, GuiState.numberOfDataTypes);
 		}
+		}
 
 		// If timeline is set to 'play', add to the tick total and increment the timeline position
 		if (GuiState.isPlaying) {
@@ -281,14 +295,14 @@ int main(int argc, char** argv) {
 				GuiState.timelinePosition += Utils::sign(GuiState.playbackSpeed);
 				--tickTotal;
 				// just for testing
-				for (int i = 0; i < GuiState.numberOfDataTypes; i++){
-					if (*(GuiState.dataFieldsEnabled + i)) {
-						std::cout << '\r' << 
-							GuiState.dataFields[i] << " at " << 
-							GuiState.timelinePosition << " : " << 
-							currentData->getData(i, GuiState.timelinePosition);
-					}
-				} // todo:: delete
+				// for (int i = 0; i < GuiState.numberOfDataTypes; i++){
+				// 	if (*(GuiState.dataFieldsEnabled + i)) {
+				// 		std::cout << '\r' << 
+				// 			GuiState.dataFields[i] << " at " << 
+				// 			GuiState.timelinePosition << " : " << 
+				// 			currentData->getData(i, GuiState.timelinePosition);
+				// 	}
+				// } // todo:: delete
 			}
 		} else {
 			tickTotal = 0;
@@ -307,10 +321,13 @@ int main(int argc, char** argv) {
 		// If user dragged window size around
 		if (frameSizeChanged) {
 			glfwGetFramebufferSize(window, &::WorldState.windowX, &::WorldState.windowY);
+
+			if ((::WorldState.windowX > 1) && (::WorldState.windowY > 1)) { // Minimized window triggers this, causing crash when trying to calculate mv matrix for 0 size window
 			glViewport(0, WorldState.windowY / 2, WorldState.windowX, WorldState.windowY);
 
 			GuiState.cameraSettingsChanged = true; // force new perpective matrix
 			frameSizeChanged = false;
+		}
 		}
 
 		// If camera settings changed, build new view matrix to reflect these changes
@@ -347,11 +364,9 @@ end_program:
 
 	// Cleanup
 
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
-
 	glfwDestroyWindow(window);
+
+	cleanup();
 
 	return 0;
 }
