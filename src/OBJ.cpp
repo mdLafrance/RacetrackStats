@@ -50,6 +50,8 @@ namespace OBJ
 		std::string materialLibrary;
 		std::string materialName;
 
+		std::vector<OBJ::FaceMaterials> faceMaterials;
+
 		std::string groupName;
 		std::string groupParent;
 
@@ -67,6 +69,10 @@ namespace OBJ
 
 		auto closeObject = [&]() {
 			std::cout << " (" << readData.lap_s() << ")" << std::endl;
+
+			if (!faceMaterials.empty()) {
+				faceMaterials.back().range[1] = faceIndeces.size();
+			}
 
 			writeVertex.start();
 
@@ -102,11 +108,11 @@ namespace OBJ
 
 			currentObject = new OBJMesh(
 				fullName, 
-				Utils::getFileInfo(materialLibrary).file + '.' + materialName, 
 				fullParentName, 
 				target,
 				numOfFaces,
-				data
+				data,
+				faceMaterials
 			);
 
 			// Add generated object to map
@@ -119,6 +125,8 @@ namespace OBJ
 			numOfNormals = 0;
 
 			faceIndeces.clear();
+
+			faceMaterials.clear();
 
 			std::cout << writeVertex.lap_s() << ")" << std::endl;
 		};
@@ -141,7 +149,16 @@ namespace OBJ
 
 			if (strcmp(firstWord, "usemtl") == 0) {
 				fscanf(f, "%s", line); 
-				materialName = std::string(line);
+
+				int currentNumOfFaces = faceIndeces.size();
+
+				// If this isn't the last material defined on these faces, save the end to the range of the last material
+				if (!faceMaterials.empty()) {
+					faceMaterials.back().range[1] = currentNumOfFaces;
+				}
+
+				faceMaterials.push_back({ Utils::getFileInfo(materialLibrary).file + '.' + std::string(line), currentNumOfFaces + 1, -1 });
+
 				goto nextline;
 			}
 
@@ -265,6 +282,10 @@ nextline:
 	}
 }
 
+const std::vector<OBJ::FaceMaterials>& OBJMesh::getFaceMaterials() {
+	return this->faceMaterials;
+}
+
 std::string OBJMesh::getMeshName() {
 	return this->meshName;
 }
@@ -319,29 +340,45 @@ void OBJMesh::generateBuffers() {
 }
 
 void OBJMesh::bind() {
-	glBindVertexArray(this->VAO);
-}
-
-void OBJMesh::draw() {
 	if (!this->loaded) this->generateBuffers();
 
 	glBindVertexArray(this->VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-	
-	glDrawArrays(GL_TRIANGLES, 0, 3 * this->numberOfFaces);
+}
 
+void OBJMesh::unbind() {
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-OBJMesh::OBJMesh(const std::string& meshName, const std::string& materialName, const std::string& parent, const std::string& origin, const int& numberOfTriangles, float* data) {
+void OBJMesh::draw(int start, int end) {
+	if (start < 0) start = 0;
+	if (end < 0) end = this->numberOfFaces;
+
+	assert((end >= start) && "End of range to OBJMesh draw is less than start (OBJ.cpp)");
+
+	if (!this->loaded) this->generateBuffers();
+	
+	glDrawArrays(GL_TRIANGLES, start - 1, 3 * (end - start)); // each face is defined by three elements (face 0 = [0,2], face 1 = [3,6] etc.)
+}
+
+OBJMesh::OBJMesh(const std::string& meshName, const std::string& parent, const std::string& origin, const int& numberOfTriangles, float* data, const std::vector<OBJ::FaceMaterials>& faceMaterials) {
 	this->meshName = meshName;
-	this->defaultMaterialName = materialName;
+	this->defaultMaterialName = "FOO";
 	this->defaultParent = parent;
 	this->origin = origin;
 
 	this->numberOfFaces = numberOfTriangles;
 	this->vertexData = data;
+
+	this->faceMaterials = faceMaterials;
+
+	std::cout << "OBJ " << meshName << " using materials: ";
+
+	for (auto k : faceMaterials) {
+		std::cout << k.material << " ";
+	}
+
+	std::cout << std::endl;
 }
 
 OBJMesh::~OBJMesh() {

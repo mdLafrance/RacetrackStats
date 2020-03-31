@@ -1,0 +1,9 @@
+name BMW testing scnee
+
+mesh BMW2.obj
+
+material BMW2.mtl
+
+ambient 0.8 0.8 0.8
+
+light directional -i 0.5 -c 1.0 0.9 0.9 -d -1 -1 -1

@@ -2,9 +2,11 @@ name Testing Scene Laptop
 
 mesh testing/teapot.obj
 mesh testing/forest_low.obj
+mesh BMW2.obj
 
 material testing/cube.mtl
 material testing/forest_low.mtl
+material BMW2.mtl
 
 
 ambient 0.06 0.05 0.04

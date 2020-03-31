@@ -3612,5 +3612,6 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="resources\scenes\trees.scene" />
+    <None Include="resources\scenes\BMW.scene" />
   </ItemGroup>
 </Project>

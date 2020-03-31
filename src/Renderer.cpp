@@ -387,16 +387,6 @@ void Renderer::loadScene(const std::string& target) {
 				std::cerr << "Can't find parent " << "<" << targetParent << ">" << " for object " << p.first << std::endl;
 			}
 		}
-
-		if (targetMaterial != ""){
-			try {
-				o->material = this->materials.at(targetMaterial);
-			} catch (const std::out_of_range& oor){
-				std::cerr << "Can't find material " << "<" << targetMaterial << "> for object " << p.first << std::endl;
-			}
-		} else {
-			o->material = this->materials.at("default");
-		}
 	}
 
 	std::cout << "Finished loading scene " << this->scene.name << " (" << timer.lap_s() << ")" << std::endl;
@@ -437,8 +427,8 @@ void Renderer::tick(const double& dTime) {
 	float translation[3] = { 0,0,0 };
 	float rotation[2] = { 0,0 };
 
-	float translateSpeed = dTime * 100;
-	float rotationSpeed = dTime * 1.0f;
+	float translateSpeed = dTime * 5;
+	float rotationSpeed = dTime * 0.8f;
 
 	// TRANSLATION
 	if (glfwGetKey(this->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -536,56 +526,47 @@ void Renderer::tick(const double& dTime) {
 		glEnable(GL_CULL_FACE);
 	}
 
-	std::map<std::string, std::vector<Object*>> materialMapping;
+	Object* object;
+    Shader* shader;
+    OBJMesh* mesh;
+    Material* material;
+    
+    for (std::pair<std::string, Object*> o: this->objects) {
+    	object = o.second;
+    	mesh = object->mesh;
+    
+		mesh->bind();
 
-	Object* o;
-	Material* m;
-	Shader* s;
-	std::string materialName;
+    	for (OBJ::FaceMaterials mat : mesh->getFaceMaterials()) {
+    		try {
+    			material = this->materials.at(mat.material);
+    		}
+    		catch (const std::out_of_range & oor) {
+				std::cerr << "ERROR: Trying to render mesh " << mesh->getMeshName() << " with MISSING material: " << mat.material << std::endl;
+    			continue;
+    		}
+    
+    		material->bind(); // binds shader
+    		shader = material->shader;
+    
+    	    shader->setLights(this->numOfLights, this->lightMatrices);
+    	    shader->setUniform3fv("Ka", { WorldState.ambientLight[0], WorldState.ambientLight[1], WorldState.ambientLight[2] });
+    	    shader->setUniformMatrix4fv("MV", VP);
+    	    shader->setUniformMatrix4fv("MVP", VP * object->transform->getMatrix());
+    
+    
+    		mesh->draw(mat.range[0], mat.range[1]);
 
-	for (std::pair<std::string, Object*> p : this->objects){
-		o = p.second;
-		materialName = o->material->name;	
+    	}
 
-		if (materialMapping.count(materialName) == 0){
-			materialMapping[materialName] = std::vector<Object*>();
-		}
+		mesh->unbind();
+    }
 
-		materialMapping[materialName].push_back(o);
-	}
-
-	for (std::pair<std::string, std::vector<Object*>> p : materialMapping){
-		m = this->materials.at(p.first);
-		s = m->shader;
-
-		m->bind();
-
-		glUniform3fv(glad_glGetUniformLocation(s->programID(), "Ka"), 1, &WorldState.ambientLight[0]);
-
-		s->setUniformMatrix4fv("MV", VP);
-
-		s->setLights(this->numOfLights, this->lightMatrices);
-
-		for (Object* o : p.second){
-			s->setUniformMatrix4fv("MVP", VP * o->transform->getMatrix());
-			o->mesh->draw();
-		}
-	}
-	
 	// Draw coordinate axes (for testing)
 	// TODO: remove
 	this->drawLine(glm::vec3(), glm::vec3(10, 0, 0), glm::vec3(1, 0, 0)); // start, end, colour
 	this->drawLine(glm::vec3(), glm::vec3(0, 10, 0), glm::vec3(0, 1, 0));
 	this->drawLine(glm::vec3(), glm::vec3(0, 0, 10), glm::vec3(0, 0, 1));
-
-	/*
-		skybox position = mainCamera.position
-		skybox rotation = 0v
-
-		draw skybox*
-		*set gl_Position in shader = pos with z=1
-
-	*/
 }
  
 void Renderer::setLineWidth(const float& w) {

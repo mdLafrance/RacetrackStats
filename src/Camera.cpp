@@ -33,7 +33,7 @@ Camera::Camera(const float& fov, const float& aspect, const float& zMin, const f
 
 	this->type = CameraType::Perspective;
 
-	this->proj = glm::perspective(45.0f, aspect, 0.5f, zMax);
+	this->proj = glm::perspective(45.0f, aspect, CAMERA_NEAR_CLIP_PLANE, zMax);
 
 	this->transform = new Transform();
 }

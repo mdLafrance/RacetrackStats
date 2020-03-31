@@ -6,6 +6,8 @@
 #include <Transform.h>
 #include <WorldState.h>
 
+#define CAMERA_NEAR_CLIP_PLANE 0.1f
+
 enum class CameraType {Perspective, Orthographic};
 
 extern _WorldState WorldState;

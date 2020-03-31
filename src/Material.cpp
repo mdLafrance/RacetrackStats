@@ -38,16 +38,17 @@ namespace MTL
 					current = new Material(fi.file + '.' + tokens[1]);
 					std::cout << "Generating Material " << current->name << std::endl;
 
+					// NOTE: FLAGS WILL BREAK THIS, for the sake of time (and to handle files with spaces), just grab the rest of line after line type and space
 				} else if (lineType == "map_Kd") { // DIFFUSE MAP
-					current->map_Kd = new Texture(fi.directory + DIRECTORY_SEPARATOR + lineBack);
+					current->map_Kd = new Texture(fi.directory + DIRECTORY_SEPARATOR + line.substr(7));
 					current->addFlag(MATERIAL_USE_map_Kd);
 
 				} else if (lineType == "map_Ks"){ // SPEC MAP
-					current->map_Ks = new Texture(fi.directory + DIRECTORY_SEPARATOR + lineBack);
+					current->map_Ks = new Texture(fi.directory + DIRECTORY_SEPARATOR + line.substr(7));
 					current->addFlag(MATERIAL_USE_map_Ks);
 				
 				} else if (lineType == "norm") { // NORMAL MAP
-					current->norm = new Texture(fi.directory + DIRECTORY_SEPARATOR + lineBack);
+					current->norm = new Texture(fi.directory + DIRECTORY_SEPARATOR + line.substr(5));
 					current->addFlag(MATERIAL_USE_map_norm);
 				
 				} else if (lineType == "illum") { // Illumination
