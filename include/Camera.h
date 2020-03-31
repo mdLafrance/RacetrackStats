@@ -6,9 +6,11 @@
 #include <Transform.h>
 #include <WorldState.h>
 
-#define CAMERA_NEAR_CLIP_PLANE 0.1f
+#define CAMERA_DEFAULT_FOV 45.0f
+#define CAMERA_DEFAULT_FAR_CLIP_PLANE 1000.0f
+#define CAMERA_DEFAULT_NEAR_CLIP_PLANE 0.1f
 
-enum class CameraType {Perspective, Orthographic};
+enum CameraType {Perspective, Orthographic};
 
 extern _WorldState WorldState;
 
@@ -19,17 +21,25 @@ class Camera {
 
 	bool isMainCam = false;
 
+	float FOV;
+	float farClipPlane;
+
 public:
+	void setFOV(const float& fov);
+	void setFarClipPlane(const float& fcp);
+
 	Transform* transform;
 
 	CameraType getType();
 
 	glm::mat4 projectionViewMatrix();
 
-	void setPerspectiveProjMatrix(const float& fov, const float& aspect, const float& zMin, const float& zMax); // Used to update camera if window size changes
+	// Basic constructor, values are inferred from the global rendering settings
+	Camera(const CameraType& type = CameraType::Perspective);
 
-	// Perpective camera
-	Camera(const float& fov, const float& aspect, const float& zMin, const float& zMax);
+	// Perpective camera with arguments
+	Camera(const float& fov, const float& zMin, const float& zMax);
+
 	// Orthographic camera
 	Camera(const float& xMin, const float& xMax, const float& yMin, const float& yMax, const float& zMin, const float& zMax);
 
