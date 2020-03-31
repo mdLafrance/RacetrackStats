@@ -22,12 +22,15 @@ namespace MTL
 
 				tokens = Utils::split(line, ' ');
 
-				// Empty line
-				if (tokens.size() == 0) continue;
+				// Empty line, or line with empty definition such as: 'map_Kd \n'
+				if (tokens.size() < 2) continue;
 
 				std::string lineType = tokens.front();
+
 				// NOTE: for the sake of time, ignoring all flags here, and just using the value
-				std::string lineBack = tokens.back(); 
+				// TODO: This will break if there are flags
+
+				std::string fileName;
 
 				// Start recording information for given material
 				if (lineType == "newmtl") {
@@ -39,19 +42,23 @@ namespace MTL
 					std::cout << "Generating Material " << current->name << std::endl;
 
 				} else if (lineType == "map_Kd") { // DIFFUSE MAP
-					current->map_Kd = new Texture(fi.directory + DIRECTORY_SEPARATOR + lineBack);
+					fileName = line.substr(7);
+					current->map_Kd = new Texture(fi.directory + DIRECTORY_SEPARATOR + fileName);
 					current->addFlag(MATERIAL_USE_map_Kd);
 
 				} else if (lineType == "map_Ks"){ // SPEC MAP
-					current->map_Ks = new Texture(fi.directory + DIRECTORY_SEPARATOR + lineBack);
+					fileName = line.substr(7);
+					current->map_Ks = new Texture(fi.directory + DIRECTORY_SEPARATOR + fileName);
 					current->addFlag(MATERIAL_USE_map_Ks);
 				
 				} else if (lineType == "norm") { // NORMAL MAP
-					current->norm = new Texture(fi.directory + DIRECTORY_SEPARATOR + lineBack);
+					fileName = line.substr(5);
+					current->norm = new Texture(fi.directory + DIRECTORY_SEPARATOR + fileName);
 					current->addFlag(MATERIAL_USE_map_norm);
 				
 				} else if (lineType == "illum") { // Illumination
-					current->illum = std::atof(lineBack.c_str());
+					fileName = line.substr(6);
+					current->illum = std::atof(fileName.c_str());
 				
 				} else if (lineType == "Ka") { // Ambient 
 					current->Ka = glm::vec3(std::atof(tokens[1].c_str()), std::atof(tokens[2].c_str()), std::atof(tokens[3].c_str()));
@@ -63,13 +70,13 @@ namespace MTL
 					current->Ks = glm::vec3(std::atof(tokens[1].c_str()), std::atof(tokens[2].c_str()), std::atof(tokens[3].c_str()));
 				
 				} else if (lineType == "Ns"){ // Specular exp
-					current->Ns = std::atof(lineBack.c_str());
+					current->Ns = std::atof(line.substr(3).c_str());
 				
 				} else if (lineType == "Tr"){ // Transparency value, 1 is transparent
-					current->Tr = std::atof(lineBack.c_str());
+					current->Tr = std::atof(line.substr(3).c_str());
 
 				} else if (lineType == "d"){ // Equivalent transparency value, Tr is inverse of d
-					current->Tr = 1 - std::atof(lineBack.c_str());
+					current->Tr = 1 - std::atof(line.substr(2).c_str());
 				}
 			}
 		} else {

@@ -61,7 +61,7 @@ CSV::CSV(const std::string& target) {
 
     // Count number of lines, not including first line defining the types
     while (fgets(line, sizeof(line), f)) {
-        ++this->numberOfLines;
+		if (!(line == "")) ++this->numberOfLines;
     }
 
     rewind(f);

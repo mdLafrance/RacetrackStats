@@ -28,7 +28,9 @@ void Renderer::registerShader(const std::string& id, Shader* shader){
 void Renderer::registerMesh(const std::string& id, OBJMesh* mesh){
     if (this->meshes.count(id) == 0){
         this->meshes[id] = mesh;
-		std::cout << "Registered Mesh " << id << " (Material " << mesh->getDefaultMaterialName() << ")" << std::endl;
+		std::cout << "Registered Mesh " << id << 
+			(mesh->isUsingMultipleMaterials() ? "(Multiple Materials)" : "(Material " + mesh->getDefaultMaterialName())
+			<< ")" << std::endl;
     } else {
         std::cerr << "Mesh " << id << " already registered." << std::endl;
     }
@@ -377,7 +379,6 @@ void Renderer::loadScene(const std::string& target) {
 	for (auto p : this->objects){
 		o = p.second;
 		std::string targetParent = o->mesh->getDefaultParentName();
-		std::string targetMaterial = o->mesh->getDefaultMaterialName();
 
 		if (targetParent != "") {
 			try {
@@ -386,16 +387,6 @@ void Renderer::loadScene(const std::string& target) {
 			catch (const std::out_of_range & oor) {
 				std::cerr << "Can't find parent " << "<" << targetParent << ">" << " for object " << p.first << std::endl;
 			}
-		}
-
-		if (targetMaterial != ""){
-			try {
-				o->material = this->materials.at(targetMaterial);
-			} catch (const std::out_of_range& oor){
-				std::cerr << "Can't find material " << "<" << targetMaterial << "> for object " << p.first << std::endl;
-			}
-		} else {
-			o->material = this->materials.at("default");
 		}
 	}
 
@@ -534,8 +525,8 @@ void Renderer::tick(const double& dTime) {
 
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
-	}
-
+	}	
+	
 	std::map<std::string, std::vector<Object*>> materialMapping;
 
 	Object* o;
@@ -543,18 +534,18 @@ void Renderer::tick(const double& dTime) {
 	Shader* s;
 	std::string materialName;
 
-	for (std::pair<std::string, Object*> p : this->objects){
+	for (std::pair<std::string, Object*> p : this->objects) {
 		o = p.second;
-		materialName = o->material->name;	
+		materialName = "default";// o->material->name;
 
-		if (materialMapping.count(materialName) == 0){
+		if (materialMapping.count(materialName) == 0) {
 			materialMapping[materialName] = std::vector<Object*>();
 		}
 
 		materialMapping[materialName].push_back(o);
 	}
 
-	for (std::pair<std::string, std::vector<Object*>> p : materialMapping){
+	for (std::pair<std::string, std::vector<Object*>> p : materialMapping) {
 		m = this->materials.at(p.first);
 		s = m->shader;
 
@@ -566,26 +557,55 @@ void Renderer::tick(const double& dTime) {
 
 		s->setLights(this->numOfLights, this->lightMatrices);
 
-		for (Object* o : p.second){
+		for (Object* o : p.second) {
 			s->setUniformMatrix4fv("MVP", VP * o->transform->getMatrix());
 			o->mesh->draw();
 		}
 	}
+
+	// Object* object;
+	// Shader* shader;
+	// OBJMesh* mesh;
+	// Material* material;
+
+	// for (std::pair<std::string, Object*> o: this->objects) {
+	// 	object = o.second;
+	// 	mesh = object->mesh;
+
+	// 	// mesh->bind();
+
+	// 	for (OBJ::FaceMaterials mat : mesh->getFaceMaterials()) {
+
+	// 		std::cout << "Mesh : " << mesh->getMeshName() << " mat: " << mat.material << std::endl;
+	// 		try {
+	// 			material = this->materials.at("default");// mat.material);
+	// 		}
+	// 		catch (const std::out_of_range & oor) {
+	// 			std::cerr << "ERROR: Trying to render mesh " << mesh->getMeshName() << " with MISSING material: " << mat.material << std::endl;
+	// 			continue;
+	// 		}
+
+	// 		material->bind(); // binds shader
+	// 		shader = material->shader;
+	// 		shader->bind();
+
+	// 	    shader->setLights(this->numOfLights, this->lightMatrices);
+	// 	    shader->setUniform3fv("Ka", { WorldState.ambientLight[0], WorldState.ambientLight[1], WorldState.ambientLight[2] });
+	// 	    shader->setUniformMatrix4fv("MV", VP);
+	// 	    shader->setUniformMatrix4fv("MVP", VP * object->transform->getMatrix());
+
+	// 		// std::cout << mesh->getMeshName() << " : " << mat.material << std::endl;
+	// 		// mesh->draw(mat.range[0], mat.range[1]);
+	// 		mesh->draw();
+	// 	}
+	// 	// mesh->unbind();
+	// }
 	
 	// Draw coordinate axes (for testing)
 	// TODO: remove
 	this->drawLine(glm::vec3(), glm::vec3(10, 0, 0), glm::vec3(1, 0, 0)); // start, end, colour
 	this->drawLine(glm::vec3(), glm::vec3(0, 10, 0), glm::vec3(0, 1, 0));
 	this->drawLine(glm::vec3(), glm::vec3(0, 0, 10), glm::vec3(0, 0, 1));
-
-	/*
-		skybox position = mainCamera.position
-		skybox rotation = 0v
-
-		draw skybox*
-		*set gl_Position in shader = pos with z=1
-
-	*/
 }
  
 void Renderer::setLineWidth(const float& w) {

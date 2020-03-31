@@ -1,5 +1,7 @@
 #pragma once
 
+#include <assert.h>
+
 #include <iostream>
 #include <stdio.h>
 #include <string>
@@ -14,6 +16,26 @@
 
 #include <Utils.h>
 
+class OBJMesh;
+
+namespace OBJ
+{
+	struct FaceMaterials {
+		std::string material;
+
+		int range[2] = { 0, 0 };
+
+		FaceMaterials(const std::string& material, const int& start, const int& end) {
+			this->material = material;
+			this->range[0] = start;
+			this->range[1] = end;
+		}
+
+	};
+
+	std::vector<OBJMesh*> load(const std::string& target);
+}
+
 class OBJMesh {
 	std::string meshName; // Name of the mesh
 	std::string defaultMaterialName; // Name of the default material to be associated with the mesh
@@ -26,12 +48,17 @@ class OBJMesh {
 
 	unsigned int VBO;
 	unsigned int VAO;
-	unsigned int EBO;
 
-	bool loaded = false;
+	bool multipleMaterials = false;
+	std::vector<OBJ::FaceMaterials> _faceMaterials;
+
+	bool loaded;
 
 public:
 	bool isLoaded();
+
+	bool isUsingMultipleMaterials();
+	std::vector<OBJ::FaceMaterials> getFaceMaterials();
 
 	std::string getMeshName();
 	std::string getDefaultMaterialName();
@@ -41,14 +68,18 @@ public:
 	void generateBuffers();
 
 	void bind();
+	void unbind();
 
-	void draw();
+	void draw(int start = -1, int end = -1);
 
-	OBJMesh(const std::string& meshName, const std::string& materialName, const std::string& parent, const std::string& origin, const int& numberOfTriangles, float* vertexData);
+	OBJMesh(
+		const std::string& meshName, 
+		const std::string& parent, 
+		const std::string& origin, 
+
+		std::vector<OBJ::FaceMaterials> faceMaterials,
+		const int& numberOfTriangles, 
+		float* vertexData);
+
 	~OBJMesh();
 };
-
-namespace OBJ
-{
-	std::vector<OBJMesh*> load(const std::string& target);
-}

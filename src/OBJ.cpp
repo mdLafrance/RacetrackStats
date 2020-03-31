@@ -50,6 +50,8 @@ namespace OBJ
 		std::string materialLibrary;
 		std::string materialName;
 
+		std::vector<OBJ::FaceMaterials> faceMaterials;
+
 		std::string groupName;
 		std::string groupParent;
 
@@ -67,6 +69,10 @@ namespace OBJ
 
 		auto closeObject = [&]() {
 			std::cout << " (" << readData.lap_s() << ")" << std::endl;
+
+			if (!faceMaterials.empty()) {
+				faceMaterials.back().range[1] = faceIndeces.size();
+			}
 
 			writeVertex.start();
 
@@ -102,9 +108,10 @@ namespace OBJ
 
 			currentObject = new OBJMesh(
 				fullName, 
-				Utils::getFileInfo(materialLibrary).file + '.' + materialName, 
 				fullParentName, 
 				target,
+
+				faceMaterials,
 				numOfFaces,
 				data
 			);
@@ -120,7 +127,9 @@ namespace OBJ
 
 			faceIndeces.clear();
 
-			std::cout << writeVertex.lap_s() << ")" << std::endl;
+			faceMaterials.clear();
+
+			std::cout << writeVertex.lap_s() << std::endl;
 		};
 
 		long lines = 0;
@@ -141,7 +150,16 @@ namespace OBJ
 
 			if (strcmp(firstWord, "usemtl") == 0) {
 				fscanf(f, "%s", line); 
-				materialName = std::string(line);
+
+				int currentNumOfFaces = faceIndeces.size();
+
+				// If this isn't the last material defined on these faces, save the end to the range of the last material
+				if (!faceMaterials.empty()) {
+					faceMaterials.back().range[1] = currentNumOfFaces;
+				}
+
+				faceMaterials.push_back({ Utils::getFileInfo(materialLibrary).file + '.' + std::string(line), currentNumOfFaces + 1, -1 });
+
 				goto nextline;
 			}
 
@@ -265,6 +283,23 @@ nextline:
 	}
 }
 
+bool OBJMesh::isLoaded() {
+	return this->loaded;
+}
+
+bool OBJMesh::isUsingMultipleMaterials() {
+	return this->multipleMaterials;
+}
+
+std::vector<OBJ::FaceMaterials> OBJMesh::getFaceMaterials() {
+	if (this->multipleMaterials) {
+		return this->_faceMaterials;
+	}
+	else {
+		return std::vector<OBJ::FaceMaterials>();
+	}
+}
+
 std::string OBJMesh::getMeshName() {
 	return this->meshName;
 }
@@ -282,8 +317,6 @@ unsigned int OBJMesh::getNumberOfFaces() {
 }
 
 void OBJMesh::generateBuffers() {
-	// TODO: use EBO instead?
-
 	// Generate and bind VAO for this mesh
 	glGenVertexArrays(1, &this->VAO);
 	glBindVertexArray(this->VAO);
@@ -320,9 +353,24 @@ void OBJMesh::generateBuffers() {
 
 void OBJMesh::bind() {
 	glBindVertexArray(this->VAO);
+	// glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
 }
 
-void OBJMesh::draw() {
+void OBJMesh::unbind() {
+	glBindVertexArray(0);
+	// glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void OBJMesh::draw(int start, int end) {
+	// if (start < 0) start = 0;
+	// if (end < 0) end = this->numberOfFaces;
+
+	// assert((end >= start) && "End of range to OBJMesh draw is less than start (OBJ.cpp)");
+
+	// if (!this->loaded) this->generateBuffers();
+	// 
+	// glDrawArrays(GL_TRIANGLES, start, 3 * (end - start)); // each face is defined by three elements (face 0 = [0,2], face 1 = [3,6] etc.)
+
 	if (!this->loaded) this->generateBuffers();
 
 	glBindVertexArray(this->VAO);
@@ -334,12 +382,13 @@ void OBJMesh::draw() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-OBJMesh::OBJMesh(const std::string& meshName, const std::string& materialName, const std::string& parent, const std::string& origin, const int& numberOfTriangles, float* data) {
+OBJMesh::OBJMesh(const std::string& meshName, const std::string& parent, const std::string& origin, std::vector<OBJ::FaceMaterials> faceMaterials, const int& numberOfTriangles, float* data) {
 	this->meshName = meshName;
-	this->defaultMaterialName = materialName;
 	this->defaultParent = parent;
 	this->origin = origin;
 
+	this->_faceMaterials = faceMaterials;
+	this->multipleMaterials = faceMaterials.size() > 1;
 	this->numberOfFaces = numberOfTriangles;
 	this->vertexData = data;
 }
