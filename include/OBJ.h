@@ -67,7 +67,7 @@ public:
 	void bind();
 	void unbind();
 
-	void draw(int start = -1, int end = -1);
+	void draw(int start = -1, int count = -1);
 
 	OBJMesh(
 		const std::string& meshName,

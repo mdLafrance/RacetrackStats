@@ -8,6 +8,8 @@ mesh mosport_objects.obj
 mesh mosport_layers.obj
 mesh mosport_trees.obj
 
+mesh BMW2.obj
+
 # Materials
 material mtl_low/jr_mosport.mtl
 material mtl_low/mosport_horizon.mtl
@@ -15,6 +17,11 @@ material mtl_low/mosport_vehicles.mtl
 material mtl_low/mosport_objects.mtl
 material -t mtl_low/mosport_layers.mtl
 material -t mtl_low/mosport_trees.mtl
+
+material BMW2.mtl
+
+# Which file defines the user's car
+car BMW2
 
 # Scene ambient light (r g b)
 ambient 0.43 0.43 0.4

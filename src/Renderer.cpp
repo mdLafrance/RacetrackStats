@@ -172,7 +172,7 @@ void Renderer::resetData() {
 	// Create and register default assets.
 
 	// Default camera is perspective camera
-	Camera* defaultCam = new Camera(45.0f, 1, 0, 2000);
+	Camera* defaultCam = new Camera(Perspective);
 
 	Shader* defaultShader = new Shader("default", "default");
 
@@ -428,7 +428,7 @@ void Renderer::tick(const double& dTime) {
 	float rotation[2] = { 0,0 };
 
 	float translateSpeed = dTime * 5;
-	float rotationSpeed = dTime * 0.8f;
+	float rotationSpeed = dTime * 1.0f;
 
 	// TRANSLATION
 	if (glfwGetKey(this->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -523,7 +523,7 @@ void Renderer::tick(const double& dTime) {
 		this->skybox->draw();
 
 		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_CULL_FACE);
+		// glEnable(GL_CULL_FACE);
 	}
 
 	Object* object;
@@ -551,11 +551,10 @@ void Renderer::tick(const double& dTime) {
     
     	    shader->setLights(this->numOfLights, this->lightMatrices);
     	    shader->setUniform3fv("Ka", { WorldState.ambientLight[0], WorldState.ambientLight[1], WorldState.ambientLight[2] });
-    	    shader->setUniformMatrix4fv("MV", VP);
+    	    shader->setUniformMatrix4fv("VP", VP);
     	    shader->setUniformMatrix4fv("MVP", VP * object->transform->getMatrix());
     
-    
-    		mesh->draw(mat.range[0], mat.range[1]);
+    		mesh->draw(mat.range[0], mat.range[1] - mat.range[0]);
 
     	}
 

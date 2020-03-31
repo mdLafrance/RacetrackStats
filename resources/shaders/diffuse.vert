@@ -3,8 +3,8 @@
 #version 330 core
 
 // Uniforms
+uniform mat4 VP;
 uniform mat4 MVP;
-uniform mat4 MV;
 
 uniform vec3 Ka;
 uniform vec3 Kd;
@@ -34,7 +34,7 @@ void main(){
 	// View coordinate converted normals and positions, for phong calc in frag
 	v_norm = in_norm;
 	v_pos_world = in_pos;
-	v_pos = vec3(MV * in_pos4fv);
+	v_pos = vec3(VP * in_pos4fv);
 
 	gl_Position = MVP * in_pos4fv;
 }

@@ -70,15 +70,15 @@ namespace OBJ
 		auto closeObject = [&]() {
 			std::cout << " (" << readData.lap_s() << ")" << std::endl;
 
-			if (!faceMaterials.empty()) {
-				faceMaterials.back().range[1] = faceIndeces.size();
-			}
-
 			writeVertex.start();
 
 			collectingFaces = false;
 
 			int numOfFaces = faceIndeces.size() / 9; // 3 components per 3 verteces per face
+
+			if (!faceMaterials.empty()) {
+				faceMaterials.back().range[1] = numOfFaces;
+			}
 
 			std::string fullName = fi.file + '.' + groupName;
 			std::string fullParentName = groupParent.size() == 0 ? "" : fi.file + '.' + groupParent;
@@ -150,14 +150,14 @@ namespace OBJ
 			if (strcmp(firstWord, "usemtl") == 0) {
 				fscanf(f, "%s", line); 
 
-				int currentNumOfFaces = faceIndeces.size();
+				int currentNumOfFaces = faceIndeces.size() / 9; // 3 components per 3 vertices per face
 
 				// If this isn't the last material defined on these faces, save the end to the range of the last material
 				if (!faceMaterials.empty()) {
 					faceMaterials.back().range[1] = currentNumOfFaces;
 				}
 
-				faceMaterials.push_back({ Utils::getFileInfo(materialLibrary).file + '.' + std::string(line), currentNumOfFaces + 1, -1 });
+				faceMaterials.push_back({ Utils::getFileInfo(materialLibrary).file + '.' + std::string(line), currentNumOfFaces, -1 });
 
 				goto nextline;
 			}
@@ -350,15 +350,14 @@ void OBJMesh::unbind() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void OBJMesh::draw(int start, int end) {
+void OBJMesh::draw(int start, int count) {
 	if (start < 0) start = 0;
-	if (end < 0) end = this->numberOfFaces;
+	if (count < 0) count = this->numberOfFaces;
 
-	assert((end >= start) && "End of range to OBJMesh draw is less than start (OBJ.cpp)");
-
-	if (!this->loaded) this->generateBuffers();
+	assert(this->loaded && "Mesh is not loaded (call generateBuffers)");
+	assert((count <= this->numberOfFaces - start) && ("Attempting to draw too many faces"));
 	
-	glDrawArrays(GL_TRIANGLES, start - 1, 3 * (end - start)); // each face is defined by three elements (face 0 = [0,2], face 1 = [3,6] etc.)
+	glDrawArrays(GL_TRIANGLES, 3 * start, 3 * count); // each face is defined by three elements (face 0 = [0,2], face 1 = [3,6] etc.)
 }
 
 OBJMesh::OBJMesh(const std::string& meshName, const std::string& parent, const std::string& origin, const int& numberOfTriangles, float* data, const std::vector<OBJ::FaceMaterials>& faceMaterials) {
@@ -371,14 +370,6 @@ OBJMesh::OBJMesh(const std::string& meshName, const std::string& parent, const s
 	this->vertexData = data;
 
 	this->faceMaterials = faceMaterials;
-
-	std::cout << "OBJ " << meshName << " using materials: ";
-
-	for (auto k : faceMaterials) {
-		std::cout << k.material << " ";
-	}
-
-	std::cout << std::endl;
 }
 
 OBJMesh::~OBJMesh() {

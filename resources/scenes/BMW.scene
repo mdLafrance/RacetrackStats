@@ -2,7 +2,7 @@ name BMW testing scnee
 
 mesh BMW2.obj
 
-material BMW2.mtl
+material -t BMW2.mtl
 
 ambient 0.8 0.8 0.8
 

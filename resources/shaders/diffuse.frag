@@ -7,7 +7,7 @@
 #define MATERIAL_TRANSPARENT  1 << 3
 
 // Uniforms
-uniform mat4 MV;
+uniform mat4 VP;
 uniform mat4 MVP;
 
 uniform vec3 Ka;
@@ -74,7 +74,7 @@ void main() {
 		N = normalize(v_norm);
 	}
 
-	N_vcs = normalize(vec3(MV * vec4(N, 0)));
+	N_vcs = normalize(vec3(VP * vec4(N, 0)));
 
 	Iout = vec3(Ka.x * diffuse.x, Ka.y * diffuse.y, Ka.z * diffuse.z);  // Accumulated output intensity
 
@@ -100,7 +100,7 @@ void main() {
 			continue; // spec behaving really strangely, fix after main features are done
 			// Spec
 			R = ((2.0 * NdotL) * N) - light_v;
-			RdotV = dot(R, vec3(MV* vec4(cameraForward,1)));
+			RdotV = dot(R, vec3(VP * vec4(cameraForward,1)));
 			
 			if (RdotV > 0.0){
 				Iout += pow(RdotV, Ns) * vec3(specular.x * light_color.x, specular.y * light_color.y, specular.z * light_color.z);

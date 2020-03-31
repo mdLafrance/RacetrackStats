@@ -69,6 +69,10 @@ static bool frameSizeChanged = false;
 
 ImGuiIO* imguiIO;
 
+static Renderer* renderer;
+
+static const std::vector<std::string> cameras = { "Follow", "Car", "Overhead" };
+
 // Handler for shortcuts used to navigate the ui
 void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	// Escape to close the program
@@ -81,6 +85,11 @@ void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int
 	// Arrow keys to nudge timeline
 	if (key ==  GLFW_KEY_LEFT && action == GLFW_PRESS) GuiState.timelinePosition = Utils::clamp(GuiState.timelinePosition - GuiState.tickSkipAmount, 0, GuiState.numberOfTimePoints);
 	if (key ==  GLFW_KEY_RIGHT && action == GLFW_PRESS) GuiState.timelinePosition = Utils::clamp(GuiState.timelinePosition + GuiState.tickSkipAmount, 0, GuiState.numberOfTimePoints);
+
+	// Number keys to switch between cameras
+	if (key == GLFW_KEY_1 && action == GLFW_PRESS) renderer->setMainCamera("Follow");
+	if (key == GLFW_KEY_2 && action == GLFW_PRESS) renderer->setMainCamera("Car");
+	if (key == GLFW_KEY_3 && action == GLFW_PRESS) renderer->setMainCamera("Overhead");
 }
 
 void cleanup() {
@@ -207,7 +216,7 @@ int main(int argc, char** argv) {
 	std::cout << "User selected " << selectedScene << std::endl;
 
 	// Initialize renderer
-	Renderer* renderer = new Renderer(window);
+	renderer = new Renderer(window);
 
 	glfwSetWindowPos(window, 40, 40); // Not necessary, just makes the window appear in a consistent spot
 
@@ -238,6 +247,21 @@ int main(int argc, char** argv) {
 
 	// Used to calculate timeline playing
 	float tickTotal = 0;
+
+	// Set up default cameras
+	Camera* followCam = new Camera(Perspective);
+	Camera* carCam = new Camera(Perspective);
+	Camera* overHeadCam = new Camera(Orthographic);
+
+	followCam->transform->setTranslation(glm::vec3(-50, 0, 0));
+	carCam->transform->setTranslation(glm::vec3(50, 50, -20));
+	overHeadCam->transform->setTranslation(glm::vec3(0, 0, -100));
+
+	renderer->registerCamera("Follow", followCam);
+	renderer->registerCamera("Car", carCam);
+	renderer->registerCamera("Overhead", overHeadCam);
+
+	renderer->setMainCamera("Follow");
 
 	//
 	// Main loop
@@ -330,7 +354,8 @@ int main(int argc, char** argv) {
 
 		// If camera settings changed, build new view matrix to reflect these changes
 		if (GuiState.cameraSettingsChanged) {
-			renderer->getMainCamera()->setPerspectiveProjMatrix(45.0f + GuiState.FOV, (float)WorldState.windowX/WorldState.windowY, GuiState.nearClipPlane, GuiState.farClipPlane);
+			renderer->getMainCamera()->setFOV(45.0f + GuiState.FOV);
+			renderer->getMainCamera()->setFarClipPlane(GuiState.farClipPlane);
 			GuiState.cameraSettingsChanged = false;
 		}
 
