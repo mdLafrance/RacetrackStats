@@ -69,8 +69,6 @@ static bool frameSizeChanged = false;
 
 ImGuiIO* imguiIO;
 
-static ImGuiIO* imguiIO;
-
 // Handler for shortcuts used to navigate the ui
 void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	// Escape to close the program
