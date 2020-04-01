@@ -6,7 +6,7 @@
 #include <Transform.h>
 #include <WorldState.h>
 
-#define CAMERA_DEFAULT_FOV 45.0f
+#define CAMERA_DEFAULT_FOV 44.5f
 #define CAMERA_DEFAULT_FAR_CLIP_PLANE 1000.0f
 #define CAMERA_DEFAULT_NEAR_CLIP_PLANE 0.1f
 

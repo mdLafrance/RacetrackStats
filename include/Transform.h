@@ -30,6 +30,8 @@ public:
 
 	void setParent(Transform* parent);
 
+	void reset();
+
 	glm::mat4x4 getMatrix();
 
 	glm::vec3 position();

@@ -50,10 +50,15 @@
 // State of the GUI
 _GuiState GuiState;
 
+// Cameras available to switch between
+static const std::vector<std::string> cameras = { "Follow", "Car", "Overhead" };
+
 // State of the scene, used by the renderer
 _WorldState WorldState = { 
 	WINDOW_DEFAULT_X,    // Starting window width
 	WINDOW_DEFAULT_Y,    // Starting window height
+	WINDOW_DEFAULT_X,    // Proper values for renderer w h get filled in main
+	WINDOW_DEFAULT_Y,     
 	{0.0f, 0.0f, 0.0f},  // vec3 ambient color for the scene
 	nullptr,		     // (string) path to root of executable (set in main)
 	nullptr				 // (string) path to root of the mesh and texture data for mosport
@@ -63,15 +68,15 @@ _WorldState WorldState = {
 const static char* exeLocation;
 const static char* trackDataLocation;
 
+static Renderer* renderer;
 static CSV* currentData;
+ImGuiIO* imguiIO;
 
 static bool frameSizeChanged = false;
 
-ImGuiIO* imguiIO;
-
-static Renderer* renderer;
-
-static const std::vector<std::string> cameras = { "Follow", "Car", "Overhead" };
+bool mouseMoved;
+double dMouseX = 0;
+double dMouseY = 0;
 
 // Handler for shortcuts used to navigate the ui
 void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -90,6 +95,22 @@ void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int
 	if (key == GLFW_KEY_1 && action == GLFW_PRESS) renderer->setMainCamera("Follow");
 	if (key == GLFW_KEY_2 && action == GLFW_PRESS) renderer->setMainCamera("Car");
 	if (key == GLFW_KEY_3 && action == GLFW_PRESS) renderer->setMainCamera("Overhead");
+
+	// Reset orientation of main cam
+	if (key == GLFW_KEY_R && action == GLFW_PRESS) renderer->getMainCamera()->transform->setRotation(0, glm::vec3(0,1,0));
+}
+
+void mouseMoveCallback(GLFWwindow* window, double xPos, double yPos) {
+	static double lastMouseX;
+	static double lastMouseY;
+
+	dMouseX = xPos - lastMouseX;
+	dMouseY = yPos - lastMouseY;
+
+	lastMouseX = xPos;
+	lastMouseY = yPos;
+
+	mouseMoved = true;
 }
 
 void cleanup() {
@@ -97,6 +118,7 @@ void cleanup() {
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
 }
+
 int main(int argc, char** argv) {
 	std::string executableDirectory = Utils::getFileInfo(*argv).directory;
 	std::cout << "Launching racetracks stats... (" << executableDirectory << ")" << std::endl << std::endl;
@@ -149,6 +171,7 @@ int main(int argc, char** argv) {
 	glfwSetKeyCallback(window, keyPressCallback);
 	glfwSetWindowSizeCallback(window, windowResizeCallbackFunction);
 	glfwSetErrorCallback(Utils::glfwErrorCallbackFunction);
+	glfwSetCursorPosCallback(window, mouseMoveCallback);
 
 	bool onMSI = std::getenv("MSI") != nullptr;
 
@@ -215,13 +238,16 @@ int main(int argc, char** argv) {
 
 	std::cout << "User selected " << selectedScene << std::endl;
 
-	// Initialize renderer
-	renderer = new Renderer(window);
-
 	glfwSetWindowPos(window, 40, 40); // Not necessary, just makes the window appear in a consistent spot
 
+	WorldState.rendererX = WorldState.windowX;
+	WorldState.rendererY = WorldState.windowY / 2;
+
 	// Setup renderer to only draw in top half of screen
-	glViewport(0, WorldState.windowY / 2, WorldState.windowX, WorldState.windowY);
+	glViewport(0, WorldState.windowY - WorldState.rendererY, WorldState.windowX, WorldState.rendererY);
+
+	// Initialize renderer
+	renderer = new Renderer(window);
 
 	// Draw one frame of GUI to look clean while loading
 	drawUI(GuiState);
@@ -280,6 +306,20 @@ int main(int argc, char** argv) {
 		//
 		// Process user input to the gui from the previous frame
 		//
+
+		if (mouseMoved) {
+			if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS) {
+				std::cout << dMouseX << " " << dMouseY << std::endl;
+
+				Transform* mainCamTransform = renderer->getMainCamera()->transform;
+
+				// Mouse sensitivity is multiplied by 100 in gui
+				mainCamTransform->rotate(dTime * 0.01f * GuiState.mouseSensitivity * -dMouseX, glm::vec3(0,1,0));
+				mainCamTransform->rotate(dTime * 0.01f * GuiState.mouseSensitivity * dMouseY, mainCamTransform->right());
+			}
+
+			mouseMoved = false;
+		}
 
 		// If load new scene clicked
 		if (GuiState.selected_menu_File_Open) {
@@ -345,16 +385,20 @@ int main(int argc, char** argv) {
 			glfwGetFramebufferSize(window, &::WorldState.windowX, &::WorldState.windowY);
 
 			if ((::WorldState.windowX > 1) && (::WorldState.windowY > 1)) { // Minimized window triggers this, causing crash when trying to calculate mv matrix for 0 size window
-			glViewport(0, WorldState.windowY / 2, WorldState.windowX, WorldState.windowY);
+				WorldState.rendererX = WorldState.windowX;
+				WorldState.rendererY = WorldState.windowY / 2;
 
-			GuiState.cameraSettingsChanged = true; // force new perpective matrix
-			frameSizeChanged = false;
-		}
+				// Setup renderer to only draw in top half of screen
+				glViewport(0, WorldState.windowY - WorldState.rendererY, WorldState.windowX, WorldState.rendererY);
+
+				GuiState.cameraSettingsChanged = true; // force new perpective matrix
+				frameSizeChanged = false;
+			}
 		}
 
 		// If camera settings changed, build new view matrix to reflect these changes
 		if (GuiState.cameraSettingsChanged) {
-			renderer->getMainCamera()->setFOV(45.0f + GuiState.FOV);
+			renderer->getMainCamera()->setFOV(CAMERA_DEFAULT_FOV + GuiState.FOV);
 			renderer->getMainCamera()->setFarClipPlane(GuiState.farClipPlane);
 			GuiState.cameraSettingsChanged = false;
 		}

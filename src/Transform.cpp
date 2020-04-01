@@ -30,7 +30,7 @@ void Transform::setTranslation(const glm::vec3& dest){
 
 void Transform::rotate(const float& angle, const glm::vec3& dir){
 	this->updateMatrix = true;
-	this->R *= glm::rotate(angle, dir);
+	this->R = glm::rotate(angle, dir) * this->R;
 }
 
 void Transform::setRotation(const float& angle, const glm::vec3& dir){
@@ -70,7 +70,7 @@ glm::vec3 Transform::position(){
 	return glm::vec3(glm::column(this->T, 3));
 }
 
-Transform::Transform() {
+void Transform::reset() {
 	this->matrix = glm::mat4(1.0f);
 
 	this->T = glm::mat4(1.0f);
@@ -78,6 +78,10 @@ Transform::Transform() {
 	this->S = glm::mat4(1.0f);
 
 	this->updateMatrix = false;
+}
+
+Transform::Transform() {
+	this->reset();
 
 	this->parent = nullptr;
 }

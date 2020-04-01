@@ -33,6 +33,8 @@ struct _GuiState {
 	double fps = 0.0; 
 
 	bool cameraSettingsChanged = false;
+
+	float mouseSensitivity = 1.0f;
 	
 	// Render states
 	float FOV = 0.0f;
@@ -84,6 +86,8 @@ void setGuiOptionsToDefault(_GuiState& state) {
 	state.farClipPlane = 1000.0f;
 	state.brightness = 0.0f;
 	state.FOV = 0.0f;
+
+	state.mouseSensitivity = 50.0f;
 
 	state.lineWidth = 1.0f;
 	state.lineWidthChanged = true;
@@ -189,6 +193,11 @@ void drawUI(_GuiState& state) {
 			ImGui::InputFloat("##Font size", &imguiIO->FontGlobalScale, 0, 0, "%.1f");
 
 			imguiIO->FontGlobalScale = imguiIO->FontGlobalScale > 3 ? 3 : imguiIO->FontGlobalScale; // things start getting weird above 3 font lol
+
+			ImGui::Text("Camera Mouse Sensitivity");
+			ImGui::SameLine(300, 0);
+			ImGui::PushItemWidth(100);
+			ImGui::SliderFloat("##Camera Mouse Sensitivity", &state.mouseSensitivity, 0.0f, 200.0f);
 
 			ImGui::Separator();
 			ImGui::Separator();

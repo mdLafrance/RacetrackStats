@@ -38,7 +38,7 @@ glm::mat4 Camera::projectionViewMatrix() {
 	}
 
 	if (this->type == CameraType::Perspective) {
-		proj = glm::perspective(this->FOV, (float)WorldState.windowX / (float)WorldState.windowY, CAMERA_DEFAULT_NEAR_CLIP_PLANE, this->farClipPlane);
+		proj = glm::perspective(this->FOV, (float)WorldState.rendererX / (float)WorldState.rendererY, CAMERA_DEFAULT_NEAR_CLIP_PLANE, this->farClipPlane);
 	}
 
 	return proj * view;
