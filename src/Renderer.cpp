@@ -420,7 +420,7 @@ Object* Renderer::getObject(const std::string& name) {
 }
 
 void Renderer::tick(const double& dTime) {
-	// NOTE: translateion rotation controls are just for testings, not to be included in future builds
+	// TODO: translateion rotation controls are just for testings, not to be included in future builds
 
 	++this->frameCount;
 
@@ -453,20 +453,6 @@ void Renderer::tick(const double& dTime) {
 		translation[2] = -translateSpeed;
 	}
 
-	// ROTATION 
-	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-		rotation[1] = rotationSpeed;
-	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-		rotation[0] = rotationSpeed;
-	}
-	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-		rotation[1] = -rotationSpeed;
-	}
-	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-		rotation[0] = -rotationSpeed;
-	}
-
 	// Get matrix representation for lights 
 	for (int i = 0; i < this->numOfLights; i++) {
 		*(this->lightMatrices + i) = (this->lights + i)->getMatrix();
@@ -474,11 +460,6 @@ void Renderer::tick(const double& dTime) {
 
 	// Calcuate new MVP for camera on this frame
 	Transform* camTransform = this->mainCamera->transform;
-
-	glm::vec3 worldUp = glm::inverse(camTransform->getMatrix()) * glm::vec4(0, 1, 0, 0);
-
-	camTransform->rotate(rotation[0], worldUp);
-	camTransform->rotate(-rotation[1], glm::vec3(1,0,0));
 
 	glm::vec3 dx, dy, dz;
 	if (abs(translation[0]) > 0.01) {
@@ -523,7 +504,7 @@ void Renderer::tick(const double& dTime) {
 		this->skybox->draw();
 
 		glEnable(GL_DEPTH_TEST);
-		// glEnable(GL_CULL_FACE);
+		glEnable(GL_CULL_FACE);
 	}
 
 	Object* object;
@@ -561,13 +542,19 @@ void Renderer::tick(const double& dTime) {
 		mesh->unbind();
     }
 
-	// Draw coordinate axes (for testing)
-	// TODO: remove
-	this->drawLine(glm::vec3(), glm::vec3(10, 0, 0), glm::vec3(1, 0, 0)); // start, end, colour
-	this->drawLine(glm::vec3(), glm::vec3(0, 10, 0), glm::vec3(0, 1, 0));
-	this->drawLine(glm::vec3(), glm::vec3(0, 0, 10), glm::vec3(0, 0, 1));
+	// Draw queued lines (if any)
+	// TODO: optimization: line shader should be bound once for all these lines
+	for (LineData line : this->linesToDraw){
+		this->drawLine(line.origin, line.end, line.color, line.drawOver);
+	}
+
+	this->linesToDraw.clear();
 }
  
+void Renderer::addLine(const glm::vec3& origin, const glm::vec3& end, const glm::vec3& color, bool drawOver) {
+	this->linesToDraw.push_back({ origin, end, color, drawOver });
+}
+
 void Renderer::setLineWidth(const float& w) {
 	if (1 <= w <= this->lineWidthMax) glLineWidth(w);
 }

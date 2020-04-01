@@ -2,6 +2,19 @@
 
 // TODO: some of these could stand to get cleaned up a bit
 
+glm::vec3 operator *(float f, glm::vec3 v) {
+	return glm::vec3(f * v[0], f * v[1], f * v[2]);
+}
+
+ImVec2 operator +(const ImVec2& a, const ImVec2& b) {
+	return ImVec2(a[0] + b[0], a[1] + b[1]);
+}
+
+std::ostream& operator <<(std::ostream& os, const ImVec2& vec) {
+	os << '[' << vec[0] << ", " << vec[1] << ']';
+	return os;
+}
+
 namespace Utils
 {
 	std::vector<std::string> split(const std::string& s, char delimiter) {

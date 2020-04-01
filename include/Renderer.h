@@ -6,6 +6,7 @@
 #include <map>
 #include <future>
 #include <thread>
+#include <vector>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -29,13 +30,17 @@
 // Global world state instantiated in main.cpp
 extern _WorldState WorldState;
 
-// Convenince function
-std::string vec3ToString(const glm::vec3& v);
-
 struct Scene {
 	std::string name;
 	std::string path;
 	std::vector<std::string> files;
+};
+
+static struct LineData {
+	glm::vec3 origin;
+	glm::vec3 end;
+	glm::vec3 color;
+	bool drawOver;
 };
 
 class Renderer {
@@ -55,11 +60,14 @@ class Renderer {
 
 	long int frameCount;
 
-	float lineWidth;
-	float lineWidthMax = 1;
-
 	void resetData();
 	void deleteObjects();
+
+	void drawLine(const glm::vec3& origin, const glm::vec3& end, const glm::vec3& color, bool drawOver=true);
+
+	float lineWidth;
+	float lineWidthMax = 1;
+	std::vector<LineData> linesToDraw;
 
 public:
 	std::map<std::string, Texture*> textures;
@@ -95,7 +103,9 @@ public:
 
 	// Draw a line of <color> from <origin> to <end> (in world space).
 	// drawOver=true will cause the line to draw on top of all other scene elements.
-	void drawLine(const glm::vec3& origin, const glm::vec3& end, const glm::vec3& color, bool drawOver=true);
+	// NOTE: Drawing lines outside of render loop causes strange behavior, so instead, oustide of renderer can use addLine to queue lines to be drawn during next render iteration
+	void addLine(const glm::vec3& origin, const glm::vec3& end, const glm::vec3& color, bool drawOver=true);
+
 	void setLineWidth(const float& w);
 
 	// Render the next frame

@@ -87,7 +87,7 @@ void setGuiOptionsToDefault(_GuiState& state) {
 	state.brightness = 0.0f;
 	state.FOV = 0.0f;
 
-	state.mouseSensitivity = 50.0f;
+	state.mouseSensitivity = 20.0f;
 
 	state.lineWidth = 1.0f;
 	state.lineWidthChanged = true;
@@ -97,10 +97,6 @@ std::string imVec2ToString(const ImVec2& v) { // ostream<< operator not defined?
 	char s[32];
 	sprintf(s, "[%.3f, %.3f]", v.x, v.y);
 	return std::string(s);
-}
-
-ImVec2 addImVec2(const ImVec2& a, const ImVec2& b) { // + operator not defined??
-	return ImVec2(a[0] + b[0], a[1] + b[1]);
 }
 
 // NOTE: Bug within ImGui causes multiple ImageButtons to not receive any clicks (documented bug)
@@ -326,7 +322,7 @@ void drawUI(_GuiState& state) {
 	ImGui::SetCursorPos(cursorPos);
 
 	// NOTE: need to add the position of the parent panel to convert into 'global' app pixel coordinates, since cursor is in 'local' panel window coordinates
-	if (ImageButton2(ppButton, addImVec2(cursorPos, timelinePanelPosition), pbDimensions, false)) {
+	if (ImageButton2(ppButton, cursorPos + timelinePanelPosition, pbDimensions, false)) {
 		// Flip the button to other state
 		if (state.isPlaying) {
 			state.isPlaying = false;
@@ -345,13 +341,13 @@ void drawUI(_GuiState& state) {
 	cursorPos = {(float) halfX - halfArrowButtonDimensions - arrowButtonOffset, (float) timeLineButtonLocalVerticalAlign + halfDiff };
 	ImGui::SetCursorPos(cursorPos);
 
-	if (ImageButton2(state.skipButtonTextures, addImVec2(cursorPos, timelinePanelPosition), bfDimensions, true)) state.timelinePosition -= state.tickSkipAmount;
+	if (ImageButton2(state.skipButtonTextures, cursorPos + timelinePanelPosition, bfDimensions, true)) state.timelinePosition -= state.tickSkipAmount;
 
 	// // Forward button
 	cursorPos = {(float) halfX - halfArrowButtonDimensions + arrowButtonOffset, (float) timeLineButtonLocalVerticalAlign + halfDiff };
 	ImGui::SetCursorPos(cursorPos);
 
-	if (ImageButton2(state.skipButtonTextures, addImVec2(cursorPos, timelinePanelPosition), bfDimensions)) state.timelinePosition += state.tickSkipAmount;
+	if (ImageButton2(state.skipButtonTextures, cursorPos + timelinePanelPosition, bfDimensions)) state.timelinePosition += state.tickSkipAmount;
 
 	// Clamp timeline within bounds
 	state.timelinePosition = Utils::clamp(state.timelinePosition, 0, state.numberOfTimePoints);
@@ -385,7 +381,7 @@ void drawUI(_GuiState& state) {
 
 	if (state.doShowMap) {
 		// mapDimensions = ImVec2(state.mapTextureDimensions[0], state.mapTextureDimensions[1]);
-		ImGui::SetNextWindowSize(addImVec2(mapDimensions, ImVec2(state.padding, 0 /*menuBarHeight*/ + state.padding)), 0);
+		ImGui::SetNextWindowSize(mapDimensions + ImVec2(state.padding, 0 /*menuBarHeight*/ + state.padding), 0);
 		ImGui::SetNextWindowPos(ImVec2(X, menuBarHeight), 0, ImVec2(1,0));
 		ImGui::Begin("Map", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
 		ImGui::Image((void*)state.mapTexture->getID(), mapDimensions);

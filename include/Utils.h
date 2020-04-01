@@ -17,12 +17,23 @@
 #include <sstream>
 #include <iostream>
 
+#include <imgui.h>
+#include <glm/glm.hpp>
+
 static const char DIRECTORY_SEPARATOR = '/';
 
 static unsigned char __log_flags__ = 0;
 
-// Centralized utility functions
+// Operators that are for some reason not defined
 
+// glm
+glm::vec3 operator *(float f, glm::vec3 v); // float * vector
+
+// imgui
+ImVec2 operator +(const ImVec2& a, const ImVec2& b); // add vectors
+std::ostream & operator <<(std::ostream & os, const ImVec2& vec); // Print vector
+
+// Centralized utility functions
 namespace Utils 
 {
 	static const float PI = 3.14159265359;
