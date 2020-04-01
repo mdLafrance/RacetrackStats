@@ -8,7 +8,7 @@ mesh mosport_objects.obj
 mesh mosport_layers.obj
 mesh mosport_trees.obj
 
-mesh BMW2.obj
+mesh BMW.obj
 
 # Materials
 material mtl_low/jr_mosport.mtl
@@ -18,7 +18,7 @@ material mtl_low/mosport_objects.mtl
 material -t mtl_low/mosport_layers.mtl
 material -t mtl_low/mosport_trees.mtl
 
-material BMW2.mtl
+material -t BMW.mtl
 
 # Which file defines the user's car
 car BMW2

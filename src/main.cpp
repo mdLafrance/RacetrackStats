@@ -279,9 +279,9 @@ int main(int argc, char** argv) {
 	Camera* carCam = new Camera(Perspective);
 	Camera* overHeadCam = new Camera(Orthographic);
 
-	followCam->transform->setTranslation(glm::vec3(-50, 0, 0));
-	carCam->transform->setTranslation(glm::vec3(50, 50, -20));
-	overHeadCam->transform->setTranslation(glm::vec3(0, 0, -100));
+	followCam->transform->setTranslation(glm::vec3(0, 0, 0));
+	carCam->transform->setTranslation(glm::vec3(0, 5, -20));
+	overHeadCam->transform->setTranslation(glm::vec3(0, 0, -10));
 
 	renderer->registerCamera("Follow", followCam);
 	renderer->registerCamera("Car", carCam);
@@ -289,11 +289,52 @@ int main(int argc, char** argv) {
 
 	renderer->setMainCamera("Follow");
 
+	// Parent transform for the whole BMW
+	Transform* BMW_transform = new Transform();
+
+	Object* o;
+
+	for (auto p : renderer->objects) {
+		o = p.second;
+
+		if (o->mesh->getMeshName().rfind("BMW", 0) == 0) { // If object is from BMW obj file
+			o->transform->setParent(BMW_transform);
+		}
+	}
+
+	carCam->transform->setParent(BMW_transform);
+
 	//
 	// Main loop
 	// 
 
 	while (!glfwWindowShouldClose(window)) {
+
+		float rSpeed = 1;
+		float tSpeed = 1;
+
+		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+			BMW_transform->rotate(dTime * rSpeed, glm::vec3(0, 1, 0));
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+			BMW_transform->rotate(dTime * -rSpeed, glm::vec3(0, 1, 0));
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+			BMW_transform->translate(dTime * tSpeed * BMW_transform->forward());
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+			BMW_transform->translate(dTime * -tSpeed * BMW_transform->forward());
+		}
+
+		renderer->addLine(BMW_transform->position(), BMW_transform->position() + (5 * BMW_transform->forward()), glm::vec3(1.0, 0.5, 0.2), false);
+
+		renderer->addLine(glm::vec3(), glm::vec3(1, 0, 0), glm::vec3(1, 0, 0), true);
+		renderer->addLine(glm::vec3(), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0), true);
+		renderer->addLine(glm::vec3(), glm::vec3(0, 0, 1), glm::vec3(0, 0, 1), true);
+
 		t1 = std::chrono::steady_clock::now();
 
 		// Calculate fps of last frame, pass to gui
@@ -307,10 +348,9 @@ int main(int argc, char** argv) {
 		// Process user input to the gui from the previous frame
 		//
 
+		// Rotate current camera if user dragged right click
 		if (mouseMoved) {
 			if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS) {
-				std::cout << dMouseX << " " << dMouseY << std::endl;
-
 				Transform* mainCamTransform = renderer->getMainCamera()->transform;
 
 				// Mouse sensitivity is multiplied by 100 in gui

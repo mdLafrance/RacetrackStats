@@ -1,21 +1,32 @@
 #include "Transform.h"
 
-glm::mat4x4 Transform::getMatrix() {
+glm::mat4x4 Transform::getLocalMatrix() {
 	if (this->updateMatrix){
 		this->matrix = T * R * S;
 		this->updateMatrix = false;
 	}
 
+	return this->matrix;
+}
+
+glm::mat4x4 Transform::getMatrix() {
+	glm::mat4x4 localMatrix = this->getLocalMatrix();
+
 	if (this->parent != nullptr) {
-		return this->parent->getMatrix() * this->matrix;
+		glm::mat4 parentMatrix = this->parent->getMatrix();
+		return parentMatrix * localMatrix;
 	}
 	else {
-		return this->matrix;
+		return localMatrix;
 	}
 }
 
 void Transform::setParent(Transform* parent){
 	this->parent = parent;
+}
+
+Transform* Transform::getParent() {
+	return this->parent;
 }
 
 void Transform::translate(const glm::vec3& dp){
@@ -49,19 +60,19 @@ void Transform::setScale(const glm::vec3& components){
 }
 
 glm::vec3 Transform::forward() {
-	glm::vec4 k = this->getMatrix() * glm::vec4(0,0,-1,0);
+	glm::vec4 k = this->getLocalMatrix() * glm::vec4(0, 0, 1, 0);
 
 	return glm::vec3(k);
 }
 
 glm::vec3 Transform::right() {
-	glm::vec4 k = this->getMatrix() * glm::vec4(1, 0, 0, 0);
+	glm::vec4 k = this->getLocalMatrix() * glm::vec4(-1, 0, 0, 0); // -1 for other hand coordinate system
 
 	return glm::vec3(k);
 }
 
 glm::vec3 Transform::up() {
-	glm::vec4 k = this->getMatrix() * glm::vec4(0, 1, 0, 0);
+	glm::vec4 k = this->getLocalMatrix() * glm::vec4(0, 1, 0, 0);
 
 	return glm::vec3(k);
 }

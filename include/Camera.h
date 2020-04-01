@@ -32,7 +32,7 @@ public:
 
 	CameraType getType();
 
-	glm::mat4 projectionViewMatrix();
+	glm::mat4 projectionViewMatrix(const bool& local = false);
 
 	// Basic constructor, values are inferred from the global rendering settings
 	Camera(const CameraType& type = CameraType::Perspective);

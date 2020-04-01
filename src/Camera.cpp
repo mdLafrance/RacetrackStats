@@ -14,11 +14,13 @@ CameraType Camera::getType() {
 	return this->type;
 }
 
-glm::mat4 Camera::projectionViewMatrix() {
-	glm::vec3 e = this->transform->position();
-	glm::vec3 x = -this->transform->right();
-	glm::vec3 y = this->transform->up();
-	glm::vec3 z = this->transform->forward();
+glm::mat4 Camera::projectionViewMatrix(const bool& local) {
+	glm::mat4 camTransform = local ? this->transform->getLocalMatrix() : this->transform->getMatrix();
+
+	glm::vec3 e = glm::vec3(glm::column(camTransform, 3));
+	glm::vec3 x = camTransform * glm::vec4(1, 0, 0, 0);
+	glm::vec3 y = camTransform * glm::vec4(0, 1, 0, 0);
+	glm::vec3 z = camTransform * glm::vec4(0, 0, 1, 0);
 
 	glm::mat4 view = {
 		glm::vec4(x[0], y[0], z[0], 0),

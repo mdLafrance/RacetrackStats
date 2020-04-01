@@ -16,7 +16,7 @@ class Transform {
 
 	bool updateMatrix;
 
-	Transform* parent;
+	Transform* parent = nullptr;
 
 public:
 	void translate(const glm::vec3& dp);
@@ -29,10 +29,12 @@ public:
 	void setScale(const glm::vec3& components);
 
 	void setParent(Transform* parent);
+	Transform* getParent();
 
 	void reset();
 
-	glm::mat4x4 getMatrix();
+	glm::mat4x4 getMatrix(); // Transformation matrix including tranformations applied by any parents
+	glm::mat4x4 getLocalMatrix(); // Transformation matrix of only local transforms. If no parent, these two will be the same
 
 	glm::vec3 position();
 

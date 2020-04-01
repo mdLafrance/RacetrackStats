@@ -486,10 +486,17 @@ void Renderer::tick(const double& dTime) {
 
 	camTransform->translate(dx + dy + dz);
 
-	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
+	// Transform* cameraParent = this->mainCamera->transform->getParent();
+	// glm::mat4 cameraParentRotation = glm::mat4(1);
+
+	// if (this->mainCamera->transform->getParent() != nullptr) {
+	// 	cameraParentRotation = cameraParent-
+	// }
+
+	glm::mat4 local_VP = this->mainCamera->projectionViewMatrix(true);
 
 	// Combine MV with the position transform matrix of the camera, to center the cube on the screen
-	glm::mat4 cameraPositionTransform = glm::translate(VP, this->mainCamera->transform->position());
+	glm::mat4 cameraPositionTransform = glm::translate(local_VP, this->mainCamera->transform->position());
 
 	if (this->skybox != nullptr){
 		glDisable(GL_CULL_FACE);
@@ -511,6 +518,8 @@ void Renderer::tick(const double& dTime) {
     Shader* shader;
     OBJMesh* mesh;
     Material* material;
+
+	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
     
     for (std::pair<std::string, Object*> o: this->objects) {
     	object = o.second;
