@@ -19,8 +19,6 @@ class Camera {
 
 	glm::mat4 proj;
 
-	bool isMainCam = false;
-
 	float FOV;
 	float farClipPlane;
 
@@ -32,7 +30,9 @@ public:
 
 	CameraType getType();
 
-	glm::mat4 projectionViewMatrix(const bool& local = false);
+	glm::mat4 projectionMatrix();
+	glm::mat4 viewMatrix();
+	inline glm::mat4 projectionViewMatrix() { return this->projectionMatrix() * this->viewMatrix(); };
 
 	// Basic constructor, values are inferred from the global rendering settings
 	Camera(const CameraType& type = CameraType::Perspective);

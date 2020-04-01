@@ -397,14 +397,14 @@ int main(int argc, char** argv) {
 				GuiState.timelinePosition += Utils::sign(GuiState.playbackSpeed);
 				--tickTotal;
 				// just for testing
-				// for (int i = 0; i < GuiState.numberOfDataTypes; i++){
-				// 	if (*(GuiState.dataFieldsEnabled + i)) {
-				// 		std::cout << '\r' << 
-				// 			GuiState.dataFields[i] << " at " << 
-				// 			GuiState.timelinePosition << " : " << 
-				// 			currentData->getData(i, GuiState.timelinePosition);
-				// 	}
-				// } // todo:: delete
+				for (int i = 0; i < GuiState.numberOfDataTypes; i++){
+					if (*(GuiState.dataFieldsEnabled + i)) {
+						std::cout << '\r' << 
+							GuiState.dataFields[i] << " at " << 
+							GuiState.timelinePosition << " : " << 
+							currentData->getData(i, GuiState.timelinePosition);
+					}
+				} // todo:: delete
 			}
 		} else {
 			tickTotal = 0;

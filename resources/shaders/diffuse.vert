@@ -3,6 +3,7 @@
 #version 330 core
 
 // Uniforms
+uniform mat4 M;
 uniform mat4 VP;
 uniform mat4 MVP;
 
@@ -20,21 +21,22 @@ layout (location = 0) in vec3 in_pos;
 layout (location = 1) in vec3 in_norm;
 layout (location = 2) in vec2 in_texCoord;
 
-// out
-out mediump vec3 v_norm;
 out mediump vec3 v_pos;
-out mediump vec3 v_pos_world;
+out mediump vec3 v_norm;
 out mediump vec2 v_texCoord;
 
-void main(){
-	vec4 in_pos4fv = vec4(in_pos, 1);
+out mediump vec3 v_pos_world;
+out mediump vec3 v_norm_world;
 
+void main(){
+	v_pos = in_pos;
+	v_norm = in_norm;
 	v_texCoord = in_texCoord;
 
-	// View coordinate converted normals and positions, for phong calc in frag
-	v_norm = in_norm;
-	v_pos_world = in_pos;
-	v_pos = vec3(VP * in_pos4fv);
+	vec4 in_pos4fv = vec4(in_pos, 1);
+	
+	v_pos_world = (M * in_pos4fv).xyz;
+	v_norm_world = (M * vec4(in_norm, 1)).xyz;
 
 	gl_Position = MVP * in_pos4fv;
 }

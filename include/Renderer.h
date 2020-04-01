@@ -83,8 +83,6 @@ public:
 	std::map<std::string, Object*> objects;
 
 	void loadScene(const std::string& target);
-	void loadMaterialLibrary(const std::string& target);
-	void loadOBJ(const std::string& target);
 
 	void registerTexture(const std::string& id, Texture* texture);
 	void registerShader(const std::string& id, Shader* shader);

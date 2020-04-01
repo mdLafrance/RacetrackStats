@@ -7,12 +7,16 @@
 #define MATERIAL_TRANSPARENT  1 << 3
 
 // Uniforms
+uniform mat4 M;
 uniform mat4 VP;
 uniform mat4 MVP;
 
 uniform vec3 Ka;
 uniform vec3 Kd;
 uniform vec3 Ks;
+
+uniform float Ns; // Spec exponent
+uniform float Tr; // Transparency (1 is transparent)
 
 uniform sampler2D map_Kd;
 uniform sampler2D map_Ks;
@@ -23,9 +27,6 @@ uniform vec3 cameraForward;
 // misc flags which can be provided by the material
 uniform int flags;
 
-uniform float Ns; // Spec exponent
-uniform float Tr; // Transparency (1 is transparent)
-
 uniform int numOfLights;
 uniform mat3 lights[8];
 
@@ -33,20 +34,18 @@ uniform mat3 lights[8];
 in mediump vec3 v_norm;
 in mediump vec3 v_pos;
 in mediump vec3 v_pos_world;
+in mediump vec3 v_norm_world;
 in mediump vec2 v_texCoord;
 
 out vec4 FragColor;
 
 void main() {	
-
-	vec3 light_v, light_color, light_values, Iin, Ia, diffuse, specular, N, N_vcs, V, R, Iout;
-
-	V = normalize(-1.0f * v_pos);
+	vec3 V = normalize(-1.0f * v_pos);
 
 	float diffuse_alpha = 1.0f;
 
 	// diffuse, spec, and normal can be driven by texture instead of unfiform value if flags are set in material
-	diffuse = Kd;
+	vec3 diffuse = Kd;
 	if ((flags & MATERIAL_USE_map_Kd) != 0){
 		vec4 tex = texture(map_Kd, v_texCoord);
 		diffuse = tex.xyz;
@@ -54,6 +53,7 @@ void main() {
 	}
 
 	// If material is defined to be transparent
+	// TODO: this is a hack, need to fix actual transparency pipeline
 	if ((flags & MATERIAL_TRANSPARENT) != 0) {
 		if (diffuse_alpha <= 0.01f){
 			discard;
@@ -62,29 +62,33 @@ void main() {
 		diffuse_alpha = 1.0f;
 	}
 
+	vec3 specular;
 	if ((flags & MATERIAL_USE_map_Ks) != 0){
 		specular = vec3(texture(map_Ks, v_texCoord));
 	} else {
 		specular = Ks;
 	}
 
+	vec3 N;
 	if ((flags & MATERIAL_USE_map_norm) != 0){
 		N = normalize(vec3(texture(map_norm, v_texCoord)));
 	} else {
 		N = normalize(v_norm);
 	}
 
-	N_vcs = normalize(vec3(VP * vec4(N, 0)));
+	vec3 N_wcs = normalize(vec3(M * vec4(N, 0)));
+	vec3 N_vcs = normalize(vec3(VP * vec4(N, 0)));
 
-	Iout = vec3(Ka.x * diffuse.x, Ka.y * diffuse.y, Ka.z * diffuse.z);  // Accumulated output intensity
+	vec3 Iout = vec3(Ka.x * diffuse.x, Ka.y * diffuse.y, Ka.z * diffuse.z);  // Accumulated output intensity
 
+	vec3 light_v, light_color, light_values, R;
 	float NdotL, RdotV, intensity;
 
 	for (int i = 0; i < numOfLights; i++){
 		// 0 in this location indicates directional light
 		if (lights[i][2][0] == 0){
 			light_v = -1 * lights[i][1];
-			NdotL = dot(N, normalize(light_v));
+			NdotL = dot(N_wcs, normalize(light_v));
 
 			if (NdotL <= 0.0) continue; // Light is shining on back face, continue
 
@@ -99,7 +103,7 @@ void main() {
 
 			continue; // spec behaving really strangely, fix after main features are done
 			// Spec
-			R = ((2.0 * NdotL) * N) - light_v;
+			R = ((2.0 * NdotL) * N_wcs) - light_v;
 			RdotV = dot(R, vec3(VP * vec4(cameraForward,1)));
 			
 			if (RdotV > 0.0){

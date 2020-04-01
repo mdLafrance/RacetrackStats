@@ -453,13 +453,13 @@ void Renderer::tick(const double& dTime) {
 		translation[2] = -translateSpeed;
 	}
 
+	// Calcuate new MVP for camera on this frame
+	Transform* camTransform = this->mainCamera->transform;
+
 	// Get matrix representation for lights 
 	for (int i = 0; i < this->numOfLights; i++) {
 		*(this->lightMatrices + i) = (this->lights + i)->getMatrix();
 	}
-
-	// Calcuate new MVP for camera on this frame
-	Transform* camTransform = this->mainCamera->transform;
 
 	glm::vec3 dx, dy, dz;
 	if (abs(translation[0]) > 0.01) {
@@ -486,17 +486,11 @@ void Renderer::tick(const double& dTime) {
 
 	camTransform->translate(dx + dy + dz);
 
-	// Transform* cameraParent = this->mainCamera->transform->getParent();
-	// glm::mat4 cameraParentRotation = glm::mat4(1);
+	// VP matrix for this frame
+	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
 
-	// if (this->mainCamera->transform->getParent() != nullptr) {
-	// 	cameraParentRotation = cameraParent-
-	// }
-
-	glm::mat4 local_VP = this->mainCamera->projectionViewMatrix(true);
-
-	// Combine MV with the position transform matrix of the camera, to center the cube on the screen
-	glm::mat4 cameraPositionTransform = glm::translate(local_VP, this->mainCamera->transform->position());
+	// matrix which only captures the translation to the camera's position 
+	glm::mat4 cameraPositionTransform = glm::translate(glm::vec3(glm::column(camTransform->getMatrix(), 3)));
 
 	if (this->skybox != nullptr){
 		glDisable(GL_CULL_FACE);
@@ -506,7 +500,7 @@ void Renderer::tick(const double& dTime) {
 
 		skyboxShader->bind();
 
-		skyboxShader->setUniformMatrix4fv("MVP", cameraPositionTransform);
+		skyboxShader->setUniformMatrix4fv("MVP", VP * cameraPositionTransform);
 
 		this->skybox->draw();
 
@@ -519,7 +513,7 @@ void Renderer::tick(const double& dTime) {
     OBJMesh* mesh;
     Material* material;
 
-	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
+	glm::mat4 objectTransform;
     
     for (std::pair<std::string, Object*> o: this->objects) {
     	object = o.second;
@@ -541,8 +535,12 @@ void Renderer::tick(const double& dTime) {
     
     	    shader->setLights(this->numOfLights, this->lightMatrices);
     	    shader->setUniform3fv("Ka", { WorldState.ambientLight[0], WorldState.ambientLight[1], WorldState.ambientLight[2] });
+
+			objectTransform = object->transform->getMatrix();
+
+    	    shader->setUniformMatrix4fv("M", objectTransform);
     	    shader->setUniformMatrix4fv("VP", VP);
-    	    shader->setUniformMatrix4fv("MVP", VP * object->transform->getMatrix());
+    	    shader->setUniformMatrix4fv("MVP", VP * objectTransform);
     
     		mesh->draw(mat.range[0], mat.range[1] - mat.range[0]);
 
