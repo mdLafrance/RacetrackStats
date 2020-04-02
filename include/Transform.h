@@ -21,6 +21,7 @@ public:
 	void setTranslation(const glm::vec3& dest);
 	glm::mat4 Tmatrix();
 
+	// Rotation angle is in radians, for degrees multiply by Utils::DEG2RAD
 	void rotate(const float& angle, const glm::vec3& dir);
 	void setRotation(const float& angle, const glm::vec3& dir);
 	glm::mat4 Rmatrix();

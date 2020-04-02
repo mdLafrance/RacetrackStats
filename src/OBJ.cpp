@@ -339,21 +339,14 @@ void OBJMesh::generateBuffers() {
 	this->loaded = true;
 }
 
-void OBJMesh::bind() {
-	if (!this->loaded) this->generateBuffers();
-
-	glBindVertexArray(this->VAO);
+void OBJMesh::draw() {
+	glDrawArrays(GL_TRIANGLES, 0, 3 * this->numberOfFaces);
 }
 
-void OBJMesh::unbind() {
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-
-void OBJMesh::draw(int start, int count) {
-	if (start < 0) start = 0;
-	if (count < 0) count = this->numberOfFaces;
-
+void OBJMesh::drawRange(int start, int count) {
+	// NOTE: Using assert's here to squeeze out a bit more performance, they won't get compiled in release (see top of main.cpp)
+	assert(start >= 0 && "Negative start value given");
+	assert(count <= this->numberOfFaces && "Too many faces given");
 	assert(this->loaded && "Mesh is not loaded (call generateBuffers)");
 	assert((count <= this->numberOfFaces - start) && ("Attempting to draw too many faces"));
 	

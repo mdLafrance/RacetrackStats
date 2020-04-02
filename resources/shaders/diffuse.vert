@@ -25,18 +25,14 @@ out mediump vec3 v_pos;
 out mediump vec3 v_norm;
 out mediump vec2 v_texCoord;
 
-out mediump vec3 v_pos_world;
 out mediump vec3 v_norm_world;
 
 void main(){
 	v_pos = in_pos;
 	v_norm = in_norm;
 	v_texCoord = in_texCoord;
-
-	vec4 in_pos4fv = vec4(in_pos, 1);
 	
-	v_pos_world = (M * in_pos4fv).xyz;
 	v_norm_world = (M * vec4(in_norm, 1)).xyz;
 
-	gl_Position = MVP * in_pos4fv;
+	gl_Position = MVP * vec4(in_pos, 1);
 }

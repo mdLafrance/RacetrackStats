@@ -2,12 +2,6 @@
 
 #define WINDOW_TITLE "Racetrack Stats"
 
-// #ifdef MAKE_DLL
-// 	#define DLL_EXPORT __declspec(dllexport)
-// #else 
-// 	#define DLL_EXPORT // No effect from macro
-// #endif // DLL_EXPORT
-
 #define WINDOW_DEFAULT_X 1000
 #define WINDOW_DEFAULT_Y 850
 
@@ -15,7 +9,7 @@
 
 #include <assert.h>
 
-// TODO: Uncomment this for release
+// TODO: Uncomment this for release, forces compiler to ignore all assert statements
 // #define NDEBUG 
 
 #include <cstdlib>
@@ -72,11 +66,16 @@ static Renderer* renderer;
 static CSV* currentData;
 ImGuiIO* imguiIO;
 
-static bool frameSizeChanged = false;
+const char* displayDataConfigFileName = "display.config";
+Utils::CSVDataDisplaySettings displayData;
+
+bool frameSizeChanged = false;
 
 bool mouseMoved;
 double dMouseX = 0;
 double dMouseY = 0;
+
+double tickTotal = 0;
 
 // Handler for shortcuts used to navigate the ui
 void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -88,7 +87,7 @@ void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int
 	if (key ==  GLFW_KEY_SPACE && action == GLFW_PRESS) GuiState.isPlaying = !GuiState.isPlaying;
 
 	// Arrow keys to nudge timeline
-	if (key ==  GLFW_KEY_LEFT && action == GLFW_PRESS) GuiState.timelinePosition = Utils::clamp(GuiState.timelinePosition - GuiState.tickSkipAmount, 0, GuiState.numberOfTimePoints);
+	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS)   GuiState.timelinePosition = Utils::clamp(GuiState.timelinePosition - GuiState.tickSkipAmount, 0, GuiState.numberOfTimePoints);
 	if (key ==  GLFW_KEY_RIGHT && action == GLFW_PRESS) GuiState.timelinePosition = Utils::clamp(GuiState.timelinePosition + GuiState.tickSkipAmount, 0, GuiState.numberOfTimePoints);
 
 	// Number keys to switch between cameras
@@ -97,7 +96,7 @@ void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int
 	if (key == GLFW_KEY_3 && action == GLFW_PRESS) renderer->setMainCamera("Overhead");
 
 	// Reset orientation of main cam
-	if (key == GLFW_KEY_R && action == GLFW_PRESS) renderer->getMainCamera()->transform->setRotation(0, glm::vec3(0,1,0));
+	if (key == GLFW_KEY_R && action == GLFW_PRESS) renderer->getMainCamera()->transform->setRotation(Utils::PI, glm::vec3(0,1,0));
 }
 
 void mouseMoveCallback(GLFWwindow* window, double xPos, double yPos) {
@@ -202,7 +201,6 @@ int main(int argc, char** argv) {
 	ImGui_ImplOpenGL3_Init("#version 330");
 
 	// Set up some initial GUI data
-	// ::GuiState.io = &ImGui::GetIO();
 	imguiIO = &ImGui::GetIO();
 	imguiIO->FontGlobalScale = 1.3;
 
@@ -272,20 +270,19 @@ int main(int argc, char** argv) {
 	double seconds0 = glfwGetTime();
 
 	// Used to calculate timeline playing
-	float tickTotal = 0;
+	double tickTotal = 0;
 
 	// Set up default cameras
 	Camera* followCam = new Camera(Perspective);
 	Camera* carCam = new Camera(Perspective);
-	Camera* overHeadCam = new Camera(Orthographic);
+	Camera* overheadCam = new Camera(Orthographic);
 
 	followCam->transform->setTranslation(glm::vec3(0, 0, 0));
-	carCam->transform->setTranslation(glm::vec3(0, 5, -20));
-	overHeadCam->transform->setTranslation(glm::vec3(0, 0, -10));
+	overheadCam->transform->setTranslation(glm::vec3(0, 0, -10));
 
 	renderer->registerCamera("Follow", followCam);
 	renderer->registerCamera("Car", carCam);
-	renderer->registerCamera("Overhead", overHeadCam);
+	renderer->registerCamera("Overhead", overheadCam);
 
 	renderer->setMainCamera("Follow");
 
@@ -303,13 +300,17 @@ int main(int argc, char** argv) {
 	}
 
 	carCam->transform->setParent(BMW_transform);
+	carCam->transform->setTranslation({ 0.3665, 1.1, -0.1 }); // Center camera approximately where the driver's head is
+	carCam->transform->setRotation(Utils::PI, { 0,1,0 });
+
+	// Load config file for CSV data display
+	displayData = Utils::loadDisplaySettings(std::string(WorldState.projectRoot) + DIRECTORY_SEPARATOR + displayDataConfigFileName);
 
 	//
 	// Main loop
 	// 
 
 	while (!glfwWindowShouldClose(window)) {
-
 		float rSpeed = 1;
 		float tSpeed = 1;
 
@@ -329,11 +330,13 @@ int main(int argc, char** argv) {
 			BMW_transform->translate(dTime * -tSpeed * BMW_transform->forward());
 		}
 
-		renderer->addLine(BMW_transform->position(), BMW_transform->position() + (5 * BMW_transform->forward()), glm::vec3(1.0, 0.5, 0.2), false);
+		glm::vec3 BMW_position = BMW_transform->position();
 
-		renderer->addLine(glm::vec3(), glm::vec3(1, 0, 0), glm::vec3(1, 0, 0), true);
-		renderer->addLine(glm::vec3(), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0), true);
-		renderer->addLine(glm::vec3(), glm::vec3(0, 0, 1), glm::vec3(0, 0, 1), true);
+		renderer->addLine(BMW_position, BMW_position + (5 * BMW_transform->forward()), glm::vec3(1.0, 0.5, 0.2), false);
+
+		renderer->addLine(BMW_position, BMW_position + glm::vec3(1, 0, 0), glm::vec3(1, 0, 0), true);
+		renderer->addLine(BMW_position, BMW_position + glm::vec3(0, 1, 0), glm::vec3(0, 1, 0), true);
+		renderer->addLine(BMW_position, BMW_position + glm::vec3(0, 0, 1), glm::vec3(0, 0, 1), true);
 
 		t1 = std::chrono::steady_clock::now();
 
@@ -375,7 +378,7 @@ int main(int argc, char** argv) {
 			if (currentData != nullptr) delete currentData;
 
 			// Load CSV data
-				currentData = new CSV(choice[0]);
+			currentData = new CSV(choice[0]);
 
 			// Update GUI to match the parameters of the new CSV file
 			GuiState.numberOfDataTypes = currentData->getNumberOfDataTypes();
@@ -386,28 +389,76 @@ int main(int argc, char** argv) {
 
 			// Start off with all data disabled
 			memset(GuiState.dataFieldsEnabled, 0, GuiState.numberOfDataTypes);
-		}
-		}
-
-		// If timeline is set to 'play', add to the tick total and increment the timeline position
-		if (GuiState.isPlaying) {
-			tickTotal += abs(GuiState.playbackSpeed) * dTime; // abs value to allow for backwards playing
-
-			while (tickTotal > 1){
-				GuiState.timelinePosition += Utils::sign(GuiState.playbackSpeed);
-				--tickTotal;
-				// just for testing
-				for (int i = 0; i < GuiState.numberOfDataTypes; i++){
-					if (*(GuiState.dataFieldsEnabled + i)) {
-						std::cout << '\r' << 
-							GuiState.dataFields[i] << " at " << 
-							GuiState.timelinePosition << " : " << 
-							currentData->getData(i, GuiState.timelinePosition);
-					}
-				} // todo:: delete
 			}
-		} else {
-			tickTotal = 0;
+		}
+
+		if (GuiState.selected_menu_File_LoadConfig) {
+			pfd::open_file fd = pfd::open_file::open_file("Open Config File", "", {"All Files", "*.config" }, false);
+			std::vector<std::string> choice = fd.result();
+
+			if (choice.size() != 0) {
+				displayData = Utils::loadDisplaySettings(choice[0]);
+			}
+		}
+
+		if (GuiState.selected_menu_File_ReloadConfig) {
+			std::string path = displayData.path;
+			displayData = Utils::loadDisplaySettings(path);
+		}
+
+		static int lastTimelinePos = 0;
+
+		// 
+		// If there is CSV data loaded, handle the timeline, and any data that is being interpreted
+		//
+		if (currentData) {
+			// If timeline is set to 'play', add to the tick total and increment the timeline position
+			if (GuiState.isPlaying) {
+				tickTotal += GuiState.playbackSpeed * dTime; 
+
+				int tickIncrease = (int) tickTotal; // whole number portion of the tick total we can add to the timeline
+				tickTotal -= tickIncrease; // Overflow will accumulate and contribute to future ticks
+
+				GuiState.timelinePosition = Utils::clamp(GuiState.timelinePosition + tickIncrease, 0, currentData->getNumberOfTimePoints());
+			}
+
+			// +longitude ~ +x
+			// +latitude ~ -z
+
+			// Transform the car to the correct position
+
+			// TODO: fill this in
+			glm::mat4 gpsToWCS = glm::mat4(1);
+
+			glm::vec4 gpsPosThisFrame(
+				1 * currentData->getDataAsFloat(displayData.longitude, GuiState.timelinePosition),
+				1 * currentData->getDataAsFloat(displayData.elevation, GuiState.timelinePosition),
+				1 * currentData->getDataAsFloat(displayData.latitude, GuiState.timelinePosition),
+				1
+			);
+
+			glm::vec3 wcsPos = glm::vec3(gpsToWCS * gpsPosThisFrame);
+
+			// BMW_transform->setTranslation({ wcsPos[0], 0, -wcsPos[2] });
+
+			BMW_transform->setRotation(currentData->getDataAsFloat(displayData.heading, GuiState.timelinePosition), { 0,1,0 });
+
+			glm::mat4 BMW_matrix = BMW_transform->getMatrix();
+
+			glm::vec3 start, end;
+			for (auto v : displayData.vectors) {
+				// Transform local vector parameters to global start and end points for drawLine
+
+				start = glm::vec3(BMW_matrix * glm::vec4(v.origin, 1));
+
+				glm::vec3 localDestination = v.origin + (currentData->getDataAsFloat(v.dataField, GuiState.timelinePosition) * v.direction);
+
+				end = glm::vec3(BMW_matrix * glm::vec4(localDestination, 1));
+
+				renderer->addLine(start, end, v.color, true);
+
+				std::cout << v.dataField << " : " << currentData->getDataAsFloat(v.dataField, GuiState.timelinePosition) << std::endl;
+			}
 		}
 
 		// Update line width if changed
@@ -438,8 +489,14 @@ int main(int argc, char** argv) {
 
 		// If camera settings changed, build new view matrix to reflect these changes
 		if (GuiState.cameraSettingsChanged) {
-			renderer->getMainCamera()->setFOV(CAMERA_DEFAULT_FOV + GuiState.FOV);
-			renderer->getMainCamera()->setFarClipPlane(GuiState.farClipPlane);
+			followCam->setFOV(CAMERA_DEFAULT_FOV + GuiState.FOV);
+			followCam->setFarClipPlane(GuiState.farClipPlane);
+
+			carCam->setFOV(CAMERA_DEFAULT_FOV + GuiState.FOV);
+			carCam->setFarClipPlane(GuiState.farClipPlane);
+
+			overheadCam->setFarClipPlane(GuiState.farClipPlane);
+
 			GuiState.cameraSettingsChanged = false;
 		}
 
@@ -451,7 +508,10 @@ int main(int argc, char** argv) {
 		// Draw renderable elements
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// float start = glfwGetTime();
 		renderer->tick(dTime);
+		//std::cout << glfwGetTime() - start << std::endl;
 
 		// Draw GUI elements
 		drawUI(GuiState);

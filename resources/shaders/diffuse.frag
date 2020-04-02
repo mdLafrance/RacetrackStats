@@ -33,7 +33,6 @@ uniform mat3 lights[8];
 // Inputs
 in mediump vec3 v_norm;
 in mediump vec3 v_pos;
-in mediump vec3 v_pos_world;
 in mediump vec3 v_norm_world;
 in mediump vec2 v_texCoord;
 
@@ -55,9 +54,9 @@ void main() {
 	// If material is defined to be transparent
 	// TODO: this is a hack, need to fix actual transparency pipeline
 	if ((flags & MATERIAL_TRANSPARENT) != 0) {
-		if (diffuse_alpha <= 0.01f){
-			discard;
-		}
+		// if (diffuse_alpha <= 0.01f){
+		// 	discard;
+		// }
 	} else {
 		diffuse_alpha = 1.0f;
 	}
@@ -69,15 +68,12 @@ void main() {
 		specular = Ks;
 	}
 
-	vec3 N;
+	vec3 N, N_wcs;
 	if ((flags & MATERIAL_USE_map_norm) != 0){
-		N = normalize(vec3(texture(map_norm, v_texCoord)));
+		N_wcs = normalize((M * vec4(texture(map_norm, v_texCoord).xys, 0)).xyz);
 	} else {
-		N = normalize(v_norm);
+		N_wcs = normalize(v_norm_world);
 	}
-
-	vec3 N_wcs = normalize(vec3(M * vec4(N, 0)));
-	vec3 N_vcs = normalize(vec3(VP * vec4(N, 0)));
 
 	vec3 Iout = vec3(Ka.x * diffuse.x, Ka.y * diffuse.y, Ka.z * diffuse.z);  // Accumulated output intensity
 
@@ -101,14 +97,13 @@ void main() {
 			// Diffuse 
 			Iout += NdotL * intensity * vec3(diffuse.x * light_color.x, diffuse.y * light_color.y, diffuse.z * light_color.z);
 
-			continue; // spec behaving really strangely, fix after main features are done
-			// Spec
-			R = ((2.0 * NdotL) * N_wcs) - light_v;
-			RdotV = dot(R, vec3(VP * vec4(cameraForward,1)));
+			// // Spec
+			// R = ((2.0 * NdotL) * N_wcs) - light_v;
+			// RdotV = dot(R, vec3(VP * vec4(cameraForward,1)));
 			
-			if (RdotV > 0.0){
-				Iout += pow(RdotV, Ns) * vec3(specular.x * light_color.x, specular.y * light_color.y, specular.z * light_color.z);
-			}
+			// if (RdotV > 0.0){
+			// 	Iout += pow(RdotV, Ns) * vec3(specular.x * light_color.x, specular.y * light_color.y, specular.z * light_color.z);
+			// }
 
 		}
 	}

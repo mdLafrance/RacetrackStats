@@ -62,6 +62,8 @@ struct _GuiState {
 	bool selected_menu_File = false;
 	bool selected_menu_File_Open = false;
 	bool selected_menu_Options = false;
+	bool selected_menu_File_LoadConfig = false;
+	bool selected_menu_File_ReloadConfig = false;
 	bool doShowMap = true;
 	bool doShowFPSCounter = true;
 
@@ -160,13 +162,17 @@ void drawUI(_GuiState& state) {
 	// NOTE: Spent time looking for the right style element color for this, but ended up just eyedropping the color
 	ImVec4 bgColor = ImVec4(0.056, 0.056, 0.056, 1.0f);// ImGui::GetStyleColorVec4(ImGuiCol_TitleBg); // Cache background color for use with the icon buttons later
 
-	// Reset necessary states
+	// Menu buttons are toggled, but we want them to act as a button, so always flip them back to false 
 	state.selected_menu_File_Open = false;
+	state.selected_menu_File_LoadConfig = false;
+	state.selected_menu_File_ReloadConfig = false;
 
 	if (ImGui::BeginMainMenuBar()) {
 
 		if (ImGui::BeginMenu("File", &state.selected_menu_File)) {
-			ImGui::MenuItem("Open", NULL, &state.selected_menu_File_Open);
+			ImGui::MenuItem("Open CSV", NULL, &state.selected_menu_File_Open);
+			ImGui::MenuItem("Load Data Config File", NULL, &state.selected_menu_File_LoadConfig);
+			ImGui::MenuItem("Reload Config", NULL, &state.selected_menu_File_ReloadConfig);
 			ImGui::EndMenu();
 			ImGui::Separator();
 			ImGui::Separator();

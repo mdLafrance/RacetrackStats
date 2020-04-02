@@ -6,6 +6,11 @@ glm::vec3 operator *(float f, glm::vec3 v) {
 	return glm::vec3(f * v[0], f * v[1], f * v[2]);
 }
 
+std::ostream& operator <<(std::ostream& os, const glm::vec3& v) {
+	os << '[' << v[0] << ", " << v[1] << ", " << v[2] << ']';
+	return os;
+}
+
 ImVec2 operator +(const ImVec2& a, const ImVec2& b) {
 	return ImVec2(a[0] + b[0], a[1] + b[1]);
 }
@@ -24,7 +29,7 @@ namespace Utils
 
 		for (int i = 0; i < s.length(); i++) {
 			if (s[i] == delimiter) {
-				splitString.push_back(word);
+				if (word.size() > 0) splitString.push_back(word);
 				word = "";
 				continue;
 			}
@@ -248,4 +253,72 @@ namespace Utils
 
 	StopWatch::StopWatch() {}
 	StopWatch::~StopWatch() {}
+
+	CSVDataDisplaySettings loadDisplaySettings(const std::string& target) {
+		CSVDataDisplaySettings data;
+
+		std::ifstream f(target);
+
+		if (!f.is_open()) {
+			std::cerr << "ERROR: Couldn't load display settings file: " << target << std::endl;
+			return data;
+		}
+
+		data.path = target;
+
+		std::cout << "Loading CSV data display config file " << target << std::endl;
+
+		std::string line;
+		std::string lineType;
+		std::vector<std::string> tokens;
+
+		while (getline(f, line)) {
+			if (line.size() == 0 || line[0] == '#') continue; // comment line
+
+			tokens = Utils::split(line, ' ');
+
+			if (tokens.size() == 0) continue; // empty line
+
+			lineType = tokens[0];
+
+			if (lineType == "longitude") data.longitude = tokens[1];
+			else if (lineType == "latitude") data.latitude = tokens[1];
+			else if (lineType == "elevation") data.elevation= tokens[1];
+			else if (lineType == "heading") data.heading= tokens[1];
+
+			else if (lineType == "vector") {
+				for (auto s : tokens) {
+					std::cout << "<" << s << ">";
+				}
+
+				std::cout << std::endl;
+				// vector x y z x y z <data field>
+
+				data.vectors.push_back({ // New CSVvector struct
+					{std::atof(tokens[1].c_str()), std::atof(tokens[2].c_str()), std::atof(tokens[3].c_str())}, // origin
+					glm::normalize(glm::vec3(std::atof(tokens[4].c_str()), std::atof(tokens[5].c_str()), std::atof(tokens[6].c_str()))), // direction
+					{std::atof(tokens[7].c_str()), std::atof(tokens[8].c_str()), std::atof(tokens[9].c_str())}, // color
+					tokens[10] // data field
+				});
+			}
+
+			else if (lineType == "graph") {
+				// graph <data field> r g b (optional int number of target graph)
+
+				data.graphs.push_back({ // New CSVgraph struct
+					tokens[1],
+					{std::atof(tokens[2].c_str()), std::atof(tokens[3].c_str()), std::atof(tokens[4].c_str())}, // origin
+					tokens.size() == 6 ? std::atoi(tokens[5].c_str()) : -1 // optional int graph target arg
+				});
+			}
+
+			else {
+				std::cerr << "ERROR reading " << target << " : unkown line \"" << line << "\"" << std::endl;
+			}
+		}
+
+		std::cout << "Finished loading config file." << std::endl;
+
+		return data;
+	}
 }

@@ -16,6 +16,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <type_traits>
 
 #include <imgui.h>
 #include <glm/glm.hpp>
@@ -28,10 +29,11 @@ static unsigned char __log_flags__ = 0;
 
 // glm
 glm::vec3 operator *(float f, glm::vec3 v); // float * vector
+std::ostream& operator <<(std::ostream& os, const glm::vec3& v); // print vec3
 
 // imgui
 ImVec2 operator +(const ImVec2& a, const ImVec2& b); // add vectors
-std::ostream & operator <<(std::ostream & os, const ImVec2& vec); // Print vector
+std::ostream& operator <<(std::ostream& os, const ImVec2& vec); // Print vector
 
 // Centralized utility functions
 namespace Utils 
@@ -64,7 +66,8 @@ namespace Utils
 	}
 
 	template <typename T>
-	int sign(const T& x) {
+	inline int sign(const T& x) {
+		assert(std::is_arithmetic<T>::value && "Type must be a numerical type");
 		return x >= 0 ? 1 : -1;
 	}
 
@@ -102,4 +105,32 @@ namespace Utils
 		StopWatch();
 		~StopWatch();
 	};
+
+	struct CSVvector {
+		glm::vec3 origin; // Origin of the vector (relative to car local coordinates)
+		glm::vec3 direction; // Direction of the vector (relative to the car local coordinates)
+		glm::vec3 color; // Color of the vector
+		std::string dataField; // Name of the data field that will drive the vector
+	};
+
+	struct CSVgraph {
+		std::string dataField; // Name of the data field that will drive the graph
+		glm::vec3 color; // Color of the line
+		int graph; // Which graph display this data field should be displayed on. Defaults to the first available
+	};
+
+	struct CSVDataDisplaySettings {
+		std::string path; // Path to the file where this originated
+
+		// Special fields which will drive the positional data of the car
+		std::string longitude;
+		std::string latitude;
+		std::string elevation;
+		std::string heading;
+
+		std::vector<CSVvector> vectors;
+		std::vector<CSVgraph> graphs;
+	};
+
+	CSVDataDisplaySettings loadDisplaySettings(const std::string& target);
 }

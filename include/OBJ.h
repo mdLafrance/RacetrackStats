@@ -64,10 +64,15 @@ public:
 
 	void generateBuffers();
 
-	void bind();
-	void unbind();
+	inline void bind() { glBindVertexArray(this->VAO); };
 
-	void draw(int start = -1, int count = -1);
+	inline void unbind() {
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+
+	void draw();
+	void drawRange(int start = -1, int count = -1);
 
 	OBJMesh(
 		const std::string& meshName,

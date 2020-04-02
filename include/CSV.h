@@ -24,6 +24,8 @@ public:
     std::string getData(const std::string& type, const int& line) const; // ex. getData("Speed", 2); gets speed value at time point 2
     std::string getData(const int& index, const int& line) const;
 
+	float getDataAsFloat(const std::string& type, const int& line) const;
+
     // TODO: These buffer functions could probably be faster if the data was packed in terms of type instead of by line
 
     // Fill buffer with data of <type> from times in the range [start, end]

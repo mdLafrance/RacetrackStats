@@ -370,6 +370,7 @@ void Renderer::loadScene(const std::string& target) {
 		Object* o = this->newObject(p.first);
 
 		o->mesh = p.second;
+		o->mesh->generateBuffers();
 	}
 
 	// Now that all necessary Objects have been generated with their meshes, link parents and materials
@@ -387,6 +388,12 @@ void Renderer::loadScene(const std::string& target) {
 				std::cerr << "Can't find parent " << "<" << targetParent << ">" << " for object " << p.first << std::endl;
 			}
 		}
+	}
+
+	// Get matrix representation for lights 
+	// TODO: Could make this able to handle mutable lights in the scene, for headlights etc.
+	for (int i = 0; i < this->numOfLights; i++) {
+		*(this->lightMatrices + i) = (this->lights + i)->getMatrix();
 	}
 
 	std::cout << "Finished loading scene " << this->scene.name << " (" << timer.lap_s() << ")" << std::endl;
@@ -456,11 +463,6 @@ void Renderer::tick(const double& dTime) {
 	// Calcuate new MVP for camera on this frame
 	Transform* camTransform = this->mainCamera->transform;
 
-	// Get matrix representation for lights 
-	for (int i = 0; i < this->numOfLights; i++) {
-		*(this->lightMatrices + i) = (this->lights + i)->getMatrix();
-	}
-
 	glm::vec3 dx, dy, dz;
 	if (abs(translation[0]) > 0.01) {
 		dx = -1 * translation[0] * camTransform->right();
@@ -514,7 +516,7 @@ void Renderer::tick(const double& dTime) {
     Material* material;
 
 	glm::mat4 objectTransform;
-    
+
     for (std::pair<std::string, Object*> o: this->objects) {
     	object = o.second;
     	mesh = object->mesh;
@@ -542,7 +544,7 @@ void Renderer::tick(const double& dTime) {
     	    shader->setUniformMatrix4fv("VP", VP);
     	    shader->setUniformMatrix4fv("MVP", VP * objectTransform);
     
-    		mesh->draw(mat.range[0], mat.range[1] - mat.range[0]);
+    		mesh->drawRange(mat.range[0], mat.range[1] - mat.range[0]);
 
     	}
 

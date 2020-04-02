@@ -151,6 +151,10 @@ std::string CSV::getData(const std::string& type, const int& line) const {
     }
 }
 
+float CSV::getDataAsFloat(const std::string& type, const int& line) const {
+	return std::atof(this->getData(type, line).c_str());
+}
+
 std::string CSV::getData(const int& index, const int& line) const {
     if (!(0 <= index <= this->numberOfFields)) {
         throw std::out_of_range("Index is out of range.");

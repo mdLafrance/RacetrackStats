@@ -2,7 +2,7 @@
 .scene files
 =========================================================
 Scene files define the objects, textures, and lights for a scene. Each line in the file defines some facet of the scene (described below)
-Lines can start with '#', and will be ignored
+Lines can start with '#', and will be ignored.
 
 <name> : indicates the name of the scene
 ex. "name Mosport Low Resolution Scene"
@@ -11,7 +11,7 @@ ex. "name Mosport Low Resolution Scene"
 ex. "mesh mosport_trees.obj"
 
 <material> : Indicates a mtl library to be loaded for some matching mesh.
-ex. "material -t mosport_trees.mtl"
+ex. "material mosport_trees.mtl"
 
 <ambient> : Defines ambient light to be used in the scene, followed by rgb values for the ambient light (between 0-1)
 ex. "ambient 0.2 0.2 0.2"
@@ -48,3 +48,27 @@ ambient 0.43 0.43 0.4
 
 # Lights for the scene
 light directional -i 2.5 -v -2 -10 -5 -c 0.65 0.6 0.6 
+
+=========================================================
+config files
+=========================================================
+The application will attempt to load a file called config.txt at launch, which defines which data from the CSV the app will use to draw vectors and graphs
+Lines can start with '#', and will be ignored.
+
+<longitude> : which CSV data defines the longitude of the car
+ex. "longitude GPS_Longitude"
+
+<latitude> : which CSV data defines the latitude of the car
+ex. "latitude GPS_Latitude"
+
+<elevation> : which CSV data defines the elevation of the car
+ex. "elevation GPS_Elevation"
+
+<heading> : which CSV data defines the heading of the car
+ex. "heading GPS_Heading"
+
+<vector> : Define a vector to be drawn who's length is determined by CSV data, followed by origin vector, direction vector, color rgb, CSV data type
+ex. "vector 0 0 0 -1 0 0 0.8 0.8 0.2 INLINE_ACC"
+
+<graph> : Define type to be drawn to a graph, followed by the CSV data type, then color of the line r g b, and optional integer identifying which graph the data should be displayed on
+ex. "graph BRAKE_PRESS 1.0 0.2 0.2"
