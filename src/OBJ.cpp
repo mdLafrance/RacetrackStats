@@ -282,10 +282,6 @@ nextline:
 	}
 }
 
-const std::vector<OBJ::FaceMaterials>& OBJMesh::getFaceMaterials() {
-	return this->faceMaterials;
-}
-
 std::string OBJMesh::getMeshName() {
 	return this->meshName;
 }

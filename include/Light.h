@@ -33,6 +33,8 @@ class Light {
 	float i;
 	float k;
 
+	bool matrixDirty = false;
+
 	glm::mat3 matrix;
 
 	void buildMatrix();

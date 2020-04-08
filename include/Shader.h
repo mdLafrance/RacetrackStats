@@ -19,9 +19,10 @@ class Shader {
 public:
 	void bind();
 
-	void setUniformMatrix4fv(const std::string& name, const glm::mat4& target) const;
-	void setUniform3fv(const std::string& name, const glm::vec3& v) const;
-	void setUniformf(const std::string& name, const float& f) const;
+	void setUniform(const char* name, const float& val);
+	void setUniform(const char* name, const unsigned int& val);
+	void setUniform(const char* name, const glm::vec3& val);
+	void setUniform(const char* name, const glm::mat4& val);
 
 	void setLights(const int& count, const glm::mat3* m0);
 

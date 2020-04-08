@@ -32,7 +32,7 @@ void main(){
 	v_norm = in_norm;
 	v_texCoord = in_texCoord;
 	
-	v_norm_world = (M * vec4(in_norm, 1)).xyz;
+	v_norm_world = (M * vec4(in_norm, 0)).xyz;
 
-	gl_Position = MVP * vec4(in_pos, 1);
+	gl_Position = VP * M * vec4(in_pos, 1);
 }

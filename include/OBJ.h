@@ -15,17 +15,28 @@
 #include <GLFW/glfw3.h>
 
 #include <Utils.h>
+
+#ifdef RACETRACK_STATS_APP
+#include <Material.h>
+#else
+class Material;
+#endif // RACETRACK_STATS_APP
+
 class OBJMesh;
 
 namespace OBJ
 {
 	struct FaceMaterials {
-		std::string material;
+		std::string materialName;
+
+		Material* material;
 
 		int range[2] = { 0, 0 };
 
-		FaceMaterials(const std::string& material, const int& start, const int& end) {
-			this->material = material;
+		FaceMaterials(const std::string& materialName, const int& start, const int& end) {
+			this->materialName = materialName;
+			this->material = nullptr;
+
 			this->range[0] = start;
 			this->range[1] = end;
 		}
@@ -48,14 +59,11 @@ class OBJMesh {
 	unsigned int VBO;
 	unsigned int VAO;
 
-	std::vector<OBJ::FaceMaterials> faceMaterials;
 
 	bool loaded = false;
 
 public:
-	bool isLoaded();
-
-	const std::vector<OBJ::FaceMaterials>& getFaceMaterials();
+	std::vector<OBJ::FaceMaterials> faceMaterials;
 
 	std::string getMeshName();
 	std::string getDefaultMaterialName();

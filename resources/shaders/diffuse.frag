@@ -54,9 +54,9 @@ void main() {
 	// If material is defined to be transparent
 	// TODO: this is a hack, need to fix actual transparency pipeline
 	if ((flags & MATERIAL_TRANSPARENT) != 0) {
-		// if (diffuse_alpha <= 0.01f){
-		// 	discard;
-		// }
+		if (diffuse_alpha <= 0.01f){
+			discard;
+		}
 	} else {
 		diffuse_alpha = 1.0f;
 	}

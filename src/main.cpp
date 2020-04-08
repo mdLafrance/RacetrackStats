@@ -1,5 +1,7 @@
 #define STB_IMAGE_IMPLEMENTATION // Needed for stbi image loading
 
+#define RACETRACK_STATS_APP // guards some includes, in case some of the files are being used on their own
+
 #define WINDOW_TITLE "Racetrack Stats"
 
 #define WINDOW_DEFAULT_X 1000
@@ -96,7 +98,7 @@ void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int
 	if (key == GLFW_KEY_3 && action == GLFW_PRESS) renderer->setMainCamera("Overhead");
 
 	// Reset orientation of main cam
-	if (key == GLFW_KEY_R && action == GLFW_PRESS) renderer->getMainCamera()->transform->setRotation(Utils::PI, glm::vec3(0,1,0));
+	if (key == GLFW_KEY_R && action == GLFW_PRESS) renderer->getMainCamera()->transform->setRotation(0, glm::vec3(0,1,0));
 }
 
 void mouseMoveCallback(GLFWwindow* window, double xPos, double yPos) {
@@ -275,14 +277,31 @@ int main(int argc, char** argv) {
 	// Set up default cameras
 	Camera* followCam = new Camera(Perspective);
 	Camera* carCam = new Camera(Perspective);
-	Camera* overheadCam = new Camera(Orthographic);
-
-	followCam->transform->setTranslation(glm::vec3(0, 0, 0));
-	overheadCam->transform->setTranslation(glm::vec3(0, 0, -10));
+	Camera* overheadCam = new Camera(Perspective); // TODO: Ortho cameras don't work
 
 	renderer->registerCamera("Follow", followCam);
 	renderer->registerCamera("Car", carCam);
 	renderer->registerCamera("Overhead", overheadCam);
+
+	// NOTE: Using intermediary transform to parent these cameras under, so the user can reset the camera's rotation and have it be locked in the proper place
+	Transform* followCamLocator = new Transform();
+	Transform* carCamLocator = new Transform();
+	Transform* overheadCamLocator = new Transform();
+
+	followCam->transform->setParent(followCamLocator);
+	carCam->transform->setParent(carCamLocator);
+	overheadCam->transform->setParent(overheadCamLocator);
+
+	carCamLocator->setTranslation({ 0.3665, 1.1, -0.1 }); // Center camera approximately where the driver's head is
+	carCamLocator->setRotation(Utils::PI, { 0, 1, 0 });
+
+	//followCam->transform->setRotation(-Utils::PI / 8, { 1, 0, 0 });
+	followCamLocator->setTranslation(glm::vec3(0, 3, -7));
+	followCamLocator->setRotation(Utils::PI, { 0, 1, 0 });
+
+	overheadCamLocator->setTranslation(glm::vec3(0, 15, 0));
+	overheadCamLocator->rotate(-Utils::PI / 2, { 1, 0, 0 });
+	overheadCamLocator->rotate(Utils::PI, { 0,1,0 });
 
 	renderer->setMainCamera("Follow");
 
@@ -299,18 +318,29 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	carCam->transform->setParent(BMW_transform);
-	carCam->transform->setTranslation({ 0.3665, 1.1, -0.1 }); // Center camera approximately where the driver's head is
-	carCam->transform->setRotation(Utils::PI, { 0,1,0 });
+	followCamLocator->setParent(BMW_transform);
+	carCamLocator->setParent(BMW_transform);
+	overheadCamLocator->setParent(BMW_transform);
 
 	// Load config file for CSV data display
 	displayData = Utils::loadDisplaySettings(std::string(WorldState.projectRoot) + DIRECTORY_SEPARATOR + displayDataConfigFileName);
+
+	BMW_transform->setTranslation({ -270.326, 1.50942, -753.757 });
 
 	//
 	// Main loop
 	// 
 
 	while (!glfwWindowShouldClose(window)) {
+		t1 = std::chrono::steady_clock::now();
+
+		// Calculate fps of last frame, pass to gui
+		float glfwTime = glfwGetTime();
+		if ((glfwTime - seconds0) > 0.1) { // Dont need to do this every frame, instead only every .1 seconds
+			GuiState.fps = 1/dTime;
+			seconds0 = glfwTime;
+		}
+
 		float rSpeed = 1;
 		float tSpeed = 1;
 
@@ -337,15 +367,6 @@ int main(int argc, char** argv) {
 		renderer->addLine(BMW_position, BMW_position + glm::vec3(1, 0, 0), glm::vec3(1, 0, 0), true);
 		renderer->addLine(BMW_position, BMW_position + glm::vec3(0, 1, 0), glm::vec3(0, 1, 0), true);
 		renderer->addLine(BMW_position, BMW_position + glm::vec3(0, 0, 1), glm::vec3(0, 0, 1), true);
-
-		t1 = std::chrono::steady_clock::now();
-
-		// Calculate fps of last frame, pass to gui
-		float glfwTime = glfwGetTime();
-		if ((glfwTime - seconds0) > 0.1) { // Dont need to do this every frame, instead only every .1 seconds
-			GuiState.fps = 1/dTime;
-			seconds0 = glfwTime;
-		}
 
 		//
 		// Process user input to the gui from the previous frame
@@ -428,37 +449,34 @@ int main(int argc, char** argv) {
 			// Transform the car to the correct position
 
 			// TODO: fill this in
-			glm::mat4 gpsToWCS = glm::mat4(1);
+			// glm::mat4 gpsToWCS = glm::mat4(1);
 
-			glm::vec4 gpsPosThisFrame(
-				1 * currentData->getDataAsFloat(displayData.longitude, GuiState.timelinePosition),
-				1 * currentData->getDataAsFloat(displayData.elevation, GuiState.timelinePosition),
-				1 * currentData->getDataAsFloat(displayData.latitude, GuiState.timelinePosition),
-				1
-			);
+			// glm::vec4 gpsPosThisFrame(
+			// 	1 * currentData->getDataAsFloat(displayData.longitude, GuiState.timelinePosition),
+			// 	1 * currentData->getDataAsFloat(displayData.elevation, GuiState.timelinePosition),
+			// 	1 * currentData->getDataAsFloat(displayData.latitude, GuiState.timelinePosition),
+			// 	1
+			// );
 
-			glm::vec3 wcsPos = glm::vec3(gpsToWCS * gpsPosThisFrame);
+			// glm::vec3 wcsPos = glm::vec3(gpsToWCS * gpsPosThisFrame);
 
-			// BMW_transform->setTranslation({ wcsPos[0], 0, -wcsPos[2] });
+			// // BMW_transform->setTranslation({ wcsPos[0], 0, -wcsPos[2] });
 
-			BMW_transform->setRotation(currentData->getDataAsFloat(displayData.heading, GuiState.timelinePosition), { 0,1,0 });
+			// //BMW_transform->setRotation(currentData->getDataAsFloat(displayData.heading, GuiState.timelinePosition), { 0,1,0 });
 
-			glm::mat4 BMW_matrix = BMW_transform->getMatrix();
+			// glm::mat4 BMW_matrix = BMW_transform->getMatrix();
 
-			glm::vec3 start, end;
-			for (auto v : displayData.vectors) {
-				// Transform local vector parameters to global start and end points for drawLine
+			// glm::vec3 start, end;
+			// for (auto v : displayData.vectors) {
+			// 	// Draw each vector defined in the config file
 
-				start = glm::vec3(BMW_matrix * glm::vec4(v.origin, 1));
+			// 	// Need to transform local vector parameters to global start and end points for drawLine
+			// 	start = glm::vec3(BMW_matrix * glm::vec4(v.origin, 1));
+			// 	glm::vec3 localDestination = v.origin + (currentData->getDataAsFloat(v.dataField, GuiState.timelinePosition) * v.direction);
+			// 	end = glm::vec3(BMW_matrix * glm::vec4(localDestination, 1));
 
-				glm::vec3 localDestination = v.origin + (currentData->getDataAsFloat(v.dataField, GuiState.timelinePosition) * v.direction);
-
-				end = glm::vec3(BMW_matrix * glm::vec4(localDestination, 1));
-
-				renderer->addLine(start, end, v.color, true);
-
-				std::cout << v.dataField << " : " << currentData->getDataAsFloat(v.dataField, GuiState.timelinePosition) << std::endl;
-			}
+			// 	renderer->addLine(start, end, v.color, true);
+			// }
 		}
 
 		// Update line width if changed
@@ -509,9 +527,9 @@ int main(int argc, char** argv) {
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// float start = glfwGetTime();
+		float start = glfwGetTime();
 		renderer->tick(dTime);
-		//std::cout << glfwGetTime() - start << std::endl;
+		std::cout << '\r' << glfwGetTime() - start;
 
 		// Draw GUI elements
 		drawUI(GuiState);
@@ -523,6 +541,8 @@ int main(int argc, char** argv) {
 
 		t2 = std::chrono::steady_clock::now();
 		dTime = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000000.0f; // Microsecond conversion into fraction of second
+
+		// std::cout << '\r' << dTime;
 	}
 
 	delete renderer; // Deletes internal scene data

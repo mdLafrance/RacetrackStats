@@ -4,6 +4,6 @@ mesh BMW.obj
 
 material -t BMW.mtl
 
-ambient 0.3 0.3 0.3
+ambient 0 0 0
 
 light directional -i 2 -c 1.0 0.9 0.9 -d -1 -1 -1

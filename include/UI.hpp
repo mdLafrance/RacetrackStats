@@ -390,7 +390,7 @@ void drawUI(_GuiState& state) {
 		ImGui::SetNextWindowSize(mapDimensions + ImVec2(state.padding, 0 /*menuBarHeight*/ + state.padding), 0);
 		ImGui::SetNextWindowPos(ImVec2(X, menuBarHeight), 0, ImVec2(1,0));
 		ImGui::Begin("Map", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
-		ImGui::Image((void*)state.mapTexture->getID(), mapDimensions);
+		ImGui::Image((void*)state.mapTexture->getID(), mapDimensions, ImVec2(0, 1), ImVec2(1, 0));
 		ImGui::End(); // Map
 	}
 

@@ -7,6 +7,7 @@ mesh mosport_vehicles.obj
 mesh mosport_objects.obj
 mesh mosport_layers.obj
 mesh mosport_trees.obj
+mesh mosport_crew.obj
 
 mesh BMW.obj
 
@@ -17,6 +18,7 @@ material mtl_low/mosport_vehicles.mtl
 material mtl_low/mosport_objects.mtl
 material -t mtl_low/mosport_layers.mtl
 material -t mtl_low/mosport_trees.mtl
+material mtl_low/mosport_crew.mtl
 
 material -t BMW.mtl
 
@@ -27,4 +29,4 @@ car BMW2
 ambient 0.3 0.3 0.27
 
 # Lights for the scene
-light directional -i 2 -v -2 -10 -5 -c 0.65 0.6 0.6 
+light directional -i 2 -v 2 -10 -5 -c 0.65 0.6 0.6 

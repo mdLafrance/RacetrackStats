@@ -26,16 +26,20 @@ void Shader::bind() {
 	glUseProgram(this->shaderProgram);
 }
 
-void Shader::setUniformMatrix4fv(const std::string& name, const glm::mat4& target) const {
-	glUniformMatrix4fv(glad_glGetUniformLocation(this->shaderProgram, name.c_str()), 1, GL_FALSE, &target[0][0]);
+void Shader::setUniform(const char* name, const float& val) {
+	glUniform1f(glad_glGetUniformLocation(this->shaderProgram, name), val);
 }
 
-void Shader::setUniform3fv(const std::string& name, const glm::vec3& v) const {
-	glUniform3fv(glad_glGetUniformLocation(this->shaderProgram, name.c_str()), 1, &v[0]);
+void Shader::setUniform(const char* name, const unsigned int& val) {
+	glUniform1i(glad_glGetUniformLocation(this->shaderProgram, name), val);
 }
 
-void Shader::setUniformf(const std::string& name, const float& f) const {
-	glUniform1f(glad_glGetUniformLocation(this->shaderProgram, name.c_str()), f);
+void Shader::setUniform(const char* name, const glm::vec3& val) {
+	glUniform3fv(glad_glGetUniformLocation(this->shaderProgram, name), 1, &val[0]);
+}
+
+void Shader::setUniform(const char* name, const glm::mat4& val) {
+	glUniformMatrix4fv(glad_glGetUniformLocation(this->shaderProgram, name), 1, GL_FALSE, &val[0][0]);
 }
 
 void Shader::setLights(const int& count, const glm::mat3* m0) {

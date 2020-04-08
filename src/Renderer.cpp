@@ -110,8 +110,8 @@ void Renderer::drawLine(const glm::vec3& origin, const glm::vec3& end, const glm
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-	lineShader->setUniformMatrix4fv("u_MVP", VP);
-	lineShader->setUniform3fv("u_color", color);
+	lineShader->setUniform("u_MVP", VP);
+	lineShader->setUniform("u_color", color);
 
 	glDrawArrays(GL_LINES, 0, 2);
 
@@ -364,17 +364,35 @@ void Renderer::loadScene(const std::string& target) {
 		}
 	}
 
-	// All necessary files loaded, now link all resources into Objects to be rendered.
+	// All necessary files loaded, now link all resources into "Objects" to be rendered.
+	Object* o;
+	OBJMesh* m;
 
 	for (auto p : this->meshes){
-		Object* o = this->newObject(p.first);
+		o = this->newObject(p.first); // generates new transform
 
-		o->mesh = p.second;
-		o->mesh->generateBuffers();
+		m = p.second;
+		m->generateBuffers();
+
+		o->mesh = m;
+
+		// Link loaded materials to mesh triangles
+		// Map access is super slow, so caching the pointer here to shave a lot of time off in tick()
+		// TODO: Returning face materials array by reference doesn't allow mutability (this is a problem on my end)
+		for (int i = 0; i < m->faceMaterials.size(); i++){
+			OBJ::FaceMaterials* fm = m->faceMaterials.data() + i;
+			try {
+				fm->material = this->materials.at(fm->materialName);
+			}
+			catch (const std::out_of_range & oor) {
+				fm->material = this->materials.at("default");
+				std::cerr << "ERROR: Couldn't find material <" << fm->materialName << "> for mesh <" << m->getMeshName() << ">" << std::endl;
+			}
+		}
 	}
 
-	// Now that all necessary Objects have been generated with their meshes, link parents and materials
-	Object* o;
+	// Now that all necessary Objects have been generated with their meshes, link parents 
+	// This step needs to happen after the meshes are organized into objects, so that they have the relevant transforms to parent
 	for (auto p : this->objects){
 		o = p.second;
 		std::string targetParent = o->mesh->getDefaultParentName();
@@ -388,12 +406,6 @@ void Renderer::loadScene(const std::string& target) {
 				std::cerr << "Can't find parent " << "<" << targetParent << ">" << " for object " << p.first << std::endl;
 			}
 		}
-	}
-
-	// Get matrix representation for lights 
-	// TODO: Could make this able to handle mutable lights in the scene, for headlights etc.
-	for (int i = 0; i < this->numOfLights; i++) {
-		*(this->lightMatrices + i) = (this->lights + i)->getMatrix();
 	}
 
 	std::cout << "Finished loading scene " << this->scene.name << " (" << timer.lap_s() << ")" << std::endl;
@@ -488,6 +500,11 @@ void Renderer::tick(const double& dTime) {
 
 	camTransform->translate(dx + dy + dz);
 
+	// Get light matrices (fast if they havent changed)
+	for (int i = 0; i < this->numOfLights; i++) {
+		*(this->lightMatrices + i) = (this->lights + i)->getMatrix();
+	}
+
 	// VP matrix for this frame
 	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
 
@@ -502,7 +519,7 @@ void Renderer::tick(const double& dTime) {
 
 		skyboxShader->bind();
 
-		skyboxShader->setUniformMatrix4fv("MVP", VP * cameraPositionTransform);
+		skyboxShader->setUniform("MVP", VP * cameraPositionTransform);
 
 		this->skybox->draw();
 
@@ -513,39 +530,30 @@ void Renderer::tick(const double& dTime) {
 	Object* object;
     Shader* shader;
     OBJMesh* mesh;
-    Material* material;
 
 	glm::mat4 objectTransform;
 
     for (std::pair<std::string, Object*> o: this->objects) {
     	object = o.second;
     	mesh = object->mesh;
+
+		objectTransform = object->transform->getMatrix();
     
 		mesh->bind();
 
-    	for (OBJ::FaceMaterials mat : mesh->getFaceMaterials()) {
-    		try {
-    			material = this->materials.at(mat.material);
-    		}
-    		catch (const std::out_of_range & oor) {
-				std::cerr << "ERROR: Trying to render mesh " << mesh->getMeshName() << " with MISSING material: " << mat.material << std::endl;
-    			continue;
-    		}
-    
-    		material->bind(); // binds shader
-    		shader = material->shader;
-    
+    	for (OBJ::FaceMaterials mat : mesh->faceMaterials) {
+			mat.material->bind(); // Binds shader
+
+			shader = mat.material->shader;
+
     	    shader->setLights(this->numOfLights, this->lightMatrices);
-    	    shader->setUniform3fv("Ka", { WorldState.ambientLight[0], WorldState.ambientLight[1], WorldState.ambientLight[2] });
+    	    shader->setUniform("Ka", { WorldState.ambientLight[0], WorldState.ambientLight[1], WorldState.ambientLight[2] });
 
-			objectTransform = object->transform->getMatrix();
-
-    	    shader->setUniformMatrix4fv("M", objectTransform);
-    	    shader->setUniformMatrix4fv("VP", VP);
-    	    shader->setUniformMatrix4fv("MVP", VP * objectTransform);
+    	    shader->setUniform("M", objectTransform);
+    	    shader->setUniform("VP", VP);
+    	    shader->setUniform("MVP", VP * objectTransform);
     
     		mesh->drawRange(mat.range[0], mat.range[1] - mat.range[0]);
-
     	}
 
 		mesh->unbind();

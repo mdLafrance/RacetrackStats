@@ -1,9 +1,7 @@
 #include <Light.h>
 
 void Light::buildMatrix() {
-	/*
-		glm builds column-major matrices, so supply the appropriate columns as defined in Light.h
-	*/
+	// glm builds column-major matrices, so supply the appropriate columns as defined in Light.h
 	this->matrix = glm::mat3(
 		this->color,
 		this->x,
@@ -12,28 +10,29 @@ void Light::buildMatrix() {
 }
 
 glm::mat3 Light::getMatrix() {
-	// NOTE: Matrix instead gets rebuilt when values are changed, since this function is run very frequently
+	if (this->matrixDirty) this->buildMatrix();
+
 	return this->matrix;
 }
 
 void Light::setColor(const glm::vec3& color) {
 	this->color = color;
-	this->buildMatrix();
+	this->matrixDirty = true;
 }
 
 void Light::setPointDirection(const glm::vec3& point_direction) {
 	this->x = point_direction;
-	this->buildMatrix();
+	this->matrixDirty = true;
 }
 
 void Light::setIntensity(const float& i) {
 	this->i = i;
-	this->buildMatrix();
+	this->matrixDirty = true;
 }
 
 void Light::setK(const float& k) {
 	this->k = k;
-	this->buildMatrix();
+	this->matrixDirty = true;
 }
 
 Light::Light() {
@@ -45,6 +44,7 @@ Light::Light() {
 	this->i = DEFAULT_LIGHT_INTENSITY;
 	this->k = DEFAULT_POINT_FALLOFF;
 
+	this->matrixDirty = true;
 	this->matrix = glm::mat3(0.0f);
 }
 
@@ -57,6 +57,7 @@ Light::Light(const LightType& type) {
 	this->i = DEFAULT_LIGHT_INTENSITY;
 	this->k = DEFAULT_POINT_FALLOFF;
 
+	this->matrixDirty = true;
 	this->matrix = glm::mat3(0.0f);
 }
 
@@ -69,5 +70,5 @@ Light::Light(const LightType& type, const glm::vec3 point_direction, const glm::
 	this->i = i;
 	this->k = DEFAULT_POINT_FALLOFF;
 
-	this->buildMatrix();
+	this->matrixDirty = true;
 }

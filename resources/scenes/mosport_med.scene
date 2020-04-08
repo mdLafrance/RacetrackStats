@@ -1,30 +1,31 @@
 # Medium quality mosport track
 
 # Meshes
-jr_mosport.obj
-mosport_horizon.obj
-mosport_vehicles.obj
-mosport_objects.obj
-mosport_layers.obj
-mosport_trees.obj
-mosport_people.obj
-mosport_crew.obj
+mesh jr_mosport.obj
+mesh mosport_horizon.obj
+mesh mosport_vehicles.obj
+mesh mosport_objects.obj
+mesh mosport_layers.obj
+mesh mosport_trees.obj
+mesh mosport_people.obj
+mesh mosport_crew.obj
+
+mesh BMW.obj
 
 # Materials
-jr_mosport.mtl
-mosport_horizon.mtl
-mosport_vehicles.mtl
-mosport_objects.mtl
-mosport_layers.mtl
-mosport_trees.mtl
-mosport_people.mtl
-mosport_crew.mtl
+material jr_mosport.mtl
+material mosport_horizon.mtl
+material mosport_vehicles.mtl
+material mosport_objects.mtl
+material -t mosport_layers.mtl
+material -t mosport_trees.mtl
+material mosport_people.mtl
+material mosport_crew.mtl
+
+material -t BMW.mtl
 
 # Scene ambient light (r g b)
-ambient 0.43 0.43 0.4
+ambient 0.3 0.3 0.27
 
 # Lights for the scene
-# i = intensity
-# v = direction/point origin
-# c = colour
-light directional -i 2.5 -v -2 -10 -5 -c 0.65 0.6 0.6 
+light directional -i 2 -v -2 -10 -5 -c 0.65 0.6 0.6 

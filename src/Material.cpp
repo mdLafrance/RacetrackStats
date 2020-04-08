@@ -102,17 +102,19 @@ inline bool Material::checkFlag(const uint32_t& flag) {
 }
 
 void Material::bind(){
+	assert((this->shader != nullptr) && "Material's Shader is nullptr");
+	
 	unsigned int shaderID = this->shader->programID();
 
 	this->shader->bind();
 	
-	this->shader->setUniform3fv("Ka", this->Ka);
-	this->shader->setUniform3fv("Kd", this->Kd);
-	this->shader->setUniform3fv("Ks", this->Ks);
+	this->shader->setUniform("Ka", this->Ka);
+	this->shader->setUniform("Kd", this->Kd);
+	this->shader->setUniform("Ks", this->Ks);
 
-	glUniform1f(glad_glGetUniformLocation(this->shader->programID(), "Tr"), this->Tr);
+	this->shader->setUniform("Tr", this->Tr);
 
-	glUniform1i(glad_glGetUniformLocation(this->shader->programID(), "flags"), this->flags);
+	this->shader->setUniform("flags", this->flags);
 
 	if (this->checkFlag(MATERIAL_USE_map_Kd)) {
 		glUniform1i(glGetUniformLocation(shaderID, "map_Kd"), TEXTURE_LOCATION_map_Kd);
@@ -134,7 +136,7 @@ void Material::bind(){
 }
 
 void Material::setMVP(const glm::mat4& mvp) {
-	this->shader->setUniformMatrix4fv("MVP", mvp);
+	this->shader->setUniform("MVP", mvp);
 }
 
 Material::Material(const std::string& name) {

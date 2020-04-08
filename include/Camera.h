@@ -8,7 +8,7 @@
 
 #define CAMERA_DEFAULT_FOV 44.5f
 #define CAMERA_DEFAULT_FAR_CLIP_PLANE 1000.0f
-#define CAMERA_DEFAULT_NEAR_CLIP_PLANE 0.01f
+#define CAMERA_DEFAULT_NEAR_CLIP_PLANE 0.12f
 
 enum CameraType {Perspective, Orthographic};
 
