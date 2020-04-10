@@ -2,24 +2,53 @@
 
 // Default shaders
 const char* vShaderSource =
+"// Default shader, just diffuse shading;\n"
 "#version 330 core\n"
-"layout(location = 0) in vec3 vPos;\n"
-"layout(location = 1) in vec3 vNorm;\n"
-"layout(location = 2) in vec2 vTex;\n"
+"// Uniforms\n"
+"uniform mat4 M;\n"
 "uniform mat4 MVP;\n"
-"out vec2 texCoord;\n"
+"// Mesh attributes\n"
+"layout(location = 0) in vec3 in_pos;\n"
+"layout(location = 1) in vec3 in_norm;\n"
+"layout(location = 2) in vec2 in_texCoord;\n"
+"out mediump vec3 v_norm;\n"
+"out mediump vec3 v_norm_world;\n"
 "void main() {\n"
-"   texCoord = vTex;\n"
-"	gl_Position = MVP * vec4(vPos.x, vPos.y, vPos.z, 1.0);\n"
-"}\0";
+"	v_norm = in_norm;\n"
+"	v_norm_world = (M * vec4(in_norm, 0)).xyz;\n"
+"	gl_Position = MVP * vec4(in_pos, 1);\n"
+"}\n\0";
 
 const char* fShaderSourceBasic =
+"// Default diffuse shader\n"
 "#version 330 core\n"
-"in vec2 texCoord;\n"
+"// Uniforms\n"
+"uniform mat4 M;\n"
+"uniform mat4 MVP;\n"
+"// Lights\n"
+"uniform int numOfLights;\n"
+"uniform mat3 lights[8];\n"
+"// Passed mesh attributes\n"
+"in mediump vec3 v_norm;\n"
+"in mediump vec3 v_norm_world;\n"
 "out vec4 FragColor;\n"
-"uniform sampler2D tex;\n"
-"void main(){\n"
-"	FragColor = vec4(0.8, 0.8, 0.8, 1.0f);\n"
+"void main() {\n"
+"	vec3 diffuse = vec3(1.0f, 1.0f, 1.0f);\n"
+"	vec3 Iout;\n"
+"	for (int i = 0; i < numOfLights; i++) {\n"
+"		if (lights[i][2][0] == 0) {\n"
+"			vec3 light_v = -1 * lights[i][1];\n"
+"			float NdotL = dot(v_norm_world, normalize(light_v));\n"
+"			if (NdotL <= 0.0) continue; // Light is shining on back face, continue\n"
+"			// Unpack settings for each light\n"
+"			vec3 light_color = normalize(lights[i][0]);\n"
+"			vec3 light_values = lights[i][2];\n"
+"			float intensity = light_values[1];\n"
+"			// Diffuse \n"
+"			Iout += NdotL * intensity * vec3(diffuse.x * light_color.x, diffuse.y * light_color.y, diffuse.z * light_color.z);\n"
+"		}\n"
+"	}\n"
+"	FragColor = vec4(Iout, 1.0f);\n"
 "}\n\0";
 
 void Shader::bind() {
@@ -73,14 +102,14 @@ std::string Shader::loadShaderSource(const std::string& target, const bool& foll
 
 				std::string includeTarget = line.substr(quote0, quote1 - quote0);
 
-				source += Shader::loadShaderSource((Utils::getFileInfo(target).directory + DIRECTORY_SEPARATOR + includeTarget).c_str(), false);
+				source += Shader::loadShaderSource((Utils::getFileInfo(target).directory + DIRECTORY_SEPARATOR + includeTarget).c_str(), false); // Only follow one level of includes
 			}
 		} else {
 			source += line + '\n';
 		}
 	}
 
-	source.pop_back(); // Remove trailing \n
+	source.pop_back(); // Remove last \n
 
 	return source;
 }
@@ -89,8 +118,7 @@ Shader::Shader(const std::string& vertexShaderTarget, const std::string& fragmen
 	// Load and link an opengl shader from the vertex and fragment shaders specified as parameters.
 	// Params should be paths to the files.
 
-	std::ifstream vertexShaderSourceFile, fragmentShaderSourceFile;
-	std::string vs_string, fs_string, vertexShortName, fragmentShortName;
+	std::string vs_string, fs_string;
 	const char* vs_source;
 	const char* fs_source;
 	int vertexCompiled, fragmentCompiled, linkSuccessful;
@@ -179,8 +207,8 @@ Shader::Shader(const std::string& vertexShaderTarget, const std::string& fragmen
 	glDeleteShader(fragmentShader);
 
 	if (vertexCompiled && fragmentCompiled && linkSuccessful) {
-		vertexShortName = Utils::getFileInfo(vertexShaderTarget).file;
-		fragmentShortName = Utils::getFileInfo(fragmentShaderTarget).file;
+		std::string vertexShortName = Utils::getFileInfo(vertexShaderTarget).file;
+		std::string fragmentShortName = Utils::getFileInfo(fragmentShaderTarget).file;
 		std::cout << "Successfully loaded shader with vertex/fragment: " << vertexShortName << " " << fragmentShortName << std::endl;
 	}
 }
