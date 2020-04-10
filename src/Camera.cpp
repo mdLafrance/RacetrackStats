@@ -2,10 +2,13 @@
 
 glm::mat4 Camera::projectionMatrix() {
 	if (this->type == Perspective) {
-		return glm::perspective(this->FOV, (float)WorldState.rendererX / (float)WorldState.rendererY, this->z_min, this->z_max);
+		return glm::perspective(this->FOV, (float)WorldState.rendererX / (float)WorldState.rendererY, this->nearClipPlane, this->farClipPlane);
 	}
 	else if (this->type == Orthographic) {
-		return glm::ortho(this->x_min, this->x_max, this->y_min, this->y_max, this->z_min, this->z_max);
+		float w = this->size * WorldState.rendererX;
+		float h = this->size * WorldState.rendererY;
+
+		return glm::ortho(-w / 2, w / 2, -h / 2, h / 2, -this->depth/2, this->depth/2);
 	}
 }
 
@@ -28,44 +31,36 @@ glm::mat4 Camera::viewMatrix() {
 
 // Simple constructor, infers values based on the renderers settings
 Camera::Camera(const CameraType& type) {
+	this->type = type;
+	this->transform = new Transform();
+
 	if (type == Perspective) {
 		this->FOV = CAMERA_DEFAULT_FOV;
+		this->nearClipPlane = CAMERA_DEFAULT_NEAR_CLIP_PLANE;
+		this->farClipPlane = CAMERA_DEFAULT_FAR_CLIP_PLANE;
 	}
 
 	if (type == Orthographic) {
-		float halfRendererX = WorldState.rendererX / 2;
-		float halfRendererY = WorldState.rendererY / 2;
-
-		this->x_min = -halfRendererX;
-		this->x_max = halfRendererX;
-		this->y_min = -halfRendererY;
-		this->y_max = halfRendererY;
+		this->size = CAMERA_DEFAULT_ORTHO_SCREEN_SCALE;
+		this->depth = CAMERA_DEFAULT_FAR_CLIP_PLANE - CAMERA_DEFAULT_NEAR_CLIP_PLANE;
 	}
-
-	this->type = type;
-	this->z_min = CAMERA_DEFAULT_NEAR_CLIP_PLANE;
-	this->z_max = CAMERA_DEFAULT_FAR_CLIP_PLANE;
-
-	this->transform = new Transform();
 }
 
 // Perpective constructor
 Camera::Camera(const float& fov, const float& zMin, const float& zMax) {
-	this->FOV = fov;
-	this->z_min = zMin;
-	this->z_max = zMax;
-
+	this->type = Perspective;
 	this->transform = new Transform();
+
+	this->FOV = fov;
+	this->nearClipPlane = zMin;
+	this->farClipPlane = zMax;
 };
 
 // Ortho constructor
-Camera::Camera(const float& x_min, const float& x_max, const float& y_min, const float& y_max, const float& z_min, const float& z_max) {
-	this->x_min = x_min;
-	this->x_max = x_max;
-	this->y_min = y_min;
-	this->y_max = y_max;
-	this->z_min = z_min;
-	this->z_max = z_max;
-
+Camera::Camera(const float& size, const float& depth) {
+	this->type = Orthographic;
 	this->transform = new Transform();
+
+	this->size = size;
+	this->depth = depth;
 }

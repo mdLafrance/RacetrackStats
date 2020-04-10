@@ -276,31 +276,15 @@ int main(int argc, char** argv) {
 	// Set up default cameras
 	Camera* followCam = new Camera();
 	Camera* carCam = new Camera();
-	Camera* overheadCam = new Camera(Orthographic); // TODO: Ortho cameras don't work
+	Camera* overheadCam = new Camera(Orthographic); // TODO: Ortho cameras need work
 
 	renderer->registerCamera("Follow", followCam);
 	renderer->registerCamera("Car", carCam);
 	renderer->registerCamera("Overhead", overheadCam);
 
-	// NOTE: Using intermediary transform to parent these cameras under, so the user can reset the camera's rotation and have it be locked in the proper place
 	Transform* followCamLocator = new Transform();
 	Transform* carCamLocator = new Transform();
 	Transform* overheadCamLocator = new Transform();
-
-	followCam->transform->setParent(followCamLocator);
-	carCam->transform->setParent(carCamLocator);
-	overheadCam->transform->setParent(overheadCamLocator);
-
-	carCamLocator->setTranslation({ 0.3665, 1.1, -0.1 }); // Center camera approximately where the driver's head is
-	carCamLocator->setRotation(Utils::PI, { 0, 1, 0 });
-
-	//followCam->transform->setRotation(-Utils::PI / 8, { 1, 0, 0 });
-	followCamLocator->setTranslation(glm::vec3(0, 3, -7));
-	followCamLocator->setRotation(Utils::PI, { 0, 1, 0 });
-
-	overheadCamLocator->setTranslation(glm::vec3(0, 15, 0));
-	overheadCamLocator->rotate(-Utils::PI / 2, { 1, 0, 0 });
-	overheadCamLocator->rotate(Utils::PI, { 0,1,0 });
 
 	renderer->setMainCamera("Follow");
 
@@ -317,9 +301,22 @@ int main(int argc, char** argv) {
 		}
 	}
 
+	followCam->transform->setParent(followCamLocator);
+	carCam->transform->setParent(carCamLocator);
+	overheadCam->transform->setParent(overheadCamLocator);
+
 	followCamLocator->setParent(BMW_transform);
 	carCamLocator->setParent(BMW_transform);
 	overheadCamLocator->setParent(BMW_transform);
+
+	carCamLocator->setTranslation({ 0.3665, 1.1, -0.1 }); // Center camera approximately where the driver's head is
+	carCamLocator->setRotation(Utils::PI, { 0, 1, 0 });
+
+	followCam->transform->setTranslation({ 0, 1, 7 });
+	followCamLocator->rotate(Utils::PI, { 0,1,0 });
+
+	overheadCamLocator->rotate(Utils::PI, { 0,1,0 });
+	overheadCamLocator->rotate(Utils::PI/2, { 1,0,0 });
 
 	// Load config file for CSV data display
 	displayData = Utils::loadDisplaySettings(std::string(WorldState.projectRoot) + DIRECTORY_SEPARATOR + displayDataConfigFileName);
@@ -341,7 +338,7 @@ int main(int argc, char** argv) {
 		}
 
 		float rSpeed = 1;
-		float tSpeed = 1;
+		float tSpeed = 3;
 
 		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
 			BMW_transform->rotate(dTime * rSpeed, glm::vec3(0, 1, 0));
@@ -371,14 +368,27 @@ int main(int argc, char** argv) {
 		// Process user input to the gui from the previous frame
 		//
 
-		// Rotate current camera if user dragged right click
+		// Rotate current camera/locator if user dragged right click
 		if (mouseMoved) {
 			if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS) {
-				Transform* mainCamTransform = renderer->getMainCamera()->transform;
+				// NOTE: Mouse sensitivity is multiplied by 100 in gui, so multiply by 0.01
 
-				// Mouse sensitivity is multiplied by 100 in gui
-				mainCamTransform->rotate(dTime * 0.01f * GuiState.mouseSensitivity * -dMouseX, glm::vec3(0,1,0));
-				mainCamTransform->rotate(dTime * 0.01f * GuiState.mouseSensitivity * dMouseY, mainCamTransform->right());
+				Camera* mainCam = renderer->getMainCamera();
+
+				// Special rotation behavior for inside of car cam
+				if (mainCam == carCam) {
+					carCam->transform->rotate(dTime * 0.01f * GuiState.mouseSensitivity * -dMouseX, glm::vec3(0,1,0));
+					carCam->transform->rotate(dTime * 0.01f * GuiState.mouseSensitivity * dMouseY, carCam->transform->right());
+				}
+				else {
+					if (mainCam == followCam) {
+						followCamLocator->rotate(dTime * 0.01f * GuiState.mouseSensitivity * -dMouseX, glm::vec3(0,1,0));
+						followCamLocator->rotate(dTime * 0.01f * GuiState.mouseSensitivity * dMouseY, followCamLocator->right());
+					} else if (mainCam == overheadCam) {
+						overheadCamLocator->rotate(dTime * 0.01f * GuiState.mouseSensitivity * -dMouseX, glm::vec3(0,1,0));
+						overheadCamLocator->rotate(dTime * 0.01f * GuiState.mouseSensitivity * dMouseY, overheadCamLocator->right());
+					}
+				}
 			}
 
 			mouseMoved = false;

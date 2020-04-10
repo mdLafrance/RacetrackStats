@@ -8,25 +8,31 @@
 
 #define CAMERA_DEFAULT_FOV 44.5f
 #define CAMERA_DEFAULT_FAR_CLIP_PLANE 1000.0f
-#define CAMERA_DEFAULT_NEAR_CLIP_PLANE 0.12f
+#define CAMERA_DEFAULT_NEAR_CLIP_PLANE 0.2f
+#define CAMERA_DEFAULT_ORTHO_SCREEN_SCALE 0.015f
 
 extern _WorldState WorldState;
 
 enum CameraType { Perspective, Orthographic };
 
 class Camera {
-	float FOV = -1;
-
-	float x_min, x_max, y_min, y_max, z_min, z_max;
-
 	CameraType type;
+
+	float nearClipPlane, farClipPlane;
+
+	float FOV = -1; // Perspective specific
+	float size, depth; // Ortho specific 
 
 public:
 	CameraType getType() { return this->type; };
 
 	void setFOV(const float& fov) { this->FOV = fov; };
-	void setNearClipPlane(const float& ncp) { this->z_min = ncp; };
-	void setFarClipPlane(const float& fcp) { this->z_max = fcp; };
+
+	void setSize(const float& s) { this->size = s; };
+	void setDepth(const float& d) { this->depth = d; };
+
+	void setNearClipPlane(const float& ncp) { this->nearClipPlane = ncp; };
+	void setFarClipPlane(const float& fcp) { this->farClipPlane = fcp; };
 
 	Transform* transform;
 
@@ -41,7 +47,7 @@ public:
 	Camera(const float& fov, const float& zMin, const float& zMax);
 
 	// Ortho constructor
-	Camera(const float& x_min, const float& x_max, const float& y_min, const float& y_max, const float& z_min, const float& z_max);
+	Camera(const float& size, const float& depth);
 
 	~Camera() { delete this->transform; };
 };
