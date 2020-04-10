@@ -10,14 +10,11 @@ glm::mat4x4 Transform::getLocalMatrix() {
 }
 
 glm::mat4x4 Transform::getMatrix() {
-	glm::mat4x4 localMatrix = this->getLocalMatrix();
-
-	if (this->parent != nullptr) {
-		glm::mat4 parentMatrix = this->parent->getMatrix();
-		return parentMatrix * localMatrix;
+	if (this->parent != nullptr && this->parent != (Transform*)0xCDCDCD) { // CD values is default for value for stack memory, doesn't usually happen
+		return this->parent->getMatrix() * this->getLocalMatrix();
 	}
 	else {
-		return localMatrix;
+		return this->getLocalMatrix();
 	}
 }
 

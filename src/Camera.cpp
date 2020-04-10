@@ -1,29 +1,11 @@
 #include <Camera.h>
 
-void Camera::setFOV(const float& fov) {
-	this->FOV = fov;
-}
-
-void Camera::setFarClipPlane(const float& fcp) {
-	assert(fcp > CAMERA_DEFAULT_NEAR_CLIP_PLANE && "Far clip plane is intersecting near clip plane");
-
-	this->farClipPlane = fcp;
-}
-
-CameraType Camera::getType() {
-	return this->type;
-}
-
 glm::mat4 Camera::projectionMatrix() {
-	if (this->type == CameraType::Orthographic) {
-		int halfX = WorldState.windowX / 2;
-		int halfY = WorldState.windowY / 2;
-
-		return glm::ortho(-halfX, halfX, -halfY, halfY, -100, 1000);
+	if (this->type == Perspective) {
+		return glm::perspective(this->FOV, (float)WorldState.rendererX / (float)WorldState.rendererY, this->z_min, this->z_max);
 	}
-
-	if (this->type == CameraType::Perspective) {
-		return glm::perspective(this->FOV, (float)WorldState.rendererX / (float)WorldState.rendererY, CAMERA_DEFAULT_NEAR_CLIP_PLANE, this->farClipPlane);
+	else if (this->type == Orthographic) {
+		return glm::ortho(this->x_min, this->x_max, this->y_min, this->y_max, this->z_min, this->z_max);
 	}
 }
 
@@ -44,36 +26,46 @@ glm::mat4 Camera::viewMatrix() {
 	);
 }
 
+// Simple constructor, infers values based on the renderers settings
 Camera::Camera(const CameraType& type) {
-	this->type = type;
-
-	if (type == CameraType::Perspective) {
+	if (type == Perspective) {
 		this->FOV = CAMERA_DEFAULT_FOV;
 	}
 
-	this->farClipPlane = CAMERA_DEFAULT_FAR_CLIP_PLANE;
+	if (type == Orthographic) {
+		float halfRendererX = WorldState.rendererX / 2;
+		float halfRendererY = WorldState.rendererY / 2;
+
+		this->x_min = -halfRendererX;
+		this->x_max = halfRendererX;
+		this->y_min = -halfRendererY;
+		this->y_max = halfRendererY;
+	}
+
+	this->type = type;
+	this->z_min = CAMERA_DEFAULT_NEAR_CLIP_PLANE;
+	this->z_max = CAMERA_DEFAULT_FAR_CLIP_PLANE;
 
 	this->transform = new Transform();
 }
 
+// Perpective constructor
 Camera::Camera(const float& fov, const float& zMin, const float& zMax) {
-	// Constructor for perspective camera
-	this->type = CameraType::Perspective;
-
 	this->FOV = fov;
-	this->farClipPlane = zMax;
+	this->z_min = zMin;
+	this->z_max = zMax;
 
 	this->transform = new Transform();
-}
+};
 
-Camera::Camera(const float& xMin, const float& xMax, const float& yMin, const float& yMax, const float& zMin, const float& zMax) {
-	// Perspective for orthographic camera 
-
-	this->type = CameraType::Orthographic;
+// Ortho constructor
+Camera::Camera(const float& x_min, const float& x_max, const float& y_min, const float& y_max, const float& z_min, const float& z_max) {
+	this->x_min = x_min;
+	this->x_max = x_max;
+	this->y_min = y_min;
+	this->y_max = y_max;
+	this->z_min = z_min;
+	this->z_max = z_max;
 
 	this->transform = new Transform();
-}
-
-Camera::~Camera() {
-	delete this->transform;
 }

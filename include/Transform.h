@@ -12,7 +12,7 @@ class Transform {
 	glm::mat4 R;
 	glm::mat4 S;
 
-	bool updateMatrix;
+	bool updateMatrix; // Dirty flag for the matrix, matrix is cached on a getMatrix() call, and only regenerated if this is true
 
 	Transform* parent = nullptr;
 

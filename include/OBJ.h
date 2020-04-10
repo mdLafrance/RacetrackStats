@@ -80,7 +80,7 @@ public:
 	}
 
 	void draw();
-	void drawRange(int start = -1, int count = -1);
+	void drawRange(int start = -1, int count = -1); // Draw a specific set of vertices
 
 	OBJMesh(
 		const std::string& meshName,

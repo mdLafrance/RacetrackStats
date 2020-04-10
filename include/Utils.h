@@ -25,7 +25,7 @@ static const char DIRECTORY_SEPARATOR = '/';
 
 static unsigned char __log_flags__ = 0;
 
-// Operators that are for some reason not defined
+// Operators
 
 // glm
 glm::vec3 operator *(float f, glm::vec3 v); // float * vector

@@ -172,7 +172,7 @@ void Renderer::resetData() {
 	// Create and register default assets.
 
 	// Default camera is perspective camera
-	Camera* defaultCam = new Camera(Perspective);
+	Camera* defaultCam = new Camera();
 
 	Shader* defaultShader = new Shader("default", "default");
 
@@ -378,7 +378,6 @@ void Renderer::loadScene(const std::string& target) {
 
 		// Link loaded materials to mesh triangles
 		// Map access is super slow, so caching the pointer here to shave a lot of time off in tick()
-		// TODO: Returning face materials array by reference doesn't allow mutability (this is a problem on my end)
 		for (int i = 0; i < m->faceMaterials.size(); i++){
 			OBJ::FaceMaterials* fm = m->faceMaterials.data() + i;
 			try {
@@ -396,7 +395,6 @@ void Renderer::loadScene(const std::string& target) {
 	for (auto p : this->objects){
 		o = p.second;
 		std::string targetParent = o->mesh->getDefaultParentName();
-		std::string targetMaterial = o->mesh->getDefaultMaterialName();
 
 		if (targetParent != "") {
 			try {
@@ -439,7 +437,7 @@ Object* Renderer::getObject(const std::string& name) {
 }
 
 void Renderer::tick(const double& dTime) {
-	// TODO: translateion rotation controls are just for testings, not to be included in future builds
+	// TODO: translation rotation controls are just for testings, not to be included in future builds
 
 	++this->frameCount;
 
@@ -472,7 +470,6 @@ void Renderer::tick(const double& dTime) {
 		translation[2] = -translateSpeed;
 	}
 
-	// Calcuate new MVP for camera on this frame
 	Transform* camTransform = this->mainCamera->transform;
 
 	glm::vec3 dx, dy, dz;

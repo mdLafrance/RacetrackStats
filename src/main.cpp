@@ -10,7 +10,6 @@
 #include <math.h>
 
 #include <assert.h>
-
 // TODO: Uncomment this for release, forces compiler to ignore all assert statements
 // #define NDEBUG 
 
@@ -49,7 +48,7 @@ _GuiState GuiState;
 // Cameras available to switch between
 static const std::vector<std::string> cameras = { "Follow", "Car", "Overhead" };
 
-// State of the scene, used by the renderer
+// State of the scene, used by the renderer and the gui
 _WorldState WorldState = { 
 	WINDOW_DEFAULT_X,    // Starting window width
 	WINDOW_DEFAULT_Y,    // Starting window height
@@ -275,9 +274,9 @@ int main(int argc, char** argv) {
 	double tickTotal = 0;
 
 	// Set up default cameras
-	Camera* followCam = new Camera(Perspective);
-	Camera* carCam = new Camera(Perspective);
-	Camera* overheadCam = new Camera(Perspective); // TODO: Ortho cameras don't work
+	Camera* followCam = new Camera();
+	Camera* carCam = new Camera();
+	Camera* overheadCam = new Camera(Orthographic); // TODO: Ortho cameras don't work
 
 	renderer->registerCamera("Follow", followCam);
 	renderer->registerCamera("Car", carCam);
