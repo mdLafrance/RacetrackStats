@@ -14,8 +14,6 @@
 class Shader {
 	unsigned int shaderProgram;
 
-	std::string target;
-
 public:
 	void bind();
 
@@ -26,7 +24,7 @@ public:
 
 	void setLights(const int& count, const glm::mat3* m0);
 
-	unsigned int programID();
+	unsigned int programID() { return this->shaderProgram; };
 
 	Shader(const std::string& vertexTarget, const std::string& fragmentTarget);
 	~Shader();

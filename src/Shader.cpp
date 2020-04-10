@@ -48,26 +48,6 @@ void Shader::setLights(const int& count, const glm::mat3* m0) {
 	glUniformMatrix3fv(glad_glGetUniformLocation(this->shaderProgram, "lights"), count, GL_FALSE, &(*m0)[0][0]);
 }
 
-unsigned int Shader::programID() {
-	return this->shaderProgram;
-}
-
-bool getGlShaderStatus(int program) {
-	int success;
-
-	glGetProgramiv(program, GL_LINK_STATUS, &success);
-
-	if (!success) {
-		char status[512];
-
-		glGetProgramInfoLog(program, 512, NULL, status);
-
-		std::cerr << "Shader program " << program << " failed to compile: \n" << status << std::endl;
-	}
-
-	return (bool)success;
-}
-
 Shader::Shader(const std::string& vertexShaderTarget, const std::string& fragmentShaderTarget) {
 	// Load and link an opengl shader from the vertex and fragment shaders specified as parameters.
 	// Params should be paths to the files.
