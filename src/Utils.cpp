@@ -287,11 +287,6 @@ namespace Utils
 			else if (lineType == "heading") data.heading= tokens[1];
 
 			else if (lineType == "vector") {
-				for (auto s : tokens) {
-					std::cout << "<" << s << ">";
-				}
-
-				std::cout << std::endl;
 				// vector x y z x y z <data field>
 
 				data.vectors.push_back({ // New CSVvector struct

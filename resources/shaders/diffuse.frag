@@ -70,7 +70,7 @@ void main() {
 
 	vec3 N, N_wcs;
 	if ((flags & MATERIAL_USE_map_norm) != 0){
-		N_wcs = normalize((M * vec4(texture(map_norm, v_texCoord).xys, 0)).xyz);
+		N_wcs = normalize((M * vec4(texture(map_norm, v_texCoord).xyz, 0)).xyz);
 	} else {
 		N_wcs = normalize(v_norm_world);
 	}

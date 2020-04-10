@@ -76,10 +76,10 @@ Shader::Shader(const std::string& vertexShaderTarget, const std::string& fragmen
 	std::string vs_string, fs_string, vertexShortName, fragmentShortName;
 	const char* vs_source;
 	const char* fs_source;
-	bool vertexCompiled, fragmentCompiled, linkSuccessful;
+	int vertexCompiled, fragmentCompiled, linkSuccessful;
 
 	int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	std::cout << "Loading vertex shader (ID: " << vertexShader << "): " << vertexShaderTarget << std::endl;
+	std::cout << "Loading vertex shader (ID: " << vertexShader << "): [" << vertexShaderTarget << ']' << std::endl;
 
 	if (vertexShaderTarget == "default") {
 		vs_source = vShaderSource;
@@ -102,13 +102,24 @@ Shader::Shader(const std::string& vertexShaderTarget, const std::string& fragmen
 	glShaderSource(vertexShader, 1, &vs_source, NULL);
 	glCompileShader(vertexShader);
 
-	vertexCompiled = getGlShaderStatus(vertexShader);
+	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &vertexCompiled);
+
+	if (!vertexCompiled) {
+		char status[512];
+
+		glGetShaderInfoLog(vertexShader, 512, NULL, status);
+
+		std::cerr << "Vertex Shader " << vertexShader << " failed to compile: \n" << status << std::endl;
+	}
+	else {
+		std::cout << "Vertex Shader Compiled." << std::endl;
+	}
 
 	// Create fragment shader
 
 	int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
-	std::cout << "Loading fragment shader (ID: " << fragmentShader << "): " << fragmentShaderTarget << std::endl;
+	std::cout << "Loading fragment shader (ID: " << fragmentShader << "): [" << fragmentShaderTarget << ']' << std::endl;
 
 	if (fragmentShaderTarget == "default") {
 		fs_source = fShaderSourceBasic;
@@ -131,7 +142,18 @@ Shader::Shader(const std::string& vertexShaderTarget, const std::string& fragmen
 	glShaderSource(fragmentShader, 1, &fs_source, NULL);
 	glCompileShader(fragmentShader);
 
-	fragmentCompiled = getGlShaderStatus(fragmentShader);
+	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &fragmentCompiled);
+
+	if (!fragmentCompiled) {
+		char status[512];
+
+		glGetShaderInfoLog(fragmentShader, 512, NULL, status);
+
+		std::cerr << "Fragment Shader " << fragmentShader << " failed to compile: \n" << status << std::endl;
+	}
+	else {
+		std::cout << "Fragment Shader Compiled." << std::endl;
+	}
 
 	// Link shaders
 
@@ -144,7 +166,15 @@ Shader::Shader(const std::string& vertexShaderTarget, const std::string& fragmen
 		glAttachShader(this->shaderProgram, fragmentShader);
 		glLinkProgram(this->shaderProgram);
 
-		linkSuccessful = getGlShaderStatus(this->shaderProgram);
+		glGetProgramiv(this->shaderProgram, GL_LINK_STATUS, &linkSuccessful);
+
+		if (!linkSuccessful) {
+			char status[512];
+
+			glGetProgramInfoLog(this->shaderProgram, 512, NULL, status);
+
+			std::cerr << "Shader program " << this->shaderProgram << " failed to link: \n" << status << std::endl;
+		}
 	}
 	else {
 		std::cerr << "All shaders did not successfully compile, cannot link." << std::endl;
