@@ -43,8 +43,11 @@ namespace Utils
 
 		return splitString;
 	}
+	bool hasStart(const std::string& s, const std::string& start) { 
+		return s.rfind(start, 0) == 0; 
+	};
 	
-	bool hasEnding (std::string const &fullString, std::string const &ending) {
+	bool hasEnding (const std::string &fullString, const std::string &ending) {
 		if (fullString.length() >= ending.length()) {
 			return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
 		} else {

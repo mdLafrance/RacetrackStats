@@ -11,13 +11,13 @@ enum class LightType {DIRECTIONAL, POINT}; // spot?
 
 // Currently only directional is implemented
 
-// Lights work by passing a 3x3 matrix to glsl as a uniform to keep the data compact
+// Lights work by passing a 3x3 matrix to glsl as a uniform to keep the data compact, buffering a more readable light struct is on the TODO: (for spot for example)
 // First column of the matrix is the colour (rgb)
 // Second column of the matrix is either the direction of the light (directional) or the origin of the light (point)
 // Third column holds three values; t, i, k
 // t is the type of light (0=directional)
 // i is the intensity of the light
-// k is an extra paramater (falloff for point light)
+// k is an extra paramater (falloff for point light for ex)
 
 class Light {
 	LightType type;

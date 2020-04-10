@@ -48,6 +48,43 @@ void Shader::setLights(const int& count, const glm::mat3* m0) {
 	glUniformMatrix3fv(glad_glGetUniformLocation(this->shaderProgram, "lights"), count, GL_FALSE, &(*m0)[0][0]);
 }
 
+std::string Shader::loadShaderSource(const std::string& target, const bool& followIncludes) {
+	std::string source;
+	std::string line;
+
+	std::ifstream f(target);
+	
+	if (!f.is_open()) {
+		std::cerr << "ERROR: Couldn't load source [" << target << ']' << std::endl;
+		return source;
+	}
+
+	while (std::getline(f, line)) {
+		if (Utils::hasStart(line, "#include")) {
+			if (followIncludes) {
+				// Don't have access to build settings, so only support relative includes
+				if ((line.find('<') != std::string::npos) && (line.find('>') != std::string::npos)) {
+					std::cerr << "ERROR: Shaders only support relative includes." << std::endl;
+					continue;
+				}
+				
+				int quote0 = line.find('\"') + 1;
+				int quote1 = line.rfind('\"');
+
+				std::string includeTarget = line.substr(quote0, quote1 - quote0);
+
+				source += Shader::loadShaderSource((Utils::getFileInfo(target).directory + DIRECTORY_SEPARATOR + includeTarget).c_str(), false);
+			}
+		} else {
+			source += line + '\n';
+		}
+	}
+
+	source.pop_back(); // Remove trailing \n
+
+	return source;
+}
+
 Shader::Shader(const std::string& vertexShaderTarget, const std::string& fragmentShaderTarget) {
 	// Load and link an opengl shader from the vertex and fragment shaders specified as parameters.
 	// Params should be paths to the files.
@@ -64,19 +101,8 @@ Shader::Shader(const std::string& vertexShaderTarget, const std::string& fragmen
 	if (vertexShaderTarget == "default") {
 		vs_source = vShaderSource;
 	} else {
-		vertexShaderSourceFile.open(vertexShaderTarget);
-
-		if (vertexShaderSourceFile.good()) {
-			// Copy file into string
-			vs_string.assign(std::istreambuf_iterator<char>(vertexShaderSourceFile),
-							 std::istreambuf_iterator<char>());
-
-			vs_source = vs_string.c_str();
-		}
-		else {
-			std::cerr << "Couldn't open " << vertexShaderTarget << " for reading." << std::endl;
-			vs_source = vShaderSource;
-		}
+		vs_string = Shader::loadShaderSource(vertexShaderTarget).c_str(); // NOTE: this is assigned to vs_string var out of scope so the internal char array doesn't get cleaned up
+		vs_source = vs_string.c_str();
 	}
 
 	glShaderSource(vertexShader, 1, &vs_source, NULL);
@@ -104,19 +130,8 @@ Shader::Shader(const std::string& vertexShaderTarget, const std::string& fragmen
 	if (fragmentShaderTarget == "default") {
 		fs_source = fShaderSourceBasic;
 	} else {
-		fragmentShaderSourceFile.open(fragmentShaderTarget);
-
-		if (fragmentShaderSourceFile.good()) {
-			// Copy file into string
-			fs_string.assign(std::istreambuf_iterator<char>(fragmentShaderSourceFile),
-							 std::istreambuf_iterator<char>());
-
-			fs_source = fs_string.c_str();
-		}
-		else {
-			std::cerr << "Couldn't open " << fragmentShaderTarget << " for reading." << std::endl;
-			fs_source = fShaderSourceBasic;
-		}
+		fs_string = Shader::loadShaderSource(fragmentShaderTarget).c_str();
+		fs_source = fs_string.c_str();
 	}
 
 	glShaderSource(fragmentShader, 1, &fs_source, NULL);

@@ -10,7 +10,10 @@ void Light::buildMatrix() {
 }
 
 glm::mat3 Light::getMatrix() {
-	if (this->matrixDirty) this->buildMatrix();
+	if (this->matrixDirty) {
+		this->buildMatrix();
+		this->matrixDirty = false;
+	}
 
 	return this->matrix;
 }

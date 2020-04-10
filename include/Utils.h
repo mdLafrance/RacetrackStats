@@ -76,6 +76,7 @@ namespace Utils
 	std::string getFileNameNoExtension(const std::string& target);
 	std::string replace(const std::string& s, const char& a, const char& b);
 	std::string trimWhitespace(const std::string& s);
+	bool hasStart(const std::string& s, const std::string& start);
 	bool hasEnding(const std::string& a, const std::string& b);
 	int stringCount(char* s, const char& c);
 

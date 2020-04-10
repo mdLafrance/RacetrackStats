@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string>
 #include <iostream>
 #include <fstream>
+#include <string>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -28,4 +28,7 @@ public:
 
 	Shader(const std::string& vertexTarget, const std::string& fragmentTarget);
 	~Shader();
+
+	// GLSL doesn't natively support #include directive, so manually implement this if
+	static std::string loadShaderSource(const std::string& target, const bool& followIncludes = true);
 };
