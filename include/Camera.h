@@ -27,9 +27,13 @@ public:
 	CameraType getType() { return this->type; };
 
 	void setFOV(const float& fov) { this->FOV = fov; };
+	float getFOV() { return this->FOV; };
 
 	void setSize(const float& s) { this->size = s; };
 	void setDepth(const float& d) { this->depth = d; };
+
+	float getSize() { return this->size; };
+	float getDepth() { return this->depth; };
 
 	void setNearClipPlane(const float& ncp) { this->nearClipPlane = ncp; };
 	void setFarClipPlane(const float& fcp) { this->farClipPlane = fcp; };

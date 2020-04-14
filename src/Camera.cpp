@@ -41,6 +41,7 @@ Camera::Camera(const CameraType& type) {
 	}
 
 	if (type == Orthographic) {
+		this->FOV = CAMERA_DEFAULT_FOV;
 		this->size = CAMERA_DEFAULT_ORTHO_SCREEN_SCALE;
 		this->depth = CAMERA_DEFAULT_FAR_CLIP_PLANE - CAMERA_DEFAULT_NEAR_CLIP_PLANE;
 	}
@@ -63,4 +64,6 @@ Camera::Camera(const float& size, const float& depth) {
 
 	this->size = size;
 	this->depth = depth;
+
+	this->FOV = CAMERA_DEFAULT_FOV;
 }

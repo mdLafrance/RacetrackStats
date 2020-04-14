@@ -509,6 +509,9 @@ void Renderer::tick(const double& dTime) {
 	glm::mat4 cameraPositionTransform = glm::translate(glm::vec3(glm::column(camTransform->getMatrix(), 3)));
 
 	if (this->skybox != nullptr){
+		// Force a perspective VP for skybox drawing
+		glm::mat4 _VP = glm::perspective(this->mainCamera->getFOV(), (float)WorldState.rendererX / WorldState.rendererY, 0.01f, 1000.0f) * this->mainCamera->viewMatrix();
+
 		glDisable(GL_CULL_FACE);
 		glDisable(GL_DEPTH_TEST);
 
@@ -516,7 +519,7 @@ void Renderer::tick(const double& dTime) {
 
 		skyboxShader->bind();
 
-		skyboxShader->setUniform("MVP", VP * cameraPositionTransform);
+		skyboxShader->setUniform("MVP", _VP * cameraPositionTransform);
 
 		this->skybox->draw();
 
