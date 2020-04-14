@@ -75,6 +75,7 @@ bool frameSizeChanged = false;
 bool mouseMoved;
 double dMouseX = 0;
 double dMouseY = 0;
+float dMouseScrollY = 0.0f;
 
 double tickTotal = 0;
 
@@ -111,6 +112,10 @@ void mouseMoveCallback(GLFWwindow* window, double xPos, double yPos) {
 	lastMouseY = yPos;
 
 	mouseMoved = true;
+}
+
+void mouseScrollCallback(GLFWwindow* window, double scrollX, double scrollY) {
+	dMouseScrollY += scrollY;
 }
 
 void cleanup() {
@@ -172,6 +177,7 @@ int main(int argc, char** argv) {
 	glfwSetWindowSizeCallback(window, windowResizeCallbackFunction);
 	glfwSetErrorCallback(Utils::glfwErrorCallbackFunction);
 	glfwSetCursorPosCallback(window, mouseMoveCallback);
+	glfwSetScrollCallback(window, mouseScrollCallback);
 
 	bool onMSI = std::getenv("MSI") != nullptr;
 
@@ -273,21 +279,6 @@ int main(int argc, char** argv) {
 	// Used to calculate timeline playing
 	double tickTotal = 0;
 
-	// Set up default cameras
-	Camera* followCam = new Camera();
-	Camera* carCam = new Camera();
-	Camera* overheadCam = new Camera(Orthographic); // TODO: Ortho cameras need work
-
-	renderer->registerCamera("Follow", followCam);
-	renderer->registerCamera("Car", carCam);
-	renderer->registerCamera("Overhead", overheadCam);
-
-	Transform* followCamLocator = new Transform();
-	Transform* carCamLocator = new Transform();
-	Transform* overheadCamLocator = new Transform();
-
-	renderer->setMainCamera("Follow");
-
 	// Parent transform for the whole BMW
 	Transform* BMW_transform = new Transform();
 
@@ -296,10 +287,26 @@ int main(int argc, char** argv) {
 	for (auto p : renderer->objects) {
 		o = p.second;
 
-		if (o->mesh->getMeshName().rfind("BMW", 0) == 0) { // If object is from BMW obj file
+		if (Utils::hasStart(o->mesh->getMeshName(), "BMW")) { // If object is from BMW obj file
 			o->transform->setParent(BMW_transform);
 		}
 	}
+
+	//
+	// Set up default cameras
+	//
+	Camera* followCam = new Camera();
+	Camera* carCam = new Camera();
+	Camera* overheadCam = new Camera(Orthographic);
+
+	renderer->registerCamera("Follow", followCam);
+	renderer->registerCamera("Car", carCam);
+	renderer->registerCamera("Overhead", overheadCam);
+
+	// Use an intermediary transform between the car and camera so rotation is simple
+	Transform* followCamLocator = new Transform();
+	Transform* carCamLocator = new Transform();
+	Transform* overheadCamLocator = new Transform();
 
 	followCam->transform->setParent(followCamLocator);
 	carCam->transform->setParent(carCamLocator);
@@ -312,15 +319,18 @@ int main(int argc, char** argv) {
 	carCamLocator->setTranslation({ 0.3665, 1.1, -0.1 }); // Center camera approximately where the driver's head is
 	carCamLocator->setRotation(Utils::PI, { 0, 1, 0 });
 
-	followCam->transform->setTranslation({ 0, 1, 7 });
+	followCam->transform->setTranslation({ 0, 0, 7 });
 	followCamLocator->rotate(Utils::PI, { 0,1,0 });
 
 	overheadCamLocator->rotate(Utils::PI, { 0,1,0 });
 	overheadCamLocator->rotate(Utils::PI/2, { 1,0,0 });
 
+	renderer->setMainCamera("Follow");
+
 	// Load config file for CSV data display
 	displayData = Utils::loadDisplaySettings(std::string(WorldState.projectRoot) + DIRECTORY_SEPARATOR + displayDataConfigFileName);
 
+	// TODO: This is for testing, approximately at start of course
 	BMW_transform->setTranslation({ -270.326, 1.50942, -753.757 });
 
 	//
@@ -337,6 +347,7 @@ int main(int argc, char** argv) {
 			seconds0 = glfwTime;
 		}
 
+		// TODO: just for testing
 		float rSpeed = 1;
 		float tSpeed = 3;
 
@@ -365,8 +376,27 @@ int main(int argc, char** argv) {
 		renderer->addLine(BMW_position, BMW_position + glm::vec3(0, 0, 1), glm::vec3(0, 0, 1), true);
 
 		//
-		// Process user input to the gui from the previous frame
+		// Process user input
 		//
+
+		// Zoom camera if scroll wheel was used
+		if (dMouseScrollY != 0.0f) {
+			Camera* mainCam = renderer->getMainCamera();
+
+			// Different behavior for ortho and persp cams
+
+			const float orthoZoomSpeed = -0.001f;
+			const float perspZoomSpeed = -0.8f;
+
+			if (mainCam == overheadCam) {
+				mainCam->setSize(mainCam->getSize() + orthoZoomSpeed * dMouseScrollY);
+			}
+			else if (mainCam == followCam) { 
+				mainCam->transform->translate({ 0, 0, perspZoomSpeed * dMouseScrollY });
+			} // No real reason to 'zoom' in cockpit view
+
+			dMouseScrollY = 0;
+		}
 
 		// Rotate current camera/locator if user dragged right click
 		if (mouseMoved) {
@@ -375,19 +405,15 @@ int main(int argc, char** argv) {
 
 				Camera* mainCam = renderer->getMainCamera();
 
-				// Special rotation behavior for inside of car cam
-				if (mainCam == carCam) {
-					carCam->transform->rotate(dTime * 0.01f * GuiState.mouseSensitivity * -dMouseX, glm::vec3(0,1,0));
-					carCam->transform->rotate(dTime * 0.01f * GuiState.mouseSensitivity * dMouseY, carCam->transform->right());
-				}
-				else {
-					if (mainCam == followCam) {
-						followCamLocator->rotate(dTime * 0.01f * GuiState.mouseSensitivity * -dMouseX, glm::vec3(0,1,0));
-						followCamLocator->rotate(dTime * 0.01f * GuiState.mouseSensitivity * dMouseY, followCamLocator->right());
-					} else if (mainCam == overheadCam) {
-						overheadCamLocator->rotate(dTime * 0.01f * GuiState.mouseSensitivity * -dMouseX, glm::vec3(0,1,0));
-						overheadCamLocator->rotate(dTime * 0.01f * GuiState.mouseSensitivity * dMouseY, overheadCamLocator->right());
-					}
+				Transform* t = nullptr;
+
+				if (mainCam == carCam) t = carCam->transform;
+				if (mainCam == followCam) t = followCamLocator;
+				if (mainCam == overheadCam) t = overheadCamLocator;
+
+				if (t != nullptr) {
+					t->rotate(dTime * 0.01f * GuiState.mouseSensitivity * -dMouseX, { 0,1,0 });
+					t->rotate(dTime * 0.01f * GuiState.mouseSensitivity * dMouseY, t->right());
 				}
 			}
 
@@ -536,9 +562,7 @@ int main(int argc, char** argv) {
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		float start = glfwGetTime();
 		renderer->tick(dTime);
-		std::cout << '\r' << glfwGetTime() - start;
 
 		// Draw GUI elements
 		drawUI(GuiState);
