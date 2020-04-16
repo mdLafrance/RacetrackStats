@@ -12,7 +12,7 @@ void Renderer::registerTexture(const std::string& id, Texture* texture){
         this->textures[id] = texture;
 		std::cout << "Registered Texture " << id << std::endl;
     } else {
-        std::cerr << "Texture " << id << " already registered." << std::endl;
+        std::cerr << "ERROR: Texture " << id << " already registered." << std::endl;
     }
 }
 
@@ -21,7 +21,7 @@ void Renderer::registerShader(const std::string& id, Shader* shader){
         this->shaders[id] = shader;
 		std::cout << "Registered Shader " << id << " (ID: " << shader->programID() << ")" << std::endl;
     } else {
-        std::cerr << "Shader " << id << " already registered." << std::endl;
+        std::cerr << "ERROR: Shader " << id << " already registered." << std::endl;
     }
 }
 
@@ -30,7 +30,7 @@ void Renderer::registerMesh(const std::string& id, OBJMesh* mesh){
         this->meshes[id] = mesh;
 		std::cout << "Registered Mesh " << id << " (Material " << mesh->getDefaultMaterialName() << ")" << std::endl;
     } else {
-        std::cerr << "Mesh " << id << " already registered." << std::endl;
+        std::cerr << "ERORR: Mesh " << id << " already registered." << std::endl;
     }
 }
 
@@ -39,7 +39,7 @@ void Renderer::registerMaterial(const std::string& id, Material* material){
         this->materials[id] = material;
 		std::cout << "Registered Material " << id << " (shader: " << material->shader->programID() << ")" << std::endl;
     } else {
-        std::cerr << "Material " << id << " already registered." << std::endl;
+        std::cerr << "ERROR: Material " << id << " already registered." << std::endl;
     }
 }
 
@@ -48,7 +48,7 @@ void Renderer::registerCamera(const std::string& id, Camera* camera){
         this->cameras[id] = camera;
 		std::cout << "Registered Camera " << id << std::endl;
     } else {
-        std::cerr << "Camera " << id << " already registered." << std::endl;
+        std::cerr << "ERROR: Camera " << id << " already registered." << std::endl;
     }
 }
 
@@ -57,7 +57,7 @@ void Renderer::registerSkybox(const std::string& id, Skybox* skybox){
         this->skyboxes[id] = skybox;
 		std::cout << "Registered Skybox " << id << std::endl;
     } else {
-        std::cerr << "Skybox " << id << " already registered." << std::endl;
+        std::cerr << "ERROR: Skybox " << id << " already registered." << std::endl;
     }
 }
 
@@ -70,7 +70,7 @@ void Renderer::setMainCamera(const std::string& id){
         this->mainCamera = this->cameras.at(id);
     }
     catch (const std::out_of_range& oor) {
-        std::cerr << "Camera " << id << " not registered" << std::endl;
+        std::cerr << "ERROR: Camera " << id << " not registered" << std::endl;
     }
 }
 
@@ -79,7 +79,7 @@ void Renderer::setSkybox(const std::string& id){
         this->skybox = this->skyboxes.at(id);
     }
     catch (const std::out_of_range& oor) {
-        std::cerr << "Skybox " << id << " not registered" << std::endl;
+        std::cerr << "ERROR: Skybox " << id << " not registered" << std::endl;
     }
 }
 
@@ -234,7 +234,7 @@ void Renderer::loadScene(const std::string& target) {
 	f.open(target);
 
 	if (!f.is_open()) {
-		std::cerr << "Could not open target scene for loading: " << target << std::endl;
+		std::cerr << "ERROR: Could not open target scene file: " << target << std::endl;
 		return;
 	}
 
@@ -275,7 +275,7 @@ void Renderer::loadScene(const std::string& target) {
 		// Light to be used in scene
 		else if (lineType == "light") {
 			if (this->numOfLights >= MAX_LIGHT_COUNT) {
-				std::cerr << "Too many lights attempting to be created for scene. (Max light count is " << MAX_LIGHT_COUNT << ")" << std::endl;
+				std::cerr << "ERROR: Too many lights attempting to be created for scene. (Max light count is " << MAX_LIGHT_COUNT << ")" << std::endl;
 				continue;
 			}
 
@@ -401,7 +401,7 @@ void Renderer::loadScene(const std::string& target) {
 				o->transform->setParent(this->objects.at(targetParent)->transform);
 			}
 			catch (const std::out_of_range & oor) {
-				std::cerr << "Can't find parent " << "<" << targetParent << ">" << " for object " << p.first << std::endl;
+				std::cerr << "ERROR: Can't find parent " << "<" << targetParent << ">" << " for object " << p.first << std::endl;
 			}
 		}
 	}
@@ -413,7 +413,7 @@ void Renderer::loadScene(const std::string& target) {
 
 Object* Renderer::newObject(const std::string& name) {
 	if (this->objects.count(name) != 0) {
-		std::cerr << "Object " << name << " already exists." << std::endl;
+		std::cerr << "ERROR: Object " << name << " already exists." << std::endl;
 		return nullptr;
 	}
 
@@ -429,7 +429,7 @@ Object* Renderer::newObject(const std::string& name) {
 
 Object* Renderer::getObject(const std::string& name) {
 	if (this->objects.count(name) != 1) {
-		std::cerr << "Object " << name << " is not registered with renderer.";
+		std::cerr << "ERROR: Object " << name << " is not registered with renderer.";
 		return nullptr;
 	}
 

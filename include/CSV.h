@@ -23,8 +23,7 @@ public:
     // Get a single value of a type at a time point
     std::string getData(const std::string& type, const int& line) const; // ex. getData("Speed", 2); gets speed value at time point 2
     std::string getData(const int& index, const int& line) const;
-
-	float getDataAsFloat(const std::string& type, const int& line) const;
+	float getDataAsFloat(const std::string& type, const int& line) const; // Same behavior, but cast to float
 
     // TODO: These buffer functions could probably be faster if the data was packed in terms of type instead of by line
 
@@ -35,8 +34,10 @@ public:
 
     std::string getMetric(const std::string& type); // ex. Speed in the file could be defined as <Speed [m/s]>. getMetric("Speed") returns "[m/s]"
 
-    int getNumberOfDataTypes() const;
-    int getNumberOfTimePoints() const;
+	int getNumberOfDataTypes() const { return this->numberOfFields; };
+	int getNumberOfTimePoints() const { return this->numberOfLines; };
+
+	int getOffset(const std::string& type);
 
     bool hasData(const std::string& type);
 

@@ -228,16 +228,12 @@ std::string CSV::getMetric(const std::string& type) {
     return this->dataTypes.at(type);
 }
 
-int CSV::getNumberOfDataTypes() const {
-    return this->numberOfFields;
-}
-
-int CSV::getNumberOfTimePoints() const {
-    return this->numberOfLines;
+int CSV::getOffset(const std::string& type) {
+	return this->dataOffsets[type];
 }
 
 bool CSV::hasData(const std::string& type) {
-    return this->dataTypes.count(type) == 1;
+	return this->dataOffsets.find(type) != this->dataOffsets.end();
 }
     
 std::pair<std::string, std::string> CSV::splitNameAndType(const std::string& line) {

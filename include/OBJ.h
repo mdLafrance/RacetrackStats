@@ -59,7 +59,6 @@ class OBJMesh {
 	unsigned int VBO;
 	unsigned int VAO;
 
-
 	bool loaded = false;
 
 public:

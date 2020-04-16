@@ -22,6 +22,21 @@ std::ostream& operator <<(std::ostream& os, const ImVec2& vec) {
 
 namespace Utils
 {
+	void findMaxMin(const float* data, const int& sizeOfData, int* min, int* max) {
+		assert((data != nullptr) && (sizeOfData > 0) && "Invalid parameters supplied");
+
+		*min = *data;
+		*max = *data;
+
+		int x;
+		for (int i = 0; i < sizeOfData; i++) {
+			x = *(data + i);
+
+			if (x < *min) *min = x;
+			if (*max < x) *max = x;
+		}
+	}
+
 	std::vector<std::string> split(const std::string& s, char delimiter) {
 		std::vector<std::string> splitString;
 
@@ -98,7 +113,7 @@ namespace Utils
 		f.open(target);
 
 		if (!f.is_open()) {
-			std::cerr << "Couldn't open file " << target << " to check file size." << std::endl;
+			std::cerr << "ERROR: Couldn't open file " << target << " to check file size." << std::endl;
 		}
 
 		f.seekg(0, std::ios_base::end);
@@ -144,7 +159,7 @@ namespace Utils
 			closedir(dir);
 		}
 		else {
-			std::cerr << "Couldn't open directory " << target << std::endl;
+			std::cerr << "ERROR: Couldn't open directory " << target << std::endl;
 		}
 
 		return files;
@@ -290,13 +305,13 @@ namespace Utils
 			else if (lineType == "heading") data.heading= tokens[1];
 
 			else if (lineType == "vector") {
-				// vector x y z x y z <data field>
+				// vector  x y z  x y z  r g b  <data field>
 
 				data.vectors.push_back({ // New CSVvector struct
+					tokens[10], // data field
 					{std::atof(tokens[1].c_str()), std::atof(tokens[2].c_str()), std::atof(tokens[3].c_str())}, // origin
 					glm::normalize(glm::vec3(std::atof(tokens[4].c_str()), std::atof(tokens[5].c_str()), std::atof(tokens[6].c_str()))), // direction
-					{std::atof(tokens[7].c_str()), std::atof(tokens[8].c_str()), std::atof(tokens[9].c_str())}, // color
-					tokens[10] // data field
+					{std::atof(tokens[7].c_str()), std::atof(tokens[8].c_str()), std::atof(tokens[9].c_str())} // color
 				});
 			}
 
@@ -311,7 +326,7 @@ namespace Utils
 			}
 
 			else {
-				std::cerr << "ERROR reading " << target << " : unkown line \"" << line << "\"" << std::endl;
+				std::cerr << "ERROR while reading " << target << " : unkown line \"" << line << "\"" << std::endl;
 			}
 		}
 

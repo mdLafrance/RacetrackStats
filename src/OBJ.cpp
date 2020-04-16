@@ -19,7 +19,7 @@ namespace OBJ
 		f = fopen(target.c_str(), "r");
 
 		if (!f) {
-			std::cerr << "Couldn't Open File " << target << " For OBJ Loading" << std::endl;
+			std::cerr << "ERROR: Couldn't Open File " << target << " For OBJ Loading" << std::endl;
 			return std::vector<OBJMesh*>();
 		}
 
@@ -266,7 +266,7 @@ namespace OBJ
 				continue;
 			}
 
-			std::cerr << "Unrecognized obj line: " << line << std::endl;
+			std::cerr << "ERROR: Unrecognized line while reading file: " << line << std::endl;
 
 nextline:
 			fgets(line, sizeof(line), f); // Eat rest of line

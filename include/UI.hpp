@@ -9,13 +9,15 @@
 
 #include <Texture.h>
 #include <WorldState.h>
+#include <CSV.h>
 #include <Utils.h>
 
 #define UI_DEFAULT_TIMELINE_CONTROLS_HEIGHT 150
 
 extern _WorldState WorldState;
-
-extern ImGuiIO* imguiIO; // Set in main, handle to the io structure set by imgui (collects mouse clicks etc.)
+extern ImGuiIO* imguiIO; 
+extern CSV* currentData;
+extern Utils::CSVDataDisplaySettings displayData;
 
 struct _GuiState {
 	// Global states
@@ -46,13 +48,11 @@ struct _GuiState {
 	float lineWidth = 1;
 	float glLineWidthRange[2];
 
-	// Cached Data fields
-	bool* dataFieldsEnabled = nullptr; // for some reason, bool vector returns proxy reference in [] operator in stl
-	std::vector<std::string> dataFields;
-	int numberOfDataTypes = 0;
-	int numberOfTimePoints = 0;
+	// CSV data fields
+	bool* dataFieldsEnabled; // std bool vector has problems, so using old style array instead
+	std::vector<std::string> dataFields; // The data fields which are both present in the CSV, and in the config file
 
-    // Gui states
+    // Timeline states
     int timelinePosition = 0;
 	bool isPlaying = false;
 	float playbackSpeed = 1.0f; // Ticks per second
@@ -95,12 +95,6 @@ void setGuiOptionsToDefault(_GuiState& state) {
 	state.lineWidthChanged = true;
 }
 
-std::string imVec2ToString(const ImVec2& v) { // ostream<< operator not defined??
-	char s[32];
-	sprintf(s, "[%.3f, %.3f]", v.x, v.y);
-	return std::string(s);
-}
-
 // NOTE: Bug within ImGui causes multiple ImageButtons to not receive any clicks (documented bug)
 // So just made an ImageButton where this... doesn't happen
 bool ImageButton2(Texture** textures, const ImVec2& cursorPos, const ImVec2& buttonSize, const bool& flipTexture = false) {
@@ -111,6 +105,9 @@ bool ImageButton2(Texture** textures, const ImVec2& cursorPos, const ImVec2& but
 		-Button size and flip texture fairly straight forward
 
 		Usage is the same as ImGui::ImageButton
+
+		NOTE: CursorPos refers to the imGui 'paintbrush' position, not the mouse position
+		TODO: That can probably be fetched from imgui itself instead of being passed?
 	*/
 	assert(textures != nullptr);
 
@@ -122,8 +119,6 @@ bool ImageButton2(Texture** textures, const ImVec2& cursorPos, const ImVec2& but
 	ImVec2 boundsY(cursorPos[1], cursorPos[1] + buttonSize[1]);
 
 	ButtonState bs;
-
-	// std::cout << imVec2ToString(boundsX) << " : " << imVec2ToString(boundsY) << " <- " << imVec2ToString(mousePos) << std::endl; // For debugging, reads out the bounds and mouse pos
 
 	if ((boundsX[0] <= mousePos[0] && mousePos[0] <= boundsX[1]) && (boundsY[0] <= mousePos[1] && mousePos[1] <= boundsY[1])) { // If mouse within bounds of button
 		if (imguiIO->MouseDown[0]) { // If left click is being held
@@ -158,6 +153,9 @@ void drawUI(_GuiState& state) {
 	halfY = Y / 2;
 
 	int w, h; // Used to hold various button and image widths and heights later on
+
+	// Data that is dependant on whether or not CSV data is loaded
+	int timelineMax = currentData == nullptr ? 0 : currentData->getNumberOfTimePoints();
 
 	// NOTE: Spent time looking for the right style element color for this, but ended up just eyedropping the color
 	ImVec4 bgColor = ImVec4(0.056, 0.056, 0.056, 1.0f);// ImGui::GetStyleColorVec4(ImGuiCol_TitleBg); // Cache background color for use with the icon buttons later
@@ -250,8 +248,17 @@ void drawUI(_GuiState& state) {
 	ImGui::SetNextWindowPos(ImVec2(0, halfY), 0, ImVec2(0, 0));
 	ImGui::Begin("Data", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
+
 	// Dropdown to enable or disable data type display
-	if (state.sceneOpen) {
+	if (currentData != nullptr) {
+		std::vector<std::string> currentDisplayData;
+
+		for (Utils::CSVgraph g : displayData.graphs) {
+			if (currentData->hasData(g.dataField)) {
+				currentDisplayData.push_back(g.dataField);
+			}
+		}
+
 		if (ImGui::CollapsingHeader("Display Data Types")) {
 			// 'All' and 'None' buttons
 
@@ -261,18 +268,38 @@ void drawUI(_GuiState& state) {
 
 			// ImGui::SameLine(0, 10);
 
+			if (ImGui::Button("All")) {
+				memset(state.dataFieldsEnabled, 1, state.dataFields.size());
+			}
+
+			ImGui::SameLine(0, 10);
+
 			if (ImGui::Button("None")) {
 				memset(state.dataFieldsEnabled, 0, state.dataFields.size());
 			}
 
-			// Add all toggles for data types
-			for (int i = 0; i < state.dataFields.size(); i++) {
-				ImGui::Checkbox(state.dataFields[i].c_str(), state.dataFieldsEnabled + i);
-				if (*(state.dataFieldsEnabled + i)) {
-				}
+			for (std::string d : currentDisplayData) {
+				ImGui::Button(d.c_str());
 			}
 		}
 	} // Data type dropdown
+
+	// For each loaded data, if it's enabled and defined to have a graph in the config file, draw that graph
+	if (currentData != nullptr) {
+		for (Utils::CSVgraph g : displayData.graphs) {
+			// If current CSV data has the data that the user wants to display as a graph
+			if (!currentData->hasData(g.dataField)) {
+				std::cerr << "ERROR: Graph defined for data type not present in current CSV data file: " << g.dataField << std::endl;
+				continue;
+			}
+
+			int offset = currentData->getOffset(g.dataField);
+
+			if (*(state.dataFieldsEnabled + offset)) {
+				ImGui::Button(g.dataField.c_str());
+			}
+		}
+	}
 
 	ImGui::End(); // Data Panel
 
@@ -284,7 +311,7 @@ void drawUI(_GuiState& state) {
 	ImGui::Begin("Timeline Panel", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
 	ImGui::PushItemWidth(X - state.padding);
-	ImGui::SliderInt("##Timeline", &state.timelinePosition, 0, state.numberOfTimePoints);
+	ImGui::SliderInt("##Timeline", &state.timelinePosition, 0, timelineMax);
 
 	//
 	// Timeline control buttons
@@ -296,9 +323,6 @@ void drawUI(_GuiState& state) {
 	// Determine the right color for the button
 
 	// Params for timeline controllers
-	bool mouseButtonIsPressed = imguiIO->MouseDown[0]; // Continuous signal
-	bool mouseButtonPressedThisFrame = ImGui::IsMouseClicked(0, false); // Only registers on first frame pressed
-
 	ImVec2 mousePos = ImGui::GetMousePos();
 
 	ImVec2 boundsX, boundsY, cursorPos;
@@ -356,7 +380,7 @@ void drawUI(_GuiState& state) {
 	if (ImageButton2(state.skipButtonTextures, cursorPos + timelinePanelPosition, bfDimensions)) state.timelinePosition += state.tickSkipAmount;
 
 	// Clamp timeline within bounds
-	state.timelinePosition = Utils::clamp(state.timelinePosition, 0, state.numberOfTimePoints);
+	state.timelinePosition = Utils::clamp(state.timelinePosition, 0, timelineMax);
 
 	const int timelineParametersOffset = 20;
 
@@ -372,7 +396,7 @@ void drawUI(_GuiState& state) {
 	ImGui::PushItemWidth(90);
 	ImGui::InputInt(" Tick skip amount", &state.tickSkipAmount);
 
-	state.tickSkipAmount = Utils::clamp(state.tickSkipAmount, 0, 10000000); // Mathf.infinity?
+	state.tickSkipAmount = Utils::clamp(state.tickSkipAmount, 0, (int) INFINITY);
 
 	ImGui::End(); // Timeline Panel
 
@@ -399,9 +423,7 @@ void drawUI(_GuiState& state) {
 		ImVec2 fpsOverlaySize(imguiIO->FontGlobalScale * 65, (imguiIO->FontGlobalScale * 17) + 10);
 		// Generate fps readout text of the form <### fps\0>
 		char fpsReadout[8];
-		int fpsInt = (int)state.fps;
-		int fpsClipped = fpsInt >= 1000 ? 999 : fpsInt;
-		sprintf(fpsReadout, "%i fps", fpsClipped);
+		sprintf(fpsReadout, "%i fps", Utils::clamp((int) state.fps, 0, 999));
 
 		ImGui::SetNextWindowPos(ImVec2(0, Y/2), 0, ImVec2(0, 1));
 		ImGui::SetNextWindowSize(fpsOverlaySize);

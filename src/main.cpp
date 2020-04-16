@@ -10,7 +10,7 @@
 #include <math.h>
 
 #include <assert.h>
-// TODO: Uncomment this for release, forces compiler to ignore all assert statements
+// TODO: Uncomment this for release
 // #define NDEBUG 
 
 #include <cstdlib>
@@ -42,14 +42,18 @@
 
 #include <UI.hpp>
 
-// State of the GUI
+//
+// Data shared with other files
+//
+
 _GuiState GuiState;
+ImGuiIO* imguiIO;
 
-// Cameras available to switch between
-static const std::vector<std::string> cameras = { "Follow", "Car", "Overhead" };
+CSV* currentData;
 
-// State of the scene, used by the renderer and the gui
-_WorldState WorldState = { 
+Utils::CSVDataDisplaySettings displayData;
+
+_WorldState WorldState = { // State of the scene, used by the renderer and the gui
 	WINDOW_DEFAULT_X,    // Starting window width
 	WINDOW_DEFAULT_Y,    // Starting window height
 	WINDOW_DEFAULT_X,    // Proper values for renderer w h get filled in main
@@ -59,25 +63,25 @@ _WorldState WorldState = {
 	nullptr				 // (string) path to root of the mesh and texture data for mosport
 };
 
-// Internal state variables
-const static char* exeLocation;
-const static char* trackDataLocation;
+//
+// Internal variables
+//
 
 static Renderer* renderer;
-static CSV* currentData;
-ImGuiIO* imguiIO;
 
-const char* displayDataConfigFileName = "display.config";
-Utils::CSVDataDisplaySettings displayData;
+const char* exeLocation;
+const char* trackDataLocation;
 
-bool frameSizeChanged = false;
+static const char* displayDataConfigFileName = "display.config";
 
-bool mouseMoved;
-double dMouseX = 0;
-double dMouseY = 0;
-float dMouseScrollY = 0.0f;
+static bool frameSizeChanged = false;
 
-double tickTotal = 0;
+static bool mouseMoved = false;
+static double dMouseX = 0;
+static double dMouseY = 0;
+static float dMouseScrollY = 0.0f;
+
+static double tickTotal = 0;
 
 // Handler for shortcuts used to navigate the ui
 void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -89,16 +93,14 @@ void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int
 	if (key ==  GLFW_KEY_SPACE && action == GLFW_PRESS) GuiState.isPlaying = !GuiState.isPlaying;
 
 	// Arrow keys to nudge timeline
-	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS)   GuiState.timelinePosition = Utils::clamp(GuiState.timelinePosition - GuiState.tickSkipAmount, 0, GuiState.numberOfTimePoints);
-	if (key ==  GLFW_KEY_RIGHT && action == GLFW_PRESS) GuiState.timelinePosition = Utils::clamp(GuiState.timelinePosition + GuiState.tickSkipAmount, 0, GuiState.numberOfTimePoints);
+	int timelineMax = currentData == nullptr ? 0 : currentData->getNumberOfTimePoints();
+	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS)   GuiState.timelinePosition = Utils::clamp(GuiState.timelinePosition - GuiState.tickSkipAmount, 0, timelineMax);
+	if (key ==  GLFW_KEY_RIGHT && action == GLFW_PRESS) GuiState.timelinePosition = Utils::clamp(GuiState.timelinePosition + GuiState.tickSkipAmount, 0, timelineMax);
 
 	// Number keys to switch between cameras
 	if (key == GLFW_KEY_1 && action == GLFW_PRESS) renderer->setMainCamera("Follow");
 	if (key == GLFW_KEY_2 && action == GLFW_PRESS) renderer->setMainCamera("Car");
 	if (key == GLFW_KEY_3 && action == GLFW_PRESS) renderer->setMainCamera("Overhead");
-
-	// Reset orientation of main cam
-	if (key == GLFW_KEY_R && action == GLFW_PRESS) renderer->getMainCamera()->transform->setRotation(0, glm::vec3(0,1,0));
 }
 
 void mouseMoveCallback(GLFWwindow* window, double xPos, double yPos) {
@@ -152,7 +154,7 @@ int main(int argc, char** argv) {
 
 	// Initialize glad
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		std::cerr << "Failed to initialize GLAD\n";
+		std::cerr << "ERROR: Failed to initialize GLAD\n";
 	}
 
 	// Initial opengl settings
@@ -179,9 +181,9 @@ int main(int argc, char** argv) {
 	glfwSetCursorPosCallback(window, mouseMoveCallback);
 	glfwSetScrollCallback(window, mouseScrollCallback);
 
-	bool onMSI = std::getenv("MSI") != nullptr;
 
 	// For personal convenience when working, this is defined on one of my machines
+	bool onMSI = std::getenv("MSI") != nullptr;
 	// TODO: In final, this should be some relative path to the execuatable
 	if (onMSI) {
 		::WorldState.projectRoot = "D:/Hacking/RacetrackStats";
@@ -241,10 +243,11 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 
-	std::cout << "User selected " << selectedScene << std::endl;
+	std::cout << "Selected " << selectedScene << std::endl;
 
 	glfwSetWindowPos(window, 40, 40); // Not necessary, just makes the window appear in a consistent spot
 
+	// Default size of renderer window
 	WorldState.rendererX = WorldState.windowX;
 	WorldState.rendererY = WorldState.windowY / 2;
 
@@ -256,7 +259,6 @@ int main(int argc, char** argv) {
 
 	// Draw one frame of GUI to look clean while loading
 	drawUI(GuiState);
-
 	glfwSwapBuffers(window);
 
 	// Load Mosport Scene
@@ -379,7 +381,7 @@ int main(int argc, char** argv) {
 		// Process user input
 		//
 
-		// Zoom camera if scroll wheel was used
+		// 'Zoom' camera if scroll wheel was used
 		if (dMouseScrollY != 0.0f) {
 			Camera* mainCam = renderer->getMainCamera();
 
@@ -401,8 +403,6 @@ int main(int argc, char** argv) {
 		// Rotate current camera/locator if user dragged right click
 		if (mouseMoved) {
 			if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS) {
-				// NOTE: Mouse sensitivity is multiplied by 100 in gui, so multiply by 0.01
-
 				Camera* mainCam = renderer->getMainCamera();
 
 				Transform* t = nullptr;
@@ -429,25 +429,24 @@ int main(int argc, char** argv) {
 			// Returned list is empty if user cancelled window, else it contains what the user selected
 
 			if (choice.size() != 0) { 
-			// Reset GUI values to track data fields
-			if (GuiState.dataFieldsEnabled != nullptr) delete[] GuiState.dataFieldsEnabled;
-			if (currentData != nullptr) delete currentData;
+				// Clean up old data if necessary 
+				if (GuiState.dataFieldsEnabled != nullptr) delete[] GuiState.dataFieldsEnabled;
+				if (currentData != nullptr) delete currentData;
 
-			// Load CSV data
-			currentData = new CSV(choice[0]);
+				// Load CSV data
+				currentData = new CSV(choice[0]);
 
-			// Update GUI to match the parameters of the new CSV file
-			GuiState.numberOfDataTypes = currentData->getNumberOfDataTypes();
-			GuiState.numberOfTimePoints = currentData->getNumberOfTimePoints();
-			GuiState.dataFields = currentData->getOrderedData();
-			GuiState.dataFieldsEnabled = new bool[GuiState.numberOfDataTypes];
-			GuiState.sceneOpen = true;
+				// Update GUI to match the parameters of the new CSV file
+				GuiState.dataFields = currentData->getOrderedData();
+				GuiState.dataFieldsEnabled = new bool[currentData->getNumberOfTimePoints()];
+				GuiState.sceneOpen = true;
 
-			// Start off with all data disabled
-			memset(GuiState.dataFieldsEnabled, 0, GuiState.numberOfDataTypes);
+				// Start off with all data disabled
+				memset(GuiState.dataFieldsEnabled, 0, currentData->getNumberOfDataTypes());
 			}
 		}
 
+		// If load new config file clicked
 		if (GuiState.selected_menu_File_LoadConfig) {
 			pfd::open_file fd = pfd::open_file::open_file("Open Config File", "", {"All Files", "*.config" }, false);
 			std::vector<std::string> choice = fd.result();
@@ -457,6 +456,7 @@ int main(int argc, char** argv) {
 			}
 		}
 
+		// If reload config clicked
 		if (GuiState.selected_menu_File_ReloadConfig) {
 			std::string path = displayData.path;
 			displayData = Utils::loadDisplaySettings(path);

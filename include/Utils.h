@@ -57,7 +57,6 @@ namespace Utils
 	void setLogFlags(const unsigned char& flags);
 
 	// Numerical utility
-	// these are not in .cpp because of template shenanigans
 	template <typename T>
 	T clamp(const T& x, const T& min, const T& max) {
 		if (x < min) return min;
@@ -70,6 +69,8 @@ namespace Utils
 		assert(std::is_arithmetic<T>::value && "Type must be a numerical type");
 		return x >= 0 ? 1 : -1;
 	}
+
+	void findMaxMin(const float* data, const int& sizeOfData, int* min, int* max);
 
 	// String manipulation utility
 	std::vector<std::string> split(const std::string& s, char delimiter);
@@ -108,10 +109,10 @@ namespace Utils
 	};
 
 	struct CSVvector {
+		std::string dataField; // Name of the data field that will drive the vector
 		glm::vec3 origin; // Origin of the vector (relative to car local coordinates)
 		glm::vec3 direction; // Direction of the vector (relative to the car local coordinates)
 		glm::vec3 color; // Color of the vector
-		std::string dataField; // Name of the data field that will drive the vector
 	};
 
 	struct CSVgraph {

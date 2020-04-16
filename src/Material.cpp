@@ -74,7 +74,7 @@ namespace MTL
 				}
 			}
 		} else {
-			std::cerr << "Couldn't open .mtl file: " << target << std::endl;
+			std::cerr << "ERROR: Couldn't open .mtl file: " << target << std::endl;
 			return std::vector<Material*>();
 		}
 
