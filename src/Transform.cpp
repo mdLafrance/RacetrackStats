@@ -10,20 +10,12 @@ glm::mat4x4 Transform::getLocalMatrix() {
 }
 
 glm::mat4x4 Transform::getMatrix() {
-	if (this->parent != nullptr && this->parent != (Transform*)0xCDCDCD) { // CD values is default for value for stack memory, doesn't usually happen
+	if (this->parent != nullptr && this->parent != (Transform*)0xCDCDCD) { // CD values is default for value for stack memory, 99% of time first clause is sufficient to catch this
 		return this->parent->getMatrix() * this->getLocalMatrix();
 	}
 	else {
 		return this->getLocalMatrix();
 	}
-}
-
-void Transform::setParent(Transform* parent){
-	this->parent = parent;
-}
-
-Transform* Transform::getParent() {
-	return this->parent;
 }
 
 void Transform::translate(const glm::vec3& dp){
@@ -36,10 +28,6 @@ void Transform::setTranslation(const glm::vec3& dest){
 	this->T = glm::translate(dest);
 }
 
-glm::mat4 Transform::Tmatrix() {
-	return this->T;
-}
-
 void Transform::rotate(const float& angle, const glm::vec3& dir){
 	this->updateMatrix = true;
 	this->R = glm::rotate(angle, dir) * this->R;
@@ -50,10 +38,6 @@ void Transform::setRotation(const float& angle, const glm::vec3& dir){
 	this->R = glm::rotate(angle, dir);
 }
 
-glm::mat4 Transform::Rmatrix() {
-	return this->R;
-}
-
 void Transform::scale(const glm::vec3& components){
 	this->updateMatrix = true;
 	this->S *= glm::scale(components);
@@ -62,10 +46,6 @@ void Transform::scale(const glm::vec3& components){
 void Transform::setScale(const glm::vec3& components){
 	this->updateMatrix = true;
 	this->S = glm::scale(components);
-}
-
-glm::mat4 Transform::Smatrix() {
-	return this->S;
 }
 
 glm::vec3 Transform::forward() {
@@ -87,7 +67,7 @@ glm::vec3 Transform::up() {
 }
 
 glm::vec3 Transform::position(){
-	return glm::vec3(glm::column(this->T, 3));
+	return glm::vec3(glm::column(this->getMatrix(), 3));
 }
 
 void Transform::reset() {

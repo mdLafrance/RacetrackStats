@@ -284,11 +284,7 @@ int main(int argc, char** argv) {
 	// Parent transform for the whole BMW
 	Transform* BMW_transform = new Transform();
 
-	Object* o;
-
-	for (auto p : renderer->objects) {
-		o = p.second;
-
+	for (Object* o : renderer->objects) {
 		if (Utils::hasStart(o->mesh->getMeshName(), "BMW")) { // If object is from BMW obj file
 			o->transform->setParent(BMW_transform);
 		}
@@ -391,7 +387,7 @@ int main(int argc, char** argv) {
 			const float perspZoomSpeed = -0.8f;
 
 			if (mainCam == overheadCam) {
-				mainCam->setSize(mainCam->getSize() + orthoZoomSpeed * dMouseScrollY);
+				mainCam->setSize(mainCam->getSize() + orthoZoomSpeed * dMouseScrollY); // TODO: This should also probably control the near/far plane on this camera
 			}
 			else if (mainCam == followCam) { 
 				mainCam->transform->translate({ 0, 0, perspZoomSpeed * dMouseScrollY });
@@ -562,7 +558,9 @@ int main(int argc, char** argv) {
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		float t0 = glfwGetTime();
 		renderer->tick(dTime);
+		std::cout << "\rRendered FPS: " << 1.0f/(glfwGetTime() - t0);
 
 		// Draw GUI elements
 		drawUI(GuiState);
@@ -574,8 +572,6 @@ int main(int argc, char** argv) {
 
 		t2 = std::chrono::steady_clock::now();
 		dTime = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000000.0f; // Microsecond conversion into fraction of second
-
-		// std::cout << '\r' << dTime;
 	}
 
 	delete renderer; // Deletes internal scene data

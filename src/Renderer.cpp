@@ -146,10 +146,6 @@ void Renderer::deleteObjects() {
 	for (auto k : this->cameras) {
 		delete k.second;
 	} 
-
-	for (auto k : this->objects){
-		delete k.second;
-	}
 }
 
 Renderer::Renderer(GLFWwindow* window) {
@@ -392,16 +388,16 @@ void Renderer::loadScene(const std::string& target) {
 
 	// Now that all necessary Objects have been generated with their meshes, link parents 
 	// This step needs to happen after the meshes are organized into objects, so that they have the relevant transforms to parent
-	for (auto p : this->objects){
-		o = p.second;
+	for (Object* o : this->objects){
 		std::string targetParent = o->mesh->getDefaultParentName();
 
 		if (targetParent != "") {
-			try {
-				o->transform->setParent(this->objects.at(targetParent)->transform);
-			}
-			catch (const std::out_of_range & oor) {
-				std::cerr << "ERROR: Can't find parent " << "<" << targetParent << ">" << " for object " << p.first << std::endl;
+			Object* parentObject = this->getObject(targetParent);
+			
+			if (parentObject == nullptr) {
+				std::cerr << "ERROR: Can't find parent " << "<" << targetParent << ">" << " for object " << o->name << std::endl;
+			} else {
+				o->transform->setParent(parentObject->transform);
 			}
 		}
 	}
@@ -412,28 +408,26 @@ void Renderer::loadScene(const std::string& target) {
 }
 
 Object* Renderer::newObject(const std::string& name) {
-	if (this->objects.count(name) != 0) {
-		std::cerr << "ERROR: Object " << name << " already exists." << std::endl;
+	if (this->getObject(name) != nullptr) {
+		std::cerr << "ERROR: Object " << name << " has already been created." << std::endl;
 		return nullptr;
 	}
 
 	Object* object = new Object(name);
 	
 	object->transform = new Transform();
-	object->material = this->materials.at("default");
 
-	this->objects[name] = object;
+	this->objects.push_back(object);
 
 	return object;
 }
 
 Object* Renderer::getObject(const std::string& name) {
-	if (this->objects.count(name) != 1) {
-		std::cerr << "ERROR: Object " << name << " is not registered with renderer.";
-		return nullptr;
+	for (Object* o : this->objects) {
+		if (o->name == name) return o;
 	}
 
-	return this->objects.at(name);
+	return nullptr;
 }
 
 void Renderer::tick(const double& dTime) {
@@ -527,21 +521,21 @@ void Renderer::tick(const double& dTime) {
 		glEnable(GL_CULL_FACE);
 	}
 
-	Object* object;
     Shader* shader;
     OBJMesh* mesh;
 
 	glm::mat4 objectTransform;
 
-    for (std::pair<std::string, Object*> o: this->objects) {
-    	object = o.second;
+    for (Object* object : this->objects) {
     	mesh = object->mesh;
 
 		objectTransform = object->transform->getMatrix();
     
 		mesh->bind();
 
-    	for (OBJ::FaceMaterials mat : mesh->faceMaterials) {
+    	for (int i = 0; i < mesh->faceMaterials.size(); i++){
+			OBJ::FaceMaterials& mat = mesh->faceMaterials[i];
+
 			mat.material->bind(); // Binds shader
 
 			shader = mat.material->shader;
@@ -555,8 +549,6 @@ void Renderer::tick(const double& dTime) {
     
     		mesh->drawRange(mat.range[0], mat.range[1] - mat.range[0]);
     	}
-
-		mesh->unbind();
     }
 
 	// Draw queued lines (if any)

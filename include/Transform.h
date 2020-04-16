@@ -1,3 +1,5 @@
+// Maxime Lafrance 2020
+
 #pragma once
 
 #include <glm/glm.hpp>
@@ -7,31 +9,30 @@
 
 class Transform {
 	glm::mat4 matrix;
+	bool updateMatrix; // Dirty flag for the matrix, matrix is cached on a getMatrix() call, and only recalculated if this is true
 
 	glm::mat4 T;
 	glm::mat4 R;
 	glm::mat4 S;
-
-	bool updateMatrix; // Dirty flag for the matrix, matrix is cached on a getMatrix() call, and only regenerated if this is true
 
 	Transform* parent = nullptr;
 
 public:
 	void translate(const glm::vec3& dp);
 	void setTranslation(const glm::vec3& dest);
-	glm::mat4 Tmatrix();
+	glm::mat4 Tmatrix() { return this->T; };
 
 	// Rotation angle is in radians, for degrees multiply by Utils::DEG2RAD
 	void rotate(const float& angle, const glm::vec3& dir);
 	void setRotation(const float& angle, const glm::vec3& dir);
-	glm::mat4 Rmatrix();
+	glm::mat4 Rmatrix() { return this->R; };
 
 	void scale(const glm::vec3& components);
 	void setScale(const glm::vec3& components);
-	glm::mat4 Smatrix();
+	glm::mat4 Smatrix() { return this->S; };
 
-	void setParent(Transform* parent);
-	Transform* getParent();
+	void setParent(Transform* parent) { this->parent = parent; };
+	Transform* getParent() { return this->parent; };
 
 	void reset();
 

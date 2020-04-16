@@ -8,7 +8,7 @@ glm::mat4 Camera::projectionMatrix() {
 		float w = this->size * WorldState.rendererX;
 		float h = this->size * WorldState.rendererY;
 
-		return glm::ortho(-w / 2, w / 2, -h / 2, h / 2, -this->depth/2, this->depth/2);
+		return glm::ortho(-w / 2, w / 2, -h / 2, h / 2, -50.0f, this->depth);// -this->depth / 2, this->depth / 2);
 	}
 }
 

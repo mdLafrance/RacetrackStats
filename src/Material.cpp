@@ -106,11 +106,15 @@ void Material::bind(){
 	
 	unsigned int shaderID = this->shader->programID();
 
-	this->shader->bind();
+	int currentlyBoundProgram;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &currentlyBoundProgram);
+
+	// Shader bind is a slow operation, so only do this if this material uses a new shader (which is never in this iteration of the program)
+	if (shaderID != currentlyBoundProgram) this->shader->bind();
 	
-	this->shader->setUniform("Ka", this->Ka);
-	this->shader->setUniform("Kd", this->Kd);
-	this->shader->setUniform("Ks", this->Ks);
+	if (this->Ka != glm::vec3(0, 0, 0)) this->shader->setUniform("Ka", this->Ka);
+	if (this->Kd != glm::vec3(0, 0, 0)) this->shader->setUniform("Kd", this->Kd);
+	if (this->Ks != glm::vec3(0, 0, 0)) this->shader->setUniform("Ks", this->Ks);
 
 	this->shader->setUniform("Tr", this->Tr);
 

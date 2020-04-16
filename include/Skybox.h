@@ -1,3 +1,7 @@
+// Maxime Lafrance 2020
+
+#pragma once
+
 #include <iostream>
 #include <vector>
 #include <string>
