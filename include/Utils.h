@@ -70,7 +70,24 @@ namespace Utils
 		return x >= 0 ? 1 : -1;
 	}
 
-	void findMaxMin(const float* data, const int& sizeOfData, int* min, int* max);
+	template <typename T>
+	void findMaxMin(const T* data, const int& sizeOfData, T* min, T* max) {
+		assert((data != nullptr) && (sizeOfData > 0) && (min != nullptr) && (max != nullptr) && "Invalid parameters supplied");
+
+		T x, _min, _max;
+
+		_min = _max = *data;
+
+		for (int i = 0; i < sizeOfData; i++) {
+			x = *(data + i);
+
+			if (x < _min) _min = x;
+			if (x > _max) _max = x;
+		}
+
+		*min = _min;
+		*max = _max;
+	}
 
 	// String manipulation utility
 	std::vector<std::string> split(const std::string& s, char delimiter);

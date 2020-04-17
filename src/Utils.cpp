@@ -22,21 +22,6 @@ std::ostream& operator <<(std::ostream& os, const ImVec2& vec) {
 
 namespace Utils
 {
-	void findMaxMin(const float* data, const int& sizeOfData, int* min, int* max) {
-		assert((data != nullptr) && (sizeOfData > 0) && "Invalid parameters supplied");
-
-		*min = *data;
-		*max = *data;
-
-		int x;
-		for (int i = 0; i < sizeOfData; i++) {
-			x = *(data + i);
-
-			if (x < *min) *min = x;
-			if (*max < x) *max = x;
-		}
-	}
-
 	std::vector<std::string> split(const std::string& s, char delimiter) {
 		std::vector<std::string> splitString;
 

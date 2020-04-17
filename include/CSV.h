@@ -25,6 +25,9 @@ public:
     std::string getData(const int& index, const int& line) const;
 	float getDataAsFloat(const std::string& type, const int& line) const; // Same behavior, but cast to float
 
+	// Interpret data for a type as float, and get the max and min over the range
+	void getDataMinMax(const std::string& type, float* min, float* max);
+
     // TODO: These buffer functions could probably be faster if the data was packed in terms of type instead of by line
 
     // Fill buffer with data of <type> from times in the range [start, end]

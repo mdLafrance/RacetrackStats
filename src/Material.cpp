@@ -116,9 +116,9 @@ void Material::bind(){
 	if (this->Kd != glm::vec3(0, 0, 0)) this->shader->setUniform("Kd", this->Kd);
 	if (this->Ks != glm::vec3(0, 0, 0)) this->shader->setUniform("Ks", this->Ks);
 
-	this->shader->setUniform("Tr", this->Tr);
+	if (this->Tr != 0.0f) this->shader->setUniform("Tr", this->Tr);
 
-	this->shader->setUniform("flags", this->flags);
+	if (this->flags != 0) this->shader->setUniform("flags", this->flags);
 
 	if (this->checkFlag(MATERIAL_USE_map_Kd)) {
 		glUniform1i(glGetUniformLocation(shaderID, "map_Kd"), TEXTURE_LOCATION_map_Kd);

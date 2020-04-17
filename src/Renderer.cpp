@@ -422,6 +422,8 @@ Object* Renderer::newObject(const std::string& name) {
 	return object;
 }
 
+// TODO: Changed this from std map because it was causing serious performance issues while iterating through elements
+// In future, maybe associate a map with this for access, or have this vector be sorted
 Object* Renderer::getObject(const std::string& name) {
 	for (Object* o : this->objects) {
 		if (o->name == name) return o;

@@ -49,7 +49,7 @@ struct _GuiState {
 	float glLineWidthRange[2];
 
 	// CSV data fields
-	bool* dataFieldsEnabled; // std bool vector has problems, so using old style array instead
+	bool* dataFieldsEnabled; // std bool vector has problems, so using array instead
 	std::vector<std::string> dataFields; // The data fields which are both present in the CSV, and in the config file
 
     // Timeline states
@@ -268,9 +268,7 @@ void drawUI(_GuiState& state) {
 
 			// ImGui::SameLine(0, 10);
 
-			if (ImGui::Button("All")) {
-				memset(state.dataFieldsEnabled, 1, state.dataFields.size());
-			}
+			bool setTrue = ImGui::Button("All");
 
 			ImGui::SameLine(0, 10);
 
@@ -278,28 +276,69 @@ void drawUI(_GuiState& state) {
 				memset(state.dataFieldsEnabled, 0, state.dataFields.size());
 			}
 
-			for (std::string d : currentDisplayData) {
-				ImGui::Button(d.c_str());
+			bool* dataEnabled;
+
+			// For each loaded data, if it's enabled and defined to have a graph in the config file, draw that graph
+			if (currentData != nullptr) {
+				for (Utils::CSVvector& v : displayData.vectors) {
+					if (!currentData->hasData(v.dataField)) {
+						std::cerr << "ERROR: Vector defined for data type not present in current CSV data file: " << v.dataField << std::endl;
+						ImGui::TextColored({ 1.0f, 0.1f, 0.1f, 1.0f }, (v.dataField + " MISSING").c_str());
+					}
+					else {
+						dataEnabled = state.dataFieldsEnabled + currentData->getOffset(v.dataField);
+						if (setTrue) *(dataEnabled) = true;
+
+						ImGui::Checkbox(("[Vector] " + v.dataField).c_str(), dataEnabled);
+					}
+				}
+
+				for (Utils::CSVgraph& g : displayData.graphs) {
+					if (!currentData->hasData(g.dataField)) {
+						std::cerr << "ERROR: Graph defined for data type not present in current CSV data file: " << g.dataField << std::endl;
+						ImGui::TextColored({ 1.0f, 0.1f, 0.1f, 1.0f }, (g.dataField + " MISSING").c_str());
+					}
+					else {
+						dataEnabled = state.dataFieldsEnabled + currentData->getOffset(g.dataField);
+						if (setTrue) *(dataEnabled) = true;
+
+						ImGui::Checkbox(("[Graph]  " + g.dataField).c_str(), dataEnabled);
+					}
+				}
 			}
 		}
 	} // Data type dropdown
 
-	// For each loaded data, if it's enabled and defined to have a graph in the config file, draw that graph
 	if (currentData != nullptr) {
-		for (Utils::CSVgraph g : displayData.graphs) {
-			// If current CSV data has the data that the user wants to display as a graph
-			if (!currentData->hasData(g.dataField)) {
-				std::cerr << "ERROR: Graph defined for data type not present in current CSV data file: " << g.dataField << std::endl;
-				continue;
-			}
+		for (Utils::CSVgraph& g : displayData.graphs) {
+			if (!currentData->hasData(g.dataField)) continue;
 
 			int offset = currentData->getOffset(g.dataField);
 
 			if (*(state.dataFieldsEnabled + offset)) {
-				ImGui::Button(g.dataField.c_str());
+				float min, max;
+				int fetchCount = 200;
+
+				float* data = new float[200];
+
+				currentData->getBatchDataAsFloat(g.dataField, state.timelinePosition, state.timelinePosition + fetchCount, data);
+
+				Utils::findMaxMin(data, fetchCount, &min, &max);
+
+				// currentData->getDataMinMax(g.dataField, &min, &max);
+
+				ImGui::PlotLines(g.dataField.c_str(), data, fetchCount, 0, 0, -min, max, ImVec2(X - 150, 50));
+
+				delete[] data;
 			}
 		}
 	}
+
+	// for (int i = 0; i < state.dataFields.size(); i++) {
+	// 	if (*(state.dataFieldsEnabled + i)) {
+	// 		ImGui::Button(state.dataFields.at(i).c_str());//std::cout << state.dataFields.at(i) + " enabled" << std::endl;
+	// 	}
+	// }
 
 	ImGui::End(); // Data Panel
 
@@ -396,7 +435,7 @@ void drawUI(_GuiState& state) {
 	ImGui::PushItemWidth(90);
 	ImGui::InputInt(" Tick skip amount", &state.tickSkipAmount);
 
-	state.tickSkipAmount = Utils::clamp(state.tickSkipAmount, 0, (int) INFINITY);
+	state.tickSkipAmount = Utils::clamp(state.tickSkipAmount, 0, 100000);
 
 	ImGui::End(); // Timeline Panel
 

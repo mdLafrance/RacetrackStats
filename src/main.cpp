@@ -8,7 +8,6 @@
 #define WINDOW_DEFAULT_Y 850
 
 #include <math.h>
-
 #include <assert.h>
 // TODO: Uncomment this for release
 // #define NDEBUG 
@@ -41,6 +40,11 @@
 #include <Utils.h>
 
 #include <UI.hpp>
+
+// #if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
+// #include <wglext.h>
+// #endif // Windows
+// bool (*swapFunction)(int) = (bool (*)(int)) wglGetProcAddress("wglGetSwapIntervalEXT");
 
 //
 // Data shared with other files
@@ -336,6 +340,25 @@ int main(int argc, char** argv) {
 	// 
 
 	while (!glfwWindowShouldClose(window)) {
+		// TODO: Testing speeds, remove
+		if (currentData != nullptr) {
+			if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
+				int dataStart = 500;
+				int dataSize = 50000;
+
+				float start = glfwGetTime();
+				float* fdata = new float[dataSize];
+				currentData->getBatchDataAsFloat("GPS_Heading", dataStart, dataStart + dataSize, fdata);
+
+				float max, min;
+				Utils::findMaxMin(fdata, dataSize, &min, &max);
+
+				std::cout << std::endl << "DATA TIME: " << glfwGetTime() - start << " (min/max: " << min << " " << max << ")" << std::endl;
+
+				delete[] fdata;
+			}
+		}
+
 		t1 = std::chrono::steady_clock::now();
 
 		// Calculate fps of last frame, pass to gui
@@ -415,6 +438,8 @@ int main(int argc, char** argv) {
 
 			mouseMoved = false;
 		}
+
+		// TODO: Ignorable crash when new CSV loaded?
 
 		// If load new scene clicked
 		if (GuiState.selected_menu_File_Open) {
@@ -560,7 +585,7 @@ int main(int argc, char** argv) {
 
 		float t0 = glfwGetTime();
 		renderer->tick(dTime);
-		std::cout << "\rRendered FPS: " << 1.0f/(glfwGetTime() - t0);
+		//std::cout << "\rRendered FPS: " << 1.0f/(glfwGetTime() - t0);
 
 		// Draw GUI elements
 		drawUI(GuiState);

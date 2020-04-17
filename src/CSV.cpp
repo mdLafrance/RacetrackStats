@@ -202,11 +202,52 @@ int CSV::getBatchDataAsFloat(const std::string& type, const int& start, const in
     int index = this->dataOffsets.at(type);
     int j = 0;
 
+	char* currentData;
+
     for (int i = start; i < end; i++) {
-        *(dataBuffer + j++) = std::atof(*(this->data + (i * this->numberOfFields) + index));
+		currentData = *(this->data + (i * this->numberOfFields) + index);
+
+		if (currentData != nullptr) *(dataBuffer + j++) = std::atof(currentData);
+		else *(dataBuffer + j++) = 0.0f;
+
+		// if (i % 10 == 0) std::cout << i << " " << currentData << " | " << *(dataBuffer + j - 1) << std::endl;
     }
 
     return 0;
+}
+
+void CSV::getDataMinMax(const std::string& type, float* min, float* max) {
+	assert((min != nullptr) && (max != nullptr) && "Max/Min paramaters are invalid");
+
+    if (!this->hasData(type)) {
+        std::cerr << "ERROR: Requesting Min/Max for non-existent data type: " << type << std::endl;
+		return;
+    }
+
+	int offset = this->dataOffsets.at(type);
+
+	float _min, _max, x;
+
+	_min = _max = std::atof(*(this->data));
+
+	char* d;
+
+	for (int i = 0; i < this->numberOfLines; i++) {
+		d = *(this->data + (i * this->numberOfFields) + offset);
+
+		if (d == nullptr) {
+			x = 0.0f;
+		}
+		else {
+			x = std::atof(d);
+		}
+
+		if (x < _min) _min = x;
+		if (x > _max) _max = x;
+	}
+
+	*min = _min;
+	*max = _max;
 }
 
 std::vector<std::string> CSV::getOrderedData() const {
