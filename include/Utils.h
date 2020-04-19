@@ -98,16 +98,17 @@ namespace Utils
 	void glfwErrorCallbackFunction(int ecode, const char* info);
 
 	// Utility class to time lengths of functions 
+	// TODO: Maybe template this to for different levels of accuracy?
 	class StopWatch {
 		std::chrono::steady_clock::time_point origin;
 		std::chrono::steady_clock::time_point latest;
 
 	public:
 		std::chrono::milliseconds lap();
-		std::string lap_s(); // Return string representation of current lap time 
+		std::string lap_s(const int& precision = 3); // Return string representation of current lap time 
 
 		std::chrono::milliseconds total();
-		std::string total_s(); // Return string representation of current run time
+		std::string total_s(const int& precision = 3); // Return string representation of current run time
 
 		void start(); // Reset stopwatch values
 

@@ -50,12 +50,12 @@
 // Data shared with other files
 //
 
-_GuiState GuiState;
-ImGuiIO* imguiIO;
+_GuiState GuiState; // Internal state of the gui
+ImGuiIO* imguiIO; // ImGui internal struct, used to query mouse data
 
-CSV* currentData;
+CSV* currentData; // Currently loaded CSV data
 
-Utils::CSVDataDisplaySettings displayData;
+Utils::CSVDataDisplaySettings displayData; // Config file data 
 
 _WorldState WorldState = { // State of the scene, used by the renderer and the gui
 	WINDOW_DEFAULT_X,    // Starting window width
@@ -76,7 +76,7 @@ static Renderer* renderer;
 const char* exeLocation;
 const char* trackDataLocation;
 
-static const char* displayDataConfigFileName = "display.config";
+static const char* defaultDisplayDataConfigFileName = "display.config";
 
 static bool frameSizeChanged = false;
 
@@ -107,6 +107,7 @@ void keyPressCallback(GLFWwindow* window, int key, int scancode, int action, int
 	if (key == GLFW_KEY_3 && action == GLFW_PRESS) renderer->setMainCamera("Overhead");
 }
 
+// Update internal data about position information about the mouse
 void mouseMoveCallback(GLFWwindow* window, double xPos, double yPos) {
 	static double lastMouseX;
 	static double lastMouseY;
@@ -128,6 +129,7 @@ void cleanup() {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
+	delete renderer;
 }
 
 int main(int argc, char** argv) {
@@ -173,14 +175,9 @@ int main(int argc, char** argv) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	// Resize window just sets a flag, which is checked in loop
-	auto windowResizeCallbackFunction = [](GLFWwindow* window, int x, int y) {
-		frameSizeChanged = true;
-	};
-
 	// Set glfw callbacks
 	glfwSetKeyCallback(window, keyPressCallback);
-	glfwSetWindowSizeCallback(window, windowResizeCallbackFunction);
+	glfwSetWindowSizeCallback(window, [](GLFWwindow* window, int x, int y) { frameSizeChanged = true;} ); // just flips frameSizeChanged
 	glfwSetErrorCallback(Utils::glfwErrorCallbackFunction);
 	glfwSetCursorPosCallback(window, mouseMoveCallback);
 	glfwSetScrollCallback(window, mouseScrollCallback);
@@ -216,10 +213,8 @@ int main(int argc, char** argv) {
 	// Set up some initial GUI data
 	imguiIO = &ImGui::GetIO();
 	imguiIO->FontGlobalScale = 1.3;
-
-	// ::GuiState.io->FontGlobalScale = 1.3;
 	setGuiOptionsToDefault();
-	glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, ::GuiState.glLineWidthRange);
+	glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, ::GuiState.glLineWidthRange); // Set line width slider bounds
 
 	// Load track map texture to GUI
 	::GuiState.mapTexture = new Texture(std::string(WorldState.projectRoot) + "/resources/ui/map.png");
@@ -262,7 +257,15 @@ int main(int argc, char** argv) {
 	renderer = new Renderer(window);
 
 	// Draw one frame of GUI to look clean while loading
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
 	drawUI();
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 	glfwSwapBuffers(window);
 
 	// Load Mosport Scene
@@ -330,7 +333,7 @@ int main(int argc, char** argv) {
 	renderer->setMainCamera("Follow");
 
 	// Load config file for CSV data display
-	displayData = Utils::loadDisplaySettings(std::string(WorldState.projectRoot) + DIRECTORY_SEPARATOR + displayDataConfigFileName);
+	displayData = Utils::loadDisplaySettings(std::string(WorldState.projectRoot) + DIRECTORY_SEPARATOR + defaultDisplayDataConfigFileName);
 
 	// TODO: This is for testing, approximately at start of course
 	BMW_transform->setTranslation({ -270.326, 1.50942, -753.757 });
@@ -340,6 +343,7 @@ int main(int argc, char** argv) {
 	// 
 
 	while (!glfwWindowShouldClose(window)) {
+
 		t0 = glfwGetTime();
 
 		// Calculate fps of last frame, pass to gui
@@ -477,6 +481,8 @@ int main(int argc, char** argv) {
 				GuiState.timelinePosition = Utils::clamp(GuiState.timelinePosition + tickIncrease, 0, currentData->getNumberOfTimePoints());
 			}
 
+			// Draw any enabled and defined vectors
+
 			float vectorScale;
 			glm::mat4 bmw_transformation = BMW_transform->getMatrix();
 
@@ -524,7 +530,7 @@ int main(int argc, char** argv) {
 			}
 		}
 
-		// If camera settings changed, build new view matrix to reflect these changes
+		// If camera settings changed, reflect these changes in the cameras
 		if (GuiState.cameraSettingsChanged) {
 			followCam->setFOV(CAMERA_DEFAULT_FOV + GuiState.FOV);
 			followCam->setFarClipPlane(GuiState.farClipPlane);
@@ -546,27 +552,22 @@ int main(int argc, char** argv) {
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// TODO: Optimization, renderer and ui draws can happen in parrallel, if the beginning and ending code of drawUI is moved here instead
-		// All other ImGui calls in that function just store ui draw data, but don't actually use any opengl calls (I believe)
-
-		float r0 = glfwGetTime();
-		renderer->tick(dTime);
-		float renderTime = glfwGetTime() - r0;
-
-		r0 = glfwGetTime();
 		// Draw GUI elements
-		drawUI();
-		float UITime = glfwGetTime() - r0;
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
 
-		float renderPercentage = renderTime / (renderTime + UITime);
-		float UIPercentage = UITime / (renderTime + UITime);
+		// Dispatch ui thread
+		// NOTE: When drawing graphs, buffering CSV data can take similar time to drawing the scene, and doesn't rely on the renderer at all, so do this in parallel
+		std::thread UIDrawThread(drawUI);
 
-		static float s0 = glfwGetTime();
-		if ((glfwGetTime() - s0) > 0.1) {
-			std::cout << "\r                                                                                              "; // TODO: erase stdout line?
-			std::cout << '\r' << "[" << 1.0f/(renderTime + UITime) << " fps] " << "Render Time: " << renderTime << " (" << renderPercentage << "%)" << " | UI Draw Time: " << UITime << " (" << UIPercentage << "%)";
-			s0 = glfwGetTime();
-		}
+		// Render scene
+		renderer->tick(dTime);
+
+		UIDrawThread.join();
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		// Current frame finished
 
@@ -576,10 +577,6 @@ int main(int argc, char** argv) {
 		t1 = glfwGetTime();
 		dTime = t1 - t0;
 	}
-
-	delete renderer; // Deletes internal scene data
-
-end_program:
 
 	// Cleanup
 

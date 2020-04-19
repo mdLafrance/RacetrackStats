@@ -116,6 +116,8 @@ struct _GuiState {
 	std::vector<std::string> dataFields; // The data fields which are both present in the CSV, and in the config file
 	std::vector<DataState> dataStates;
 
+	int dataBufferSize = 100;
+
     // Timeline states
     int timelinePosition = 0;
 	bool isPlaying = false;
@@ -187,6 +189,8 @@ void setGuiOptionsToDefault() {
 	GuiState.brightness = 0.0f;
 	GuiState.FOV = 0.0f;
 
+	GuiState.dataBufferSize = 100;
+
 	GuiState.mouseSensitivity = 20.0f;
 
 	GuiState.lineWidth = 1.0f;
@@ -236,10 +240,6 @@ bool ImageButton2(Texture** textures, const ImVec2& cursorPos, const ImVec2& but
 }
 
 void drawUI() {
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-	ImGui::NewFrame();
-
 	// Main menu drop down bar
 	int menuBarHeight = imguiIO->FontGlobalScale * 10 + 12; // eyeballing this a bit lol
 
@@ -295,6 +295,12 @@ void drawUI() {
 			ImGui::SameLine(300, 0);
 			ImGui::PushItemWidth(100);
 			ImGui::SliderFloat("##Camera Mouse Sensitivity", &GuiState.mouseSensitivity, 0.0f, 200.0f);
+
+			ImGui::Text("Data Points On Graph");
+			ImGui::SameLine(300, 0);
+			ImGui::InputInt("## Data Points On Graph", &GuiState.dataBufferSize);
+
+			GuiState.dataBufferSize = Utils::clamp(GuiState.dataBufferSize, 0, 5000);
 
 			ImGui::Separator();
 			ImGui::Separator();
@@ -391,21 +397,32 @@ void drawUI() {
 		}
 	} // Data type dropdown
 
-	const int bufferSize = 200;
 
-	float* bufferedData = new float [bufferSize];
+	//
+	// Draw the graphs and buffer them with data
+	//
+
+	float* bufferedData = new float [GuiState.dataBufferSize];
 
 	for (DataState& data : GuiState.dataStates) {
 		if (data.enabled) {
 			if (data.type == DataType::Graph) {
 				// TODO: Major optimization here, this data should be cached and selectively replaced instead of being completely fetched every frame
 
-				currentData->getBatchDataAsFloat(data.graph.dataField, GuiState.timelinePosition, Utils::clamp(GuiState.timelinePosition + bufferSize, 0, currentData->getNumberOfTimePoints()), bufferedData);
+				// Buffer data
+				currentData->getBatchDataAsFloat(
+					data.graph.dataField, 
+					GuiState.timelinePosition,
+					Utils::clamp(GuiState.timelinePosition + GuiState.dataBufferSize, 0, currentData->getNumberOfTimePoints()), 
+					bufferedData
+				);
 
+				// Draw graph
+				// TODO: Use third party imgui_plot library for better looking graphs?
 				ImGui::PlotLines(
 					data.graph.dataField.c_str(), 
 					bufferedData, 
-					bufferSize, 
+					GuiState.dataBufferSize, 
 					0, 
 					std::to_string(currentData->getDataAsFloat(data.graph.dataField, GuiState.timelinePosition)).c_str(), 
 					data.min, 
@@ -548,9 +565,6 @@ void drawUI() {
 		ImGui::Text(fpsReadout);
 		ImGui::End(); // FPS
 	}	
-	
-	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 #define SCENE_SELECT_WINDOW_DEFAULT_X 450
