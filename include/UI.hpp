@@ -16,7 +16,8 @@
 
 struct _GuiState;
 
-extern _GuiState GuiState;
+// Global variables, initialized in main
+extern _GuiState GuiState; 
 extern _WorldState WorldState;
 extern ImGuiIO* imguiIO; 
 extern CSV* currentData;
@@ -141,8 +142,8 @@ struct _GuiState {
 	}
 };
 
-void organizeData(_GuiState& state) {
-	state.dataStates.clear();
+void organizeData() {
+	GuiState.dataStates.clear();
 
 	for (Utils::CSVvector v : displayData.vectors) {
 		if (!currentData->hasData(v.dataField)) {
@@ -154,7 +155,7 @@ void organizeData(_GuiState& state) {
 
 		currentData->getDataMinMax(v.dataField, &d.min, &d.max);
 
-		state.dataStates.push_back(d);
+		GuiState.dataStates.push_back(d);
 	}
 
 	for (Utils::CSVgraph g : displayData.graphs) {
@@ -167,29 +168,29 @@ void organizeData(_GuiState& state) {
 
 		currentData->getDataMinMax(g.dataField, &d.min, &d.max);
 
-		state.dataStates.push_back(d);
+		GuiState.dataStates.push_back(d);
 	}
 
-	for (DataState d : state.dataStates) {
+	for (DataState d : GuiState.dataStates) {
 		std::cout << d.toString() << std::endl;
 	}
 }
 
-void setGuiOptionsToDefault(_GuiState& state) {
-	state.doShowFPSCounter = true;
-	state.doShowMap = true;
+void setGuiOptionsToDefault() {
+	GuiState.doShowFPSCounter = true;
+	GuiState.doShowMap = true;
 
-	state.cameraSettingsChanged = true;
+	GuiState.cameraSettingsChanged = true;
 
-	state.nearClipPlane = 0.5f;
-	state.farClipPlane = 1000.0f;
-	state.brightness = 0.0f;
-	state.FOV = 0.0f;
+	GuiState.nearClipPlane = 0.5f;
+	GuiState.farClipPlane = 1000.0f;
+	GuiState.brightness = 0.0f;
+	GuiState.FOV = 0.0f;
 
-	state.mouseSensitivity = 20.0f;
+	GuiState.mouseSensitivity = 20.0f;
 
-	state.lineWidth = 1.0f;
-	state.lineWidthChanged = true;
+	GuiState.lineWidth = 1.0f;
+	GuiState.lineWidthChanged = true;
 }
 
 // NOTE: Bug within ImGui causes multiple ImageButtons to not receive any clicks (documented bug)
@@ -234,7 +235,7 @@ bool ImageButton2(Texture** textures, const ImVec2& cursorPos, const ImVec2& but
 	return (bs == Clicked) && ImGui::IsMouseClicked(0, false); // Is the mouse clicking on the button, and did the click happen this frame?
 }
 
-void drawUI(_GuiState& state) {
+void drawUI() {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
@@ -257,22 +258,22 @@ void drawUI(_GuiState& state) {
 	ImVec4 bgColor = ImVec4(0.056, 0.056, 0.056, 1.0f);// ImGui::GetStyleColorVec4(ImGuiCol_TitleBg); // Cache background color for use with the icon buttons later
 
 	// Menu buttons are toggled, but we want them to act as a button, so always flip them back to false 
-	state.selected_menu_File_Open = false;
-	state.selected_menu_File_LoadConfig = false;
-	state.selected_menu_File_ReloadConfig = false;
+	GuiState.selected_menu_File_Open = false;
+	GuiState.selected_menu_File_LoadConfig = false;
+	GuiState.selected_menu_File_ReloadConfig = false;
 
 	if (ImGui::BeginMainMenuBar()) {
 
-		if (ImGui::BeginMenu("File", &state.selected_menu_File)) {
-			ImGui::MenuItem("Open CSV", NULL, &state.selected_menu_File_Open);
-			ImGui::MenuItem("Load Data Config File", NULL, &state.selected_menu_File_LoadConfig);
-			ImGui::MenuItem("Reload Config", NULL, &state.selected_menu_File_ReloadConfig);
+		if (ImGui::BeginMenu("File", &GuiState.selected_menu_File)) {
+			ImGui::MenuItem("Open CSV", NULL, &GuiState.selected_menu_File_Open);
+			ImGui::MenuItem("Load Data Config File", NULL, &GuiState.selected_menu_File_LoadConfig);
+			ImGui::MenuItem("Reload Config", NULL, &GuiState.selected_menu_File_ReloadConfig);
 			ImGui::EndMenu();
 			ImGui::Separator();
 			ImGui::Separator();
 		}
 
-		if (ImGui::BeginMenu("Options", &state.selected_menu_Options)) {
+		if (ImGui::BeginMenu("Options", &GuiState.selected_menu_Options)) {
 
 			// GUI OPTIONS
 
@@ -281,8 +282,8 @@ void drawUI(_GuiState& state) {
 
 			ImGui::Text("GUI Options");
 			ImGui::Separator();
-			ImGui::MenuItem("Show Map", NULL, &state.doShowMap);
-			ImGui::MenuItem("Show FPS Counter", NULL, &state.doShowFPSCounter);
+			ImGui::MenuItem("Show Map", NULL, &GuiState.doShowMap);
+			ImGui::MenuItem("Show FPS Counter", NULL, &GuiState.doShowFPSCounter);
 			ImGui::Text("Font Size");
 			ImGui::SameLine(300, 0);
 			ImGui::PushItemWidth(100);
@@ -293,7 +294,7 @@ void drawUI(_GuiState& state) {
 			ImGui::Text("Camera Mouse Sensitivity");
 			ImGui::SameLine(300, 0);
 			ImGui::PushItemWidth(100);
-			ImGui::SliderFloat("##Camera Mouse Sensitivity", &state.mouseSensitivity, 0.0f, 200.0f);
+			ImGui::SliderFloat("##Camera Mouse Sensitivity", &GuiState.mouseSensitivity, 0.0f, 200.0f);
 
 			ImGui::Separator();
 			ImGui::Separator();
@@ -306,7 +307,7 @@ void drawUI(_GuiState& state) {
 			const float FOVbounds = 1.0f;
 			ImGui::Text("FOV -/+");
 			ImGui::SameLine(300, 0);
-			if (ImGui::SliderFloat("##FOV", &state.FOV, -FOVbounds, FOVbounds)) state.cameraSettingsChanged = true;
+			if (ImGui::SliderFloat("##FOV", &GuiState.FOV, -FOVbounds, FOVbounds)) GuiState.cameraSettingsChanged = true;
 
 			// ImGui::Text("Near Clip Plane");
 			// ImGui::SameLine(300, 0);
@@ -314,24 +315,24 @@ void drawUI(_GuiState& state) {
 
 			ImGui::Text("Far Clip Plane");
 			ImGui::SameLine(300, 0);
-			if (ImGui::InputFloat("##Far Clip Plane", &state.farClipPlane, 0, 0, "%.2f")) state.cameraSettingsChanged = true;
+			if (ImGui::InputFloat("##Far Clip Plane", &GuiState.farClipPlane, 0, 0, "%.2f")) GuiState.cameraSettingsChanged = true;
 
 			ImGui::Text("Brightness +/-");
 			ImGui::SameLine(300, 0);
-			ImGui::SliderFloat("##Brightness", &state.brightness, -1, 1);
+			ImGui::SliderFloat("##Brightness", &GuiState.brightness, -1, 1);
 
 			// gl may not enable line width changes, in which case the max is 1
-			if (state.glLineWidthRange[1] > 1) {
+			if (GuiState.glLineWidthRange[1] > 1) {
 				ImGui::Text("Line Width");
 				ImGui::SameLine(300, 0);
-				if (ImGui::SliderFloat("##Line Widdth", &state.lineWidth, state.glLineWidthRange[0], Utils::clamp(state.glLineWidthRange[1], 1.0f, 10.0f))) state.lineWidthChanged = true;
+				if (ImGui::SliderFloat("##Line Widdth", &GuiState.lineWidth, GuiState.glLineWidthRange[0], Utils::clamp(GuiState.glLineWidthRange[1], 1.0f, 10.0f))) GuiState.lineWidthChanged = true;
 			}
 
 			ImGui::Separator();
 			ImGui::Separator();
 
 			ImGui::PushItemWidth(300);
-			if (ImGui::Button("Reset to Defaults")) setGuiOptionsToDefault(state);
+			if (ImGui::Button("Reset to Defaults")) setGuiOptionsToDefault();
 
 			ImGui::EndMenu();
 		}
@@ -365,7 +366,7 @@ void drawUI(_GuiState& state) {
 			// ImGui::SameLine(0, 10);
 
 			if (ImGui::Button("All")) {
-				for (DataState& d : state.dataStates) {
+				for (DataState& d : GuiState.dataStates) {
 					d.enabled = true;
 				}
 			}
@@ -373,12 +374,12 @@ void drawUI(_GuiState& state) {
 			ImGui::SameLine(0, 10);
 
 			if (ImGui::Button("None")) {
-				for (DataState& d : state.dataStates) {
+				for (DataState& d : GuiState.dataStates) {
 					d.enabled = false;
 				}
 			}
 
-			for (DataState& data : state.dataStates) {
+			for (DataState& data : GuiState.dataStates) {
 				if (data.type == DataType::Vector) {
 					ImGui::Checkbox(("[Vector] " + data.vector.dataField).c_str(), &data.enabled);
 				}
@@ -394,19 +395,19 @@ void drawUI(_GuiState& state) {
 
 	float* bufferedData = new float [bufferSize];
 
-	for (DataState& data : state.dataStates) {
+	for (DataState& data : GuiState.dataStates) {
 		if (data.enabled) {
 			if (data.type == DataType::Graph) {
 				// TODO: Major optimization here, this data should be cached and selectively replaced instead of being completely fetched every frame
 
-				currentData->getBatchDataAsFloat(data.graph.dataField, state.timelinePosition, Utils::clamp(state.timelinePosition + bufferSize, 0, currentData->getNumberOfTimePoints()), bufferedData);
+				currentData->getBatchDataAsFloat(data.graph.dataField, GuiState.timelinePosition, Utils::clamp(GuiState.timelinePosition + bufferSize, 0, currentData->getNumberOfTimePoints()), bufferedData);
 
 				ImGui::PlotLines(
 					data.graph.dataField.c_str(), 
 					bufferedData, 
 					bufferSize, 
 					0, 
-					std::to_string(currentData->getDataAsFloat(data.graph.dataField, state.timelinePosition)).c_str(), 
+					std::to_string(currentData->getDataAsFloat(data.graph.dataField, GuiState.timelinePosition)).c_str(), 
 					data.min, 
 					data.max, 
 					ImVec2(X - 150, 40)
@@ -426,8 +427,8 @@ void drawUI(_GuiState& state) {
 	ImGui::SetNextWindowPos(timelinePanelPosition, 0, ImVec2(0, 0));
 	ImGui::Begin("Timeline Panel", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
-	ImGui::PushItemWidth(X - state.padding);
-	ImGui::SliderInt("##Timeline", &state.timelinePosition, 0, timelineMax);
+	ImGui::PushItemWidth(X - GuiState.padding);
+	ImGui::SliderInt("##Timeline", &GuiState.timelinePosition, 0, timelineMax);
 
 	//
 	// Timeline control buttons
@@ -461,7 +462,7 @@ void drawUI(_GuiState& state) {
 	// Play Button
 	//
  
-	Texture** ppButton = state.isPlaying ? state.pauseButtonTextures : state.playButtonTextures; //pause/play button, which texture set should be used?
+	Texture** ppButton = GuiState.isPlaying ? GuiState.pauseButtonTextures : GuiState.playButtonTextures; //pause/play button, which texture set should be used?
 
 	// Cursor is where ImGui will draw the item
 	cursorPos = {(float) (X - playButtonDimensions) / 2, (float)timeLineButtonLocalVerticalAlign };
@@ -470,12 +471,12 @@ void drawUI(_GuiState& state) {
 	// NOTE: need to add the position of the parent panel to convert into 'global' app pixel coordinates, since cursor is in 'local' panel window coordinates
 	if (ImageButton2(ppButton, cursorPos + timelinePanelPosition, pbDimensions, false)) {
 		// Flip the button to other state
-		if (state.isPlaying) {
-			state.isPlaying = false;
+		if (GuiState.isPlaying) {
+			GuiState.isPlaying = false;
 		}
 		else {
-			state.isPlaying = true;
-			state.timelinePosition += Utils::sign(state.playbackSpeed); // Increment the timeline on the frame when the play button is pressed
+			GuiState.isPlaying = true;
+			GuiState.timelinePosition += Utils::sign(GuiState.playbackSpeed); // Increment the timeline on the frame when the play button is pressed
 		}
 	}
 
@@ -487,16 +488,16 @@ void drawUI(_GuiState& state) {
 	cursorPos = {(float) halfX - halfArrowButtonDimensions - arrowButtonOffset, (float) timeLineButtonLocalVerticalAlign + halfDiff };
 	ImGui::SetCursorPos(cursorPos);
 
-	if (ImageButton2(state.skipButtonTextures, cursorPos + timelinePanelPosition, bfDimensions, true)) state.timelinePosition -= state.tickSkipAmount;
+	if (ImageButton2(GuiState.skipButtonTextures, cursorPos + timelinePanelPosition, bfDimensions, true)) GuiState.timelinePosition -= GuiState.tickSkipAmount;
 
 	// // Forward button
 	cursorPos = {(float) halfX - halfArrowButtonDimensions + arrowButtonOffset, (float) timeLineButtonLocalVerticalAlign + halfDiff };
 	ImGui::SetCursorPos(cursorPos);
 
-	if (ImageButton2(state.skipButtonTextures, cursorPos + timelinePanelPosition, bfDimensions)) state.timelinePosition += state.tickSkipAmount;
+	if (ImageButton2(GuiState.skipButtonTextures, cursorPos + timelinePanelPosition, bfDimensions)) GuiState.timelinePosition += GuiState.tickSkipAmount;
 
 	// Clamp timeline within bounds
-	state.timelinePosition = Utils::clamp(state.timelinePosition, 0, timelineMax);
+	GuiState.timelinePosition = Utils::clamp(GuiState.timelinePosition, 0, timelineMax);
 
 	const int timelineParametersOffset = 20;
 
@@ -507,39 +508,39 @@ void drawUI(_GuiState& state) {
 	// Playback speed, and frame skip fields
 	ImGui::SetCursorPos(ImVec2(timelineParametersOffset, UI_DEFAULT_TIMELINE_CONTROLS_HEIGHT * 0.4));
 	ImGui::PushItemWidth(90);
-	ImGui::InputFloat(" Playback speed (ticks/second)", &state.playbackSpeed);
+	ImGui::InputFloat(" Playback speed (ticks/second)", &GuiState.playbackSpeed);
 	ImGui::SetCursorPos(ImVec2(timelineParametersOffset, UI_DEFAULT_TIMELINE_CONTROLS_HEIGHT * 0.7));
 	ImGui::PushItemWidth(90);
-	ImGui::InputInt(" Tick skip amount", &state.tickSkipAmount);
+	ImGui::InputInt(" Tick skip amount", &GuiState.tickSkipAmount);
 
-	state.tickSkipAmount = Utils::clamp(state.tickSkipAmount, 0, 100000);
+	GuiState.tickSkipAmount = Utils::clamp(GuiState.tickSkipAmount, 0, 100000);
 
 	ImGui::End(); // Timeline Panel
 
 	// Overlayed map image
 	static float mapSize = 200.0f; // TODO: make this ui slider?
 
-	state.mapTexture->getWidthHeight(&w, &h);
+	GuiState.mapTexture->getWidthHeight(&w, &h);
 
 	float maxMapScaleDimension = max(w, h);
 
 	ImVec2 mapDimensions = ImVec2(mapSize * w / maxMapScaleDimension, mapSize * h / maxMapScaleDimension);
 
-	if (state.doShowMap) {
+	if (GuiState.doShowMap) {
 		// mapDimensions = ImVec2(state.mapTextureDimensions[0], state.mapTextureDimensions[1]);
-		ImGui::SetNextWindowSize(mapDimensions + ImVec2(state.padding, 0 /*menuBarHeight*/ + state.padding), 0);
+		ImGui::SetNextWindowSize(mapDimensions + ImVec2(GuiState.padding, 0 /*menuBarHeight*/ + GuiState.padding), 0);
 		ImGui::SetNextWindowPos(ImVec2(X, menuBarHeight), 0, ImVec2(1,0));
 		ImGui::Begin("Map", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
-		ImGui::Image((void*)state.mapTexture->getID(), mapDimensions, ImVec2(0, 1), ImVec2(1, 0));
+		ImGui::Image((void*)GuiState.mapTexture->getID(), mapDimensions, ImVec2(0, 1), ImVec2(1, 0));
 		ImGui::End(); // Map
 	}
 
 	// FPS overlay
-	if (state.doShowFPSCounter) {
+	if (GuiState.doShowFPSCounter) {
 		ImVec2 fpsOverlaySize(imguiIO->FontGlobalScale * 65, (imguiIO->FontGlobalScale * 17) + 10);
 		// Generate fps readout text of the form <### fps\0>
 		char fpsReadout[8];
-		sprintf(fpsReadout, "%i fps", Utils::clamp((int) state.fps, 0, 999));
+		sprintf(fpsReadout, "%i fps", Utils::clamp((int) GuiState.fps, 0, 999));
 
 		ImGui::SetNextWindowPos(ImVec2(0, Y/2), 0, ImVec2(0, 1));
 		ImGui::SetNextWindowSize(fpsOverlaySize);

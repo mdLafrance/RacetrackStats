@@ -218,7 +218,7 @@ int main(int argc, char** argv) {
 	imguiIO->FontGlobalScale = 1.3;
 
 	// ::GuiState.io->FontGlobalScale = 1.3;
-	setGuiOptionsToDefault(GuiState);
+	setGuiOptionsToDefault();
 	glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, ::GuiState.glLineWidthRange);
 
 	// Load track map texture to GUI
@@ -262,7 +262,7 @@ int main(int argc, char** argv) {
 	renderer = new Renderer(window);
 
 	// Draw one frame of GUI to look clean while loading
-	drawUI(GuiState);
+	drawUI();
 	glfwSwapBuffers(window);
 
 	// Load Mosport Scene
@@ -439,7 +439,7 @@ int main(int argc, char** argv) {
 				GuiState.dataFields = currentData->getOrderedData();
 				GuiState.sceneOpen = true;
 
-				organizeData(GuiState);
+				organizeData();
 			}
 		}
 
@@ -450,7 +450,7 @@ int main(int argc, char** argv) {
 
 			if (choice.size() != 0) {
 				displayData = Utils::loadDisplaySettings(choice[0]);
-				organizeData(GuiState);
+				organizeData();
 			}
 		}
 
@@ -458,7 +458,7 @@ int main(int argc, char** argv) {
 		if (GuiState.selected_menu_File_ReloadConfig) {
 			std::string path = displayData.path;
 			displayData = Utils::loadDisplaySettings(path);
-			organizeData(GuiState);
+			organizeData();
 		}
 
 		static int lastTimelinePos = 0;
@@ -555,7 +555,7 @@ int main(int argc, char** argv) {
 
 		r0 = glfwGetTime();
 		// Draw GUI elements
-		drawUI(GuiState);
+		drawUI();
 		float UITime = glfwGetTime() - r0;
 
 		float renderPercentage = renderTime / (renderTime + UITime);

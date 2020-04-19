@@ -187,14 +187,6 @@ namespace Utils
 		std::cerr << "--------------------------------------------------------" << std::endl;
 	}
 
-	void log(const std::string& message, const unsigned char& logLevel){
-		if (logLevel & __log_flags__) std::cout << message << std::endl;
-	}
-
-	void setLogFlags(const unsigned char& flags){
-		::__log_flags__ = flags;
-	}
-
 	void StopWatch::start() {
 		this->origin = std::chrono::steady_clock::now();
 		this->latest = std::chrono::steady_clock::now();
