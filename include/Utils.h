@@ -23,8 +23,6 @@
 
 static const char DIRECTORY_SEPARATOR = '/';
 
-static unsigned char __log_flags__ = 0;
-
 // Operators
 
 // glm
@@ -42,19 +40,11 @@ namespace Utils
 	static const float DEG2RAD = 0.0174533;
 	static const float RAD2DEG = 57.2958;
 
-	const unsigned char LogLevel_Debug   = 1 << 0; // Log extra details pertaining to debugging information 
-	const unsigned char LogLevel_Runtime = 1 << 1; // Log only things relevant to the user experience at runtime
-
 	struct FileInfo { // D:/foo/bar/baz.py
 		std::string directory; // D:/foo/bar
 		std::string file;      // baz
 		std::string extension; // py
 	};
-
-	// Logging utility
-	// TODO: unused & untested
-	void log(const std::string& message, const unsigned char& logLevel = 0);
-	void setLogFlags(const unsigned char& flags);
 
 	// Numerical utility
 	template <typename T>
@@ -130,12 +120,17 @@ namespace Utils
 		glm::vec3 origin; // Origin of the vector (relative to car local coordinates)
 		glm::vec3 direction; // Direction of the vector (relative to the car local coordinates)
 		glm::vec3 color; // Color of the vector
+		bool doNormalize;
 	};
 
 	struct CSVgraph {
 		std::string dataField; // Name of the data field that will drive the graph
 		glm::vec3 color; // Color of the line
 		int graph; // Which graph display this data field should be displayed on. Defaults to the first available
+
+		// These get calculated after being loaded
+		float min;
+		float max;
 	};
 
 	struct CSVDataDisplaySettings {

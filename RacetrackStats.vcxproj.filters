@@ -78,6 +78,9 @@
     <ClCompile Include="src\Skybox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\imgui_plot.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Camera.h">
@@ -3208,6 +3211,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\wglext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui_plot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

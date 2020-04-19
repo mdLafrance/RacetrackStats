@@ -277,7 +277,7 @@ int main(int argc, char** argv) {
 	memcpy(originalAmbientLight, WorldState.ambientLight, 3 * sizeof(float));
 
 	// Used to time deltaTime since last frame
-	std::chrono::time_point<std::chrono::steady_clock> t1, t2;
+	double t0, t1;
 
 	double dTime = 0;
 	double seconds0 = glfwGetTime();
@@ -340,32 +340,12 @@ int main(int argc, char** argv) {
 	// 
 
 	while (!glfwWindowShouldClose(window)) {
-		// TODO: Testing speeds, remove
-		if (currentData != nullptr) {
-			if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
-				int dataStart = 500;
-				int dataSize = 50000;
-
-				float start = glfwGetTime();
-				float* fdata = new float[dataSize];
-				currentData->getBatchDataAsFloat("GPS_Heading", dataStart, dataStart + dataSize, fdata);
-
-				float max, min;
-				Utils::findMaxMin(fdata, dataSize, &min, &max);
-
-				std::cout << std::endl << "DATA TIME: " << glfwGetTime() - start << " (min/max: " << min << " " << max << ")" << std::endl;
-
-				delete[] fdata;
-			}
-		}
-
-		t1 = std::chrono::steady_clock::now();
+		t0 = glfwGetTime();
 
 		// Calculate fps of last frame, pass to gui
-		float glfwTime = glfwGetTime();
-		if ((glfwTime - seconds0) > 0.1) { // Dont need to do this every frame, instead only every .1 seconds
+		if ((t0 - seconds0) > 0.1) { // Dont need to do this every frame, instead only every .1 seconds
 			GuiState.fps = 1/dTime;
-			seconds0 = glfwTime;
+			seconds0 = t0;
 		}
 
 		// TODO: just for testing
@@ -388,33 +368,32 @@ int main(int argc, char** argv) {
 			BMW_transform->translate(dTime * -tSpeed * BMW_transform->forward());
 		}
 
-		glm::vec3 BMW_position = BMW_transform->position();
-
-		renderer->addLine(BMW_position, BMW_position + (5 * BMW_transform->forward()), glm::vec3(1.0, 0.5, 0.2), false);
-
-		renderer->addLine(BMW_position, BMW_position + glm::vec3(1, 0, 0), glm::vec3(1, 0, 0), true);
-		renderer->addLine(BMW_position, BMW_position + glm::vec3(0, 1, 0), glm::vec3(0, 1, 0), true);
-		renderer->addLine(BMW_position, BMW_position + glm::vec3(0, 0, 1), glm::vec3(0, 0, 1), true);
-
 		//
 		// Process user input
 		//
 
 		// 'Zoom' camera if scroll wheel was used
 		if (dMouseScrollY != 0.0f) {
-			Camera* mainCam = renderer->getMainCamera();
 
-			// Different behavior for ortho and persp cams
+			double xPos, yPos;
+			glfwGetCursorPos(window, &xPos, &yPos);
 
-			const float orthoZoomSpeed = -0.001f;
-			const float perspZoomSpeed = -0.8f;
+			// Only zoom camera if mouse is on the viewport. (TODO: change this in the future, this is pretty crude)
+			if ((yPos < WorldState.rendererY)) {
+				Camera* mainCam = renderer->getMainCamera();
 
-			if (mainCam == overheadCam) {
-				mainCam->setSize(mainCam->getSize() + orthoZoomSpeed * dMouseScrollY); // TODO: This should also probably control the near/far plane on this camera
+				// Different behavior for ortho and persp cams
+
+				const float orthoZoomSpeed = -0.001f;
+				const float perspZoomSpeed = -0.8f;
+
+				if (mainCam == overheadCam) {
+					mainCam->setSize(mainCam->getSize() + orthoZoomSpeed * dMouseScrollY); // TODO: This should also probably control the near/far plane on this camera
+				}
+				else if (mainCam == followCam) { 
+					mainCam->transform->translate({ 0, 0, perspZoomSpeed * dMouseScrollY });
+				} // No real reason to 'zoom' in cockpit view
 			}
-			else if (mainCam == followCam) { 
-				mainCam->transform->translate({ 0, 0, perspZoomSpeed * dMouseScrollY });
-			} // No real reason to 'zoom' in cockpit view
 
 			dMouseScrollY = 0;
 		}
@@ -451,7 +430,6 @@ int main(int argc, char** argv) {
 
 			if (choice.size() != 0) { 
 				// Clean up old data if necessary 
-				if (GuiState.dataFieldsEnabled != nullptr) delete[] GuiState.dataFieldsEnabled;
 				if (currentData != nullptr) delete currentData;
 
 				// Load CSV data
@@ -459,11 +437,9 @@ int main(int argc, char** argv) {
 
 				// Update GUI to match the parameters of the new CSV file
 				GuiState.dataFields = currentData->getOrderedData();
-				GuiState.dataFieldsEnabled = new bool[currentData->getNumberOfTimePoints()];
 				GuiState.sceneOpen = true;
 
-				// Start off with all data disabled
-				memset(GuiState.dataFieldsEnabled, 0, currentData->getNumberOfDataTypes());
+				organizeData(GuiState);
 			}
 		}
 
@@ -474,6 +450,7 @@ int main(int argc, char** argv) {
 
 			if (choice.size() != 0) {
 				displayData = Utils::loadDisplaySettings(choice[0]);
+				organizeData(GuiState);
 			}
 		}
 
@@ -481,6 +458,7 @@ int main(int argc, char** argv) {
 		if (GuiState.selected_menu_File_ReloadConfig) {
 			std::string path = displayData.path;
 			displayData = Utils::loadDisplaySettings(path);
+			organizeData(GuiState);
 		}
 
 		static int lastTimelinePos = 0;
@@ -499,40 +477,25 @@ int main(int argc, char** argv) {
 				GuiState.timelinePosition = Utils::clamp(GuiState.timelinePosition + tickIncrease, 0, currentData->getNumberOfTimePoints());
 			}
 
-			// +longitude ~ +x
-			// +latitude ~ -z
+			float vectorScale;
+			glm::mat4 bmw_transformation = BMW_transform->getMatrix();
 
-			// Transform the car to the correct position
+			for (DataState& d : GuiState.dataStates) {
+				if (d.enabled && d.type == DataType::Vector) {
+					vectorScale = currentData->getDataAsFloat(d.vector.dataField, GuiState.timelinePosition);
 
-			// TODO: fill this in
-			// glm::mat4 gpsToWCS = glm::mat4(1);
+					if (vectorScale == 0.0f) continue;
 
-			// glm::vec4 gpsPosThisFrame(
-			// 	1 * currentData->getDataAsFloat(displayData.longitude, GuiState.timelinePosition),
-			// 	1 * currentData->getDataAsFloat(displayData.elevation, GuiState.timelinePosition),
-			// 	1 * currentData->getDataAsFloat(displayData.latitude, GuiState.timelinePosition),
-			// 	1
-			// );
+					vectorScale = vectorScale / d.max;
 
-			// glm::vec3 wcsPos = glm::vec3(gpsToWCS * gpsPosThisFrame);
-
-			// // BMW_transform->setTranslation({ wcsPos[0], 0, -wcsPos[2] });
-
-			// //BMW_transform->setRotation(currentData->getDataAsFloat(displayData.heading, GuiState.timelinePosition), { 0,1,0 });
-
-			// glm::mat4 BMW_matrix = BMW_transform->getMatrix();
-
-			// glm::vec3 start, end;
-			// for (auto v : displayData.vectors) {
-			// 	// Draw each vector defined in the config file
-
-			// 	// Need to transform local vector parameters to global start and end points for drawLine
-			// 	start = glm::vec3(BMW_matrix * glm::vec4(v.origin, 1));
-			// 	glm::vec3 localDestination = v.origin + (currentData->getDataAsFloat(v.dataField, GuiState.timelinePosition) * v.direction);
-			// 	end = glm::vec3(BMW_matrix * glm::vec4(localDestination, 1));
-
-			// 	renderer->addLine(start, end, v.color, true);
-			// }
+					renderer->addLine(
+						BMW_transform->position() + d.vector.origin,
+						bmw_transformation *  glm::vec4(vectorScale * d.vector.direction, 1),
+						d.vector.color,
+						true
+					);
+				}
+			}
 		}
 
 		// Update line width if changed
@@ -583,20 +546,35 @@ int main(int argc, char** argv) {
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		float t0 = glfwGetTime();
-		renderer->tick(dTime);
-		//std::cout << "\rRendered FPS: " << 1.0f/(glfwGetTime() - t0);
+		// TODO: Optimization, renderer and ui draws can happen in parrallel, if the beginning and ending code of drawUI is moved here instead
+		// All other ImGui calls in that function just store ui draw data, but don't actually use any opengl calls (I believe)
 
+		float r0 = glfwGetTime();
+		renderer->tick(dTime);
+		float renderTime = glfwGetTime() - r0;
+
+		r0 = glfwGetTime();
 		// Draw GUI elements
 		drawUI(GuiState);
+		float UITime = glfwGetTime() - r0;
+
+		float renderPercentage = renderTime / (renderTime + UITime);
+		float UIPercentage = UITime / (renderTime + UITime);
+
+		static float s0 = glfwGetTime();
+		if ((glfwGetTime() - s0) > 0.1) {
+			std::cout << "\r                                                                                              "; // TODO: erase stdout line?
+			std::cout << '\r' << "[" << 1.0f/(renderTime + UITime) << " fps] " << "Render Time: " << renderTime << " (" << renderPercentage << "%)" << " | UI Draw Time: " << UITime << " (" << UIPercentage << "%)";
+			s0 = glfwGetTime();
+		}
 
 		// Current frame finished
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 
-		t2 = std::chrono::steady_clock::now();
-		dTime = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() / 1000000.0f; // Microsecond conversion into fraction of second
+		t1 = glfwGetTime();
+		dTime = t1 - t0;
 	}
 
 	delete renderer; // Deletes internal scene data

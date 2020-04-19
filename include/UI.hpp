@@ -14,10 +14,73 @@
 
 #define UI_DEFAULT_TIMELINE_CONTROLS_HEIGHT 150
 
+struct _GuiState;
+
+extern _GuiState GuiState;
 extern _WorldState WorldState;
 extern ImGuiIO* imguiIO; 
 extern CSV* currentData;
 extern Utils::CSVDataDisplaySettings displayData;
+
+enum class DataType { Vector, Graph };
+
+struct DataState {
+	DataType type;
+
+	Utils::CSVgraph graph;
+	Utils::CSVvector vector;
+
+	float max = 0.0f;
+	float min = 0.0f; 
+
+	bool enabled = false;
+
+	std::string toString() {
+		std::string s;
+		s += (type == DataType::Vector ? "Vector " + this->vector.dataField : "Graph " + this->graph.dataField);
+		s += ' ';
+
+		s += (this->enabled ? "[ENABLED]" : "[DISABLED]");
+
+		if (this->type == DataType::Graph) {
+			s += ' ';
+			s += "Min/Max : (" + std::to_string(this->min) + ", " + std::to_string(this->max) + ")";
+		}
+
+		return s;
+	}
+
+	DataState(const Utils::CSVvector& v) {
+		this->type = DataType::Vector;
+		this->vector = v;
+		this->enabled = false;
+
+	}
+
+	DataState(const Utils::CSVgraph& g) {
+		this->type = DataType::Graph;
+		this->graph = g;
+		this->enabled = false;
+	}
+
+	DataState(const DataState& other) {
+		this->type = other.type;
+
+		if (this->type == DataType::Vector) {
+			this->vector = other.vector;
+		}
+
+		if (this->type == DataType::Graph) {
+			this->graph = other.graph;
+		}
+
+		this->max = other.max;
+		this->min = other.min;
+		this->enabled = other.enabled;
+	}
+
+	~DataState() {};
+};
 
 struct _GuiState {
 	// Global states
@@ -49,8 +112,8 @@ struct _GuiState {
 	float glLineWidthRange[2];
 
 	// CSV data fields
-	bool* dataFieldsEnabled; // std bool vector has problems, so using array instead
 	std::vector<std::string> dataFields; // The data fields which are both present in the CSV, and in the config file
+	std::vector<DataState> dataStates;
 
     // Timeline states
     int timelinePosition = 0;
@@ -77,6 +140,40 @@ struct _GuiState {
 		}
 	}
 };
+
+void organizeData(_GuiState& state) {
+	state.dataStates.clear();
+
+	for (Utils::CSVvector v : displayData.vectors) {
+		if (!currentData->hasData(v.dataField)) {
+			std::cerr << "ERROR: Data field defined in config missing from CSV file: " << v.dataField << std::endl;
+			continue;
+		}
+
+		DataState d(v);
+
+		currentData->getDataMinMax(v.dataField, &d.min, &d.max);
+
+		state.dataStates.push_back(d);
+	}
+
+	for (Utils::CSVgraph g : displayData.graphs) {
+		if (!currentData->hasData(g.dataField)) {
+			std::cerr << "ERROR: Data field defined in config missing from CSV file: " << g.dataField << std::endl;
+			continue;
+		}
+
+		DataState d(g);
+
+		currentData->getDataMinMax(g.dataField, &d.min, &d.max);
+
+		state.dataStates.push_back(d);
+	}
+
+	for (DataState d : state.dataStates) {
+		std::cout << d.toString() << std::endl;
+	}
+}
 
 void setGuiOptionsToDefault(_GuiState& state) {
 	state.doShowFPSCounter = true;
@@ -106,8 +203,7 @@ bool ImageButton2(Texture** textures, const ImVec2& cursorPos, const ImVec2& but
 
 		Usage is the same as ImGui::ImageButton
 
-		NOTE: CursorPos refers to the imGui 'paintbrush' position, not the mouse position
-		TODO: That can probably be fetched from imgui itself instead of being passed?
+		NOTE: CursorPos refers to the imGui 'paintbrush' position in app coordinates, not the mouse position
 	*/
 	assert(textures != nullptr);
 
@@ -192,7 +288,7 @@ void drawUI(_GuiState& state) {
 			ImGui::PushItemWidth(100);
 			ImGui::InputFloat("##Font size", &imguiIO->FontGlobalScale, 0, 0, "%.1f");
 
-			imguiIO->FontGlobalScale = imguiIO->FontGlobalScale > 3 ? 3 : imguiIO->FontGlobalScale; // things start getting weird above 3 font lol
+			imguiIO->FontGlobalScale = Utils::clamp(imguiIO->FontGlobalScale, 0.0f, 3.0f); // things start getting weird above 3 font lol
 
 			ImGui::Text("Camera Mouse Sensitivity");
 			ImGui::SameLine(300, 0);
@@ -268,77 +364,58 @@ void drawUI(_GuiState& state) {
 
 			// ImGui::SameLine(0, 10);
 
-			bool setTrue = ImGui::Button("All");
+			if (ImGui::Button("All")) {
+				for (DataState& d : state.dataStates) {
+					d.enabled = true;
+				}
+			}
 
 			ImGui::SameLine(0, 10);
 
 			if (ImGui::Button("None")) {
-				memset(state.dataFieldsEnabled, 0, state.dataFields.size());
+				for (DataState& d : state.dataStates) {
+					d.enabled = false;
+				}
 			}
 
-			bool* dataEnabled;
-
-			// For each loaded data, if it's enabled and defined to have a graph in the config file, draw that graph
-			if (currentData != nullptr) {
-				for (Utils::CSVvector& v : displayData.vectors) {
-					if (!currentData->hasData(v.dataField)) {
-						std::cerr << "ERROR: Vector defined for data type not present in current CSV data file: " << v.dataField << std::endl;
-						ImGui::TextColored({ 1.0f, 0.1f, 0.1f, 1.0f }, (v.dataField + " MISSING").c_str());
-					}
-					else {
-						dataEnabled = state.dataFieldsEnabled + currentData->getOffset(v.dataField);
-						if (setTrue) *(dataEnabled) = true;
-
-						ImGui::Checkbox(("[Vector] " + v.dataField).c_str(), dataEnabled);
-					}
+			for (DataState& data : state.dataStates) {
+				if (data.type == DataType::Vector) {
+					ImGui::Checkbox(("[Vector] " + data.vector.dataField).c_str(), &data.enabled);
 				}
 
-				for (Utils::CSVgraph& g : displayData.graphs) {
-					if (!currentData->hasData(g.dataField)) {
-						std::cerr << "ERROR: Graph defined for data type not present in current CSV data file: " << g.dataField << std::endl;
-						ImGui::TextColored({ 1.0f, 0.1f, 0.1f, 1.0f }, (g.dataField + " MISSING").c_str());
-					}
-					else {
-						dataEnabled = state.dataFieldsEnabled + currentData->getOffset(g.dataField);
-						if (setTrue) *(dataEnabled) = true;
-
-						ImGui::Checkbox(("[Graph]  " + g.dataField).c_str(), dataEnabled);
-					}
+				if (data.type == DataType::Graph) {
+					ImGui::Checkbox(("[Graph]  " + data.graph.dataField).c_str(), &data.enabled);
 				}
 			}
 		}
 	} // Data type dropdown
 
-	if (currentData != nullptr) {
-		for (Utils::CSVgraph& g : displayData.graphs) {
-			if (!currentData->hasData(g.dataField)) continue;
+	const int bufferSize = 200;
 
-			int offset = currentData->getOffset(g.dataField);
+	float* bufferedData = new float [bufferSize];
 
-			if (*(state.dataFieldsEnabled + offset)) {
-				float min, max;
-				int fetchCount = 200;
+	for (DataState& data : state.dataStates) {
+		if (data.enabled) {
+			if (data.type == DataType::Graph) {
+				// TODO: Major optimization here, this data should be cached and selectively replaced instead of being completely fetched every frame
 
-				float* data = new float[200];
+				currentData->getBatchDataAsFloat(data.graph.dataField, state.timelinePosition, Utils::clamp(state.timelinePosition + bufferSize, 0, currentData->getNumberOfTimePoints()), bufferedData);
 
-				currentData->getBatchDataAsFloat(g.dataField, state.timelinePosition, state.timelinePosition + fetchCount, data);
-
-				Utils::findMaxMin(data, fetchCount, &min, &max);
-
-				// currentData->getDataMinMax(g.dataField, &min, &max);
-
-				ImGui::PlotLines(g.dataField.c_str(), data, fetchCount, 0, 0, -min, max, ImVec2(X - 150, 50));
-
-				delete[] data;
+				ImGui::PlotLines(
+					data.graph.dataField.c_str(), 
+					bufferedData, 
+					bufferSize, 
+					0, 
+					std::to_string(currentData->getDataAsFloat(data.graph.dataField, state.timelinePosition)).c_str(), 
+					data.min, 
+					data.max, 
+					ImVec2(X - 150, 40)
+				);
 			}
 		}
 	}
 
-	// for (int i = 0; i < state.dataFields.size(); i++) {
-	// 	if (*(state.dataFieldsEnabled + i)) {
-	// 		ImGui::Button(state.dataFields.at(i).c_str());//std::cout << state.dataFields.at(i) + " enabled" << std::endl;
-	// 	}
-	// }
+	delete[] bufferedData;
 
 	ImGui::End(); // Data Panel
 
