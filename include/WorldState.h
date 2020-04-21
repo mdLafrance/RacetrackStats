@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 // Small struct shared once accross runtime to track world state necessary to the renderer
 struct _WorldState {
 	int windowX;
@@ -10,6 +12,6 @@ struct _WorldState {
 
 	float ambientLight[3];
 
-	const char* projectRoot;
-	const char* trackDataRoot;
+	std::string projectRoot;
+	std::string trackDataRoot;
 };

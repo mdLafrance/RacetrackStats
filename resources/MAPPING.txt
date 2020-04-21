@@ -4,3 +4,5 @@ world:
 
 
 ~ .07 seconds to float batch fetch all of GPS_Heading
+
+jr_mosport min max: (-85.28016662597656, 20.934280395507812)

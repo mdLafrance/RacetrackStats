@@ -130,7 +130,7 @@ struct _GuiState {
 	bool selected_menu_Options = false;
 	bool selected_menu_File_LoadConfig = false;
 	bool selected_menu_File_ReloadConfig = false;
-	bool doShowMap = true;
+	bool doShowMap = false;
 	bool doShowFPSCounter = true;
 
 	~_GuiState() {
@@ -180,7 +180,7 @@ void organizeData() {
 
 void setGuiOptionsToDefault() {
 	GuiState.doShowFPSCounter = true;
-	GuiState.doShowMap = true;
+	GuiState.doShowMap = false;
 
 	GuiState.cameraSettingsChanged = true;
 
@@ -252,7 +252,7 @@ void drawUI() {
 	int w, h; // Used to hold various button and image widths and heights later on
 
 	// Data that is dependant on whether or not CSV data is loaded
-	int timelineMax = currentData == nullptr ? 0 : currentData->getNumberOfTimePoints();
+	int timelineMax = currentData == nullptr ? 0 : currentData->getNumberOfTimePoints() - 1;
 
 	// NOTE: Spent time looking for the right style element color for this, but ended up just eyedropping the color
 	ImVec4 bgColor = ImVec4(0.056, 0.056, 0.056, 1.0f);// ImGui::GetStyleColorVec4(ImGuiCol_TitleBg); // Cache background color for use with the icon buttons later
@@ -282,7 +282,7 @@ void drawUI() {
 
 			ImGui::Text("GUI Options");
 			ImGui::Separator();
-			ImGui::MenuItem("Show Map", NULL, &GuiState.doShowMap);
+			// ImGui::MenuItem("Show Map", NULL, &GuiState.doShowMap);
 			ImGui::MenuItem("Show FPS Counter", NULL, &GuiState.doShowFPSCounter);
 			ImGui::Text("Font Size");
 			ImGui::SameLine(300, 0);
@@ -298,9 +298,9 @@ void drawUI() {
 
 			ImGui::Text("Data Points On Graph");
 			ImGui::SameLine(300, 0);
-			ImGui::InputInt("## Data Points On Graph", &GuiState.dataBufferSize);
+			ImGui::InputInt("## Data Points On Graph", &GuiState.dataBufferSize, 0, 0);
 
-			GuiState.dataBufferSize = Utils::clamp(GuiState.dataBufferSize, 0, 5000);
+			if (currentData) GuiState.dataBufferSize = Utils::clamp(GuiState.dataBufferSize, 0, currentData->getNumberOfTimePoints());
 
 			ImGui::Separator();
 			ImGui::Separator();

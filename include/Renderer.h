@@ -15,15 +15,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-#include <Material.h> // Includes texture and shader .h
+#include <Material.h>
+#include <Texture.h>
+#include <Shader.h>
 #include <OBJ.h>
 #include <Camera.h>
 #include <Object.h>
 #include <Light.h>
 #include <WorldState.h>
 #include <Skybox.h>
-
-#include <TSQueue.hpp>
 
 #define MAX_LIGHT_COUNT 8
 

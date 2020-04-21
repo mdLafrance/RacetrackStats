@@ -42,7 +42,7 @@ CSV::CSV(const std::string& target) {
     int nullCounter = 0; // Create unique NULL<number> name for null named fields. (is there ever going to be more than 1?)
 
     // For each comma separated name of data field
-    for (std::string t : Utils::split(line_s, ',')) {
+    for (std::string t : Utils::split(line_s, ',', false)) {
         std::pair<std::string, std::string> dataAndType;
 
         // If data type is not given, identify it with unique null name, just in case

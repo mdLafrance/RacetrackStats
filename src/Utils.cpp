@@ -22,14 +22,14 @@ std::ostream& operator <<(std::ostream& os, const ImVec2& vec) {
 
 namespace Utils
 {
-	std::vector<std::string> split(const std::string& s, char delimiter) {
+	std::vector<std::string> split(const std::string& s, char delimiter, const bool& removeEmpty) {
 		std::vector<std::string> splitString;
 
 		std::string word = "";
 
 		for (int i = 0; i < s.length(); i++) {
 			if (s[i] == delimiter) {
-				if (word.size() > 0) splitString.push_back(word);
+				if (word.size() > 0 || removeEmpty == false) splitString.push_back(word);
 				word = "";
 				continue;
 			}

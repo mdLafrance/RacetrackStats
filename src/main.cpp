@@ -33,9 +33,10 @@
 #include <portable-file-dialogs.h> // 3rd party header library that creates system dialogs
 
 #include <Renderer.h>
-#include <Material.h>
+#include <Camera.h>
+#include <Object.h>
+#include <Transform.h>
 #include <WorldState.h>
-#include <Light.h>
 #include <CSV.h>
 #include <Utils.h>
 
@@ -63,8 +64,8 @@ _WorldState WorldState = { // State of the scene, used by the renderer and the g
 	WINDOW_DEFAULT_X,    // Proper values for renderer w h get filled in main
 	WINDOW_DEFAULT_Y,     
 	{0.0f, 0.0f, 0.0f},  // vec3 ambient color for the scene
-	nullptr,		     // (string) path to root of executable (set in main)
-	nullptr				 // (string) path to root of the mesh and texture data for mosport
+	"",		     // (string) path to root of executable (set in main)
+	""				 // (string) path to root of the mesh and texture data for mosport
 };
 
 //
@@ -73,8 +74,8 @@ _WorldState WorldState = { // State of the scene, used by the renderer and the g
 
 static Renderer* renderer;
 
-const char* exeLocation;
-const char* trackDataLocation;
+std::string exeLocation;
+std::string trackDataLocation;
 
 static const char* defaultDisplayDataConfigFileName = "display.config";
 
@@ -136,17 +137,17 @@ int main(int argc, char** argv) {
 	std::string executableDirectory = Utils::getFileInfo(*argv).directory;
 	std::cout << "Launching racetracks stats... (" << executableDirectory << ")" << std::endl << std::endl;
 
-	 //
+	// Data locations are relative to the executable file
+	// NOTE: for building and debugging, a symlink to these directories was made in the target location for the build
+	::WorldState.projectRoot = executableDirectory;
+	::WorldState.trackDataRoot = executableDirectory + "/Mosport";
+
+	//
 	// Initialize glfw and opengl
 	//
 
 	// Init Context
 	glfwInit();
-
-	// NOTE: This crashes Multithread ImGui for some reason
-	// glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	// glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	// glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	GLFWwindow* window = glfwCreateWindow(WINDOW_DEFAULT_X, WINDOW_DEFAULT_Y, WINDOW_TITLE, NULL, NULL);
 
@@ -181,23 +182,6 @@ int main(int argc, char** argv) {
 	glfwSetErrorCallback(Utils::glfwErrorCallbackFunction);
 	glfwSetCursorPosCallback(window, mouseMoveCallback);
 	glfwSetScrollCallback(window, mouseScrollCallback);
-
-
-	// For personal convenience when working, this is defined on one of my machines
-	bool onMSI = std::getenv("MSI") != nullptr;
-	// TODO: In final, this should be some relative path to the execuatable
-	if (onMSI) {
-		::WorldState.projectRoot = "D:/Hacking/RacetrackStats";
-		::WorldState.trackDataRoot = "D:/Hacking/RacetrackStats/Mosport";
-	}
-	else {
-		::WorldState.projectRoot = "C:/Users/maxto/OneDrive/Documents/Hacking/RacetrackStats";
-		::WorldState.trackDataRoot = "C:/Users/maxto/OneDrive/Documents/Hacking/RacetrackStats/Mosport";
-	}
-
-	// If on a different machine, set these parameters here
-	// ::WorldState.projectRoot = 
-	// ::WorldState.trackDataRoot = 
 
 	//
 	// Initialize imgui
@@ -241,7 +225,6 @@ int main(int argc, char** argv) {
 		cleanup();
 		return 0;
 	}
-
 	std::cout << "Selected " << selectedScene << std::endl;
 
 	glfwSetWindowPos(window, 40, 40); // Not necessary, just makes the window appear in a consistent spot
@@ -352,26 +335,6 @@ int main(int argc, char** argv) {
 			seconds0 = t0;
 		}
 
-		// TODO: just for testing
-		float rSpeed = 1;
-		float tSpeed = 3;
-
-		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-			BMW_transform->rotate(dTime * rSpeed, glm::vec3(0, 1, 0));
-		}
-
-		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-			BMW_transform->rotate(dTime * -rSpeed, glm::vec3(0, 1, 0));
-		}
-
-		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-			BMW_transform->translate(dTime * tSpeed * BMW_transform->forward());
-		}
-
-		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-			BMW_transform->translate(dTime * -tSpeed * BMW_transform->forward());
-		}
-
 		//
 		// Process user input
 		//
@@ -392,7 +355,7 @@ int main(int argc, char** argv) {
 				const float perspZoomSpeed = -0.8f;
 
 				if (mainCam == overheadCam) {
-					mainCam->setSize(mainCam->getSize() + orthoZoomSpeed * dMouseScrollY); // TODO: This should also probably control the near/far plane on this camera
+					mainCam->setSize(mainCam->getSize() + orthoZoomSpeed * 100 * dMouseScrollY); // TODO: This should also probably control the near/far plane on this camera
 				}
 				else if (mainCam == followCam) { 
 					mainCam->transform->translate({ 0, 0, perspZoomSpeed * dMouseScrollY });
@@ -454,7 +417,7 @@ int main(int argc, char** argv) {
 
 			if (choice.size() != 0) {
 				displayData = Utils::loadDisplaySettings(choice[0]);
-				organizeData();
+				if (currentData != nullptr) organizeData();
 			}
 		}
 
@@ -462,7 +425,7 @@ int main(int argc, char** argv) {
 		if (GuiState.selected_menu_File_ReloadConfig) {
 			std::string path = displayData.path;
 			displayData = Utils::loadDisplaySettings(path);
-			organizeData();
+			if (currentData != nullptr) organizeData();
 		}
 
 		static int lastTimelinePos = 0;
@@ -502,6 +465,37 @@ int main(int argc, char** argv) {
 					);
 				}
 			}
+
+			// TODO: This mapping is incorrect
+			// BMW_transform->setRotation(Utils::PI/2 + (Utils::DEG2RAD * currentData->getDataAsFloat(displayData.heading, GuiState.timelinePosition)), { 0,1,0 });
+
+			// const double x_k = -25371.907265;
+			// const double x_t = 1117473.59493;
+
+			// const double z_k = 419439.68871;
+			// const double z_t = 32997981.74362;
+
+			// const double track_min = -85.28016662597656;
+			// const double track_max = 20.934280395507812;
+
+			// static float elevation_min, elevation_max;
+			// static bool T = true;
+			// if (T) {
+			// 	currentData->getDataMinMax(displayData.elevation, &elevation_min, &elevation_max);
+			// 	T = false;
+			// }
+			// float e = currentData->getDataAsFloat(displayData.elevation, GuiState.timelinePosition);
+			// double k = (elevation_max - e) / (e - elevation_min);
+			// float h = (track_max + (track_min * k)) / (k + 1);
+
+			// float wx = (x_k * (double) currentData->getDataAsFloat(displayData.latitude, GuiState.timelinePosition)) + x_t;
+			// float wz = (z_k * (double) currentData->getDataAsFloat(displayData.longitude, GuiState.timelinePosition)) + z_t;
+
+			// BMW_transform->setTranslation({
+			// 	-wx,
+			// 	h,
+			// 	wz
+			// });
 		}
 
 		// Update line width if changed
@@ -558,7 +552,7 @@ int main(int argc, char** argv) {
 		ImGui::NewFrame();
 
 		// Dispatch ui thread
-		// NOTE: When drawing graphs, buffering CSV data can take similar time to drawing the scene, and doesn't rely on the renderer at all, so do this in parallel
+		// NOTE: When drawing graphs, buffering CSV data can take similar time to drawing the scene, and doesn't rely on the renderer at all, so can do this in parallel
 		std::thread UIDrawThread(drawUI);
 
 		// Render scene

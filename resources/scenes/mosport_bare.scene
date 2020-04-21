@@ -1,0 +1,15 @@
+name Mosport Bare
+
+mesh jr_mosport.obj
+mesh mosport_horizon.obj
+mesh mosport_layers.obj
+mesh BMW.obj
+
+material mtl_low/jr_mosport.mtl
+material mtl_low/mosport_horizon.mtl
+material -t mtl_low/mosport_layers.mtl
+material -t BMW.mtl
+
+ambient 0.3 0.3 0.3
+
+light directional -i 2 -v 2 -10 -5 -c 0.65 0.6 0.6

@@ -80,7 +80,7 @@ namespace Utils
 	}
 
 	// String manipulation utility
-	std::vector<std::string> split(const std::string& s, char delimiter);
+	std::vector<std::string> split(const std::string& s, char delimiter, const bool& removeEmpty = true);
 	std::string getFileNameNoExtension(const std::string& target);
 	std::string replace(const std::string& s, const char& a, const char& b);
 	std::string trimWhitespace(const std::string& s);
@@ -105,10 +105,10 @@ namespace Utils
 
 	public:
 		std::chrono::milliseconds lap();
-		std::string lap_s(const int& precision = 3); // Return string representation of current lap time 
+		std::string lap_s(); // Return string representation of current lap time 
 
 		std::chrono::milliseconds total();
-		std::string total_s(const int& precision = 3); // Return string representation of current run time
+		std::string total_s(); // Return string representation of current run time
 
 		void start(); // Reset stopwatch values
 
