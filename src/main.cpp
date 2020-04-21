@@ -139,6 +139,7 @@ int main(int argc, char** argv) {
 
 	// Data locations are relative to the executable file
 	// NOTE: for building and debugging, a symlink to these directories was made in the target location for the build
+	// But for convenience, these can be hardcoded for testing
 	::WorldState.projectRoot = executableDirectory;
 	::WorldState.trackDataRoot = executableDirectory + "/Mosport";
 
