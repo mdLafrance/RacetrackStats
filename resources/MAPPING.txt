@@ -3,6 +3,4 @@ world:
 -171.883, -2.306, -322.573 ~> 44.050511, -78.673374
 
 
-~ .07 seconds to float batch fetch all of GPS_Heading
-
 jr_mosport min max: (-85.28016662597656, 20.934280395507812)

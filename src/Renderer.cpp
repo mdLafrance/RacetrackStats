@@ -28,7 +28,7 @@ void Renderer::registerShader(const std::string& id, Shader* shader){
 void Renderer::registerMesh(const std::string& id, OBJMesh* mesh){
     if (this->meshes.count(id) == 0){
         this->meshes[id] = mesh;
-		std::cout << "Registered Mesh " << id << " (Material " << mesh->getDefaultMaterialName() << ")" << std::endl;
+		std::cout << "Registered Mesh " << id << std::endl;
     } else {
         std::cerr << "ERORR: Mesh " << id << " already registered." << std::endl;
     }
