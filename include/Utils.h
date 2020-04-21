@@ -116,6 +116,7 @@ namespace Utils
 		~StopWatch();
 	};
 
+	// Defines how a CSV data field should be displayed as a vector
 	struct CSVvector {
 		std::string dataField; // Name of the data field that will drive the vector
 		glm::vec3 origin; // Origin of the vector (relative to car local coordinates)
@@ -124,6 +125,7 @@ namespace Utils
 		bool doNormalize;
 	};
 
+	// Defines how a CSV data field should be displayed as a graph 
 	struct CSVgraph {
 		std::string dataField; // Name of the data field that will drive the graph
 		glm::vec3 color; // Color of the line
@@ -134,6 +136,7 @@ namespace Utils
 		float max;
 	};
 
+	// The display settings specified in a .config file
 	struct CSVDataDisplaySettings {
 		std::string path; // Path to the file where this originated
 

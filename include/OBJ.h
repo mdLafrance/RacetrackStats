@@ -26,6 +26,7 @@ class OBJMesh;
 
 namespace OBJ
 {
+	// Defines the range on which certain materials are active on a mesh
 	struct FaceMaterials {
 		std::string materialName;
 

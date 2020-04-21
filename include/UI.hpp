@@ -25,6 +25,7 @@ extern Utils::CSVDataDisplaySettings displayData;
 
 enum class DataType { Vector, Graph };
 
+// The state of a defined CSV data type as it exists in the ui
 struct DataState {
 	DataType type;
 
@@ -144,6 +145,7 @@ struct _GuiState {
 	}
 };
 
+// Organize and set up the data from a CSV file and config file
 void organizeData() {
 	GuiState.dataStates.clear();
 
@@ -171,10 +173,6 @@ void organizeData() {
 		currentData->getDataMinMax(g.dataField, &d.min, &d.max);
 
 		GuiState.dataStates.push_back(d);
-	}
-
-	for (DataState d : GuiState.dataStates) {
-		std::cout << d.toString() << std::endl;
 	}
 }
 

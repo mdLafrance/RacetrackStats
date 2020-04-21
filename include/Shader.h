@@ -29,6 +29,6 @@ public:
 	Shader(const std::string& vertexTarget, const std::string& fragmentTarget);
 	~Shader();
 
-	// GLSL doesn't natively support #include directive, so manually implement this if
+	// GLSL doesn't natively support #include directive, so manually implement this if followIncludes is true (TODO: untested as of now)
 	static std::string loadShaderSource(const std::string& target, const bool& followIncludes = true);
 };

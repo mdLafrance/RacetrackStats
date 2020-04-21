@@ -109,8 +109,6 @@ std::string Shader::loadShaderSource(const std::string& target, const bool& foll
 		}
 	}
 
-	source.pop_back(); // Remove last \n
-
 	return source;
 }
 

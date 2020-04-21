@@ -9,7 +9,7 @@ CSV::CSV(const std::string& target) {
     this->numberOfLines = 0;
 
     if (!f) {
-        std::cerr << "ERROR: Couldn't open cvs file " << target << " for reading." << std::endl;
+        std::cerr << "ERROR: Couldn't open cv file " << target << " for reading." << std::endl;
         this->data = nullptr;
         return;
     }

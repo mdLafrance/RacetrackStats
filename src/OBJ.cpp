@@ -1,16 +1,5 @@
 #include <OBJ.h>
 
-// inline void getFirstWord(const char* s, char* dest){
-// 	int i = 0;
-
-// 	while (s[i] != ' ' && s[i] != '\0'){
-// 		*(dest + i) = s[i];
-// 		i += 1;
-// 	}
-
-// 	*(dest+i) = '\0';
-// }
-
 namespace OBJ
 {
 	std::vector<OBJMesh*> load(const std::string& target) {

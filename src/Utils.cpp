@@ -1,7 +1,5 @@
 #include <Utils.h>
 
-// TODO: some of these could stand to get cleaned up a bit
-
 glm::vec3 operator *(float f, glm::vec3 v) {
 	return glm::vec3(f * v[0], f * v[1], f * v[2]);
 }

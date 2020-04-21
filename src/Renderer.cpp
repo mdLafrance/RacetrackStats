@@ -1,12 +1,5 @@
 #include <Renderer.h>
 
-std::string vec3ToString(const glm::vec3& v) {
-	char s[32];
-	sprintf(s, "[%.3f, %.3f, %.3f]", v[0], v[1], v[2]);
-
-	return std::string(s);
-}
-
 void Renderer::registerTexture(const std::string& id, Texture* texture){
     if (this->textures.count(id) == 0){
         this->textures[id] = texture;
@@ -433,70 +426,14 @@ Object* Renderer::getObject(const std::string& name) {
 }
 
 void Renderer::tick(const double& dTime) {
-	// TODO: translation rotation controls are just for testings, not to be included in future builds
-
 	++this->frameCount;
-
-	float translation[3] = { 0,0,0 };
-	float rotation[2] = { 0,0 };
-
-	float translateSpeed = dTime * 5;
-	float rotationSpeed = dTime * 1.0f;
-
-	// TRANSLATION
-	if (glfwGetKey(this->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-		glfwSetWindowShouldClose(this->window, true);
-	}
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		translation[1] = translateSpeed;
-	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		translation[0] = -translateSpeed;
-	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		translation[1] = -translateSpeed;
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		translation[0] = translateSpeed;
-	}
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-		translation[2] = translateSpeed;
-	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-		translation[2] = -translateSpeed;
-	}
-
-	Transform* camTransform = this->mainCamera->transform;
-
-	glm::vec3 dx, dy, dz;
-	if (abs(translation[0]) > 0.01) {
-		dx = -1 * translation[0] * camTransform->right();
-		dx.y = 0;
-		dx = glm::normalize(dx);
-		dx *= translateSpeed;
-	}
-	else {
-		dx = { 0,0,0 };
-	}
-
-	dy = translation[2] * glm::vec3(0, 1, 0);
-
-	if (abs(translation[1]) > 0.01) {
-		dz = -1.0f * translation[1] * camTransform->forward();
-		dz.y = 0;
-		dz = normalize(dz);
-		dz *= translateSpeed;
-	}
-	else {
-		dz = { 0,0,0 };
-	}
-
-	camTransform->translate(dx + dy + dz);
 
 	// Get light matrices (fast if they havent changed)
 	for (int i = 0; i < this->numOfLights; i++) {
 		*(this->lightMatrices + i) = (this->lights + i)->getMatrix();
 	}
+
+	Transform* camTransform = this->mainCamera->transform;
 
 	// VP matrix for this frame
 	glm::mat4 VP = this->mainCamera->projectionViewMatrix();
